@@ -1,0 +1,37 @@
+default:
+  image: python:3.12-slim
+
+stages:
+  - lint
+  - test
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  paths:
+    - .cache/pip
+    - .venv/
+
+before_script:
+  - python --version
+  - python -m venv .venv
+  - . .venv/bin/activate
+  - pip install --upgrade pip
+  - pip install -r requirements.txt
+
+lint:
+  stage: lint
+  script:
+    - ruff check .
+    - ruff format --check .
+    - mypy app tests
+
+test:
+  stage: test
+  script:
+    - pytest tests/ -v --junitxml=report.xml
+  artifacts:
+    when: always
+    reports:
+      junit: report.xml

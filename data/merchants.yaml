@@ -1,0 +1,13 @@
+- id: alchemist
+  name: "Alchemistin Elira"
+  room_id: town_market
+  greeting: "Seid gegrüßt, Wanderer. Benötigt Ihr Tränke oder Vorräte für Eure Reise?"
+  buys: all
+  sell_ratio: 0.25
+  sells:
+    - item_id: healing_potion
+      price: 15
+    - item_id: bread
+      price: 3
+    - item_id: small_bag
+      price: 25

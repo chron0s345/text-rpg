@@ -1,0 +1,78 @@
+- id: town_square
+  name: "Marktplatz von Oakhaven"
+  description: "Ein lebhafter Platz im Herzen der Stadt. Ein plätschernder Brunnen spendet frisches Wasser."
+  safe: true
+  checkpoint: true
+  bank: false
+  exits:
+    north: town_bank
+    east: town_market
+    south: forest_gate
+  spawns: []
+  items: []
+
+- id: town_bank
+  name: "Bank von Oakhaven"
+  description: "Ein stabiles Steingebäude mit schwer beschlagenen Eichentüren. Hier werden Wertsachen sicher verwahrt."
+  safe: true
+  checkpoint: false
+  bank: true
+  exits:
+    south: town_square
+  spawns: []
+  items: []
+
+- id: town_market
+  name: "Kaufmannsstand"
+  description: "Verschiedene Waren liegen auf Holztischen aus. Ein Händler preist lautstark seine Vorräte an."
+  safe: true
+  checkpoint: false
+  bank: false
+  exits:
+    west: town_square
+  spawns: []
+  items: []
+
+- id: forest_gate
+  name: "Südtor zum Wald"
+  description: "Die hölzernen Stadtpalisaden enden hier. Vor dir erstreckt sich die dichte Wildnis."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    north: town_square
+    south: dark_forest
+  spawns: []
+  items: []
+
+- id: dark_forest
+  name: "Dunkler Wald"
+  description: "Dichte Baumkronen schlucken das Sonnenlicht. Du hörst Rascheln im Unterholz."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    north: forest_gate
+    east: goblin_camp
+  spawns:
+    - monster_id: goblin
+      count: 1
+    - monster_id: wolf
+      count: 1
+  items: []
+
+- id: goblin_camp
+  name: "Goblin-Lager"
+  description: "Knorrige Hütten aus Ästen und Dreck umgeben eine erloschene Feuerstelle."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    west: dark_forest
+  spawns:
+    - monster_id: goblin
+      count: 2
+  items:
+    - item_id: bread
+      quantity: 2
+      respawn_seconds: 120

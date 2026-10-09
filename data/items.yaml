@@ -1,0 +1,74 @@
+- id: rusty_dagger
+  name: "Rostiger Dolch"
+  description: "Eine alte, leicht rostige Klinge. Besser als nichts."
+  kind: weapon
+  slot: weapon
+  icon: "dagger"
+  value: 10
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 2
+
+- id: leather_armor
+  name: "Lederrüstung"
+  description: "Einfaches gegerbtes Leder, das vor leichten Schlägen schützt."
+  kind: armor
+  slot: chest
+  icon: "armor"
+  value: 20
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 2
+
+- id: small_bag
+  name: "Kleine Tasche"
+  description: "Ein kleiner Beutel aus Leinen, der zusätzlichen Stauraum bietet."
+  kind: bag
+  slot: bag
+  icon: "bag"
+  bag_slots: 2
+  value: 25
+  sellable: true
+  stackable: false
+
+- id: healing_potion
+  name: "Heiltrank"
+  description: "Ein Glasfläschchen mit roter Flüssigkeit. Stellt sofort 15 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "potion"
+  value: 15
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - type: heal
+      amount: 15
+
+- id: goblin_ear
+  name: "Goblinohr"
+  description: "Ein Trophäen-Ohr eines Goblins. Händler zahlen ein paar Münzen dafür."
+  kind: misc
+  icon: "trophy"
+  value: 4
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: bread
+  name: "Frisches Brot"
+  description: "Ein Laib frisch gebackenes Brot. Stellt 6 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "bread"
+  value: 3
+  sellable: true
+  stackable: true
+  max_stack: 10
+  effects:
+    - type: heal
+      amount: 6

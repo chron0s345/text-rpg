@@ -1,0 +1,45 @@
+- id: goblin
+  name: "Goblin-Späher"
+  max_hp: 12
+  attack: 4
+  defense: 1
+  xp_reward: 15
+  gold_reward: [1, 5]
+  respawn_seconds: 60
+  regen:
+    delay_seconds: 10
+    hp_per_second: 1.0
+  ambush:
+    chance_on_enter: 0.15
+    chance_per_tick: 0.05
+    max_level_difference: 3
+  loot_table:
+    - item_id: goblin_ear
+      chance: 0.8
+      min_qty: 1
+      max_qty: 1
+    - item_id: rusty_dagger
+      chance: 0.15
+      min_qty: 1
+      max_qty: 1
+
+- id: wolf
+  name: "Hungriger Wolf"
+  max_hp: 18
+  attack: 6
+  defense: 2
+  xp_reward: 25
+  gold_reward: [0, 0]
+  respawn_seconds: 90
+  regen:
+    delay_seconds: 15
+    hp_per_second: 1.5
+  ambush:
+    chance_on_enter: 0.2
+    chance_per_tick: 0.08
+    max_level_difference: 2
+  loot_table:
+    - item_id: healing_potion
+      chance: 0.25
+      min_qty: 1
+      max_qty: 1
