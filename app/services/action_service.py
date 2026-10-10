@@ -13,13 +13,14 @@ Lock conflicts (``SnapshotChangedError``, deadlock, serialization failure) are r
 
 from __future__ import annotations
 
+import logging
 import random
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlmodel import col
@@ -41,7 +42,7 @@ from app.api.schemas import (
 )
 from app.content.registry import ContentRegistry
 from app.db.models import LogEntry, Player
-from app.db.repository import Repository, SnapshotChangedError
+from app.db.repository import Repository, SnapshotChangedError, UnknownPlayerError
 from app.engine.actions import resolve_look, resolve_respawn, resolve_say
 from app.engine.combat import resolve_attack, resolve_flee
 from app.engine.events import (
@@ -66,6 +67,8 @@ from app.engine.respawn import respawn_due_monsters
 from app.engine.state import ActionSnapshot
 from app.services.events import EventPublisher
 
+logger = logging.getLogger(__name__)
+
 MAX_ATTEMPTS = 3
 RETRYABLE_SQLSTATES = {"40001", "40P01"}  # serialization failure, deadlock detected
 TOO_FAST = "Nicht so schnell."
@@ -78,6 +81,14 @@ class NotPlayingError(Exception):
 
 class RetryLimitExceededError(Exception):
     """Lock conflicts persisted over all attempts."""
+
+
+@dataclass(frozen=True)
+class PreRead:
+    room_id: str
+    checkpoint_room_id: str
+    online: bool
+    last_action_at: datetime | None
 
 
 @dataclass(frozen=True)
@@ -124,7 +135,12 @@ class ActionService:
                     continue
                 raise
             # committed: now (and only now) other players learn about it
-            await self.publisher.publish(to_publish)
+            try:
+                await self.publisher.publish(to_publish)
+            except Exception:
+                # The action is saved; failing the request would make the client resend it.
+                # Recipients catch up through their log entries (GET /log?after=...).
+                logger.exception("publishing events of %s failed", player_id)
             return outcome
         raise RetryLimitExceededError(f"action of {player_id} kept conflicting")
 
@@ -136,45 +152,75 @@ class ActionService:
         now = self.clock()
         rng = self.rng_factory()
         async with self.sessions() as session, session.begin():
-            origin, checkpoint = await self._pre_read(session, player_id)
-            room = self._target_room(action, origin, checkpoint)
+            pre = await self._pre_read(session, player_id)
+            # Cheap rejections before any row lock, so spamming requests cannot tie up
+            # connections or block other players in the room. The checks below on the
+            # locked row stay authoritative.
+            if not pre.online:
+                raise NotPlayingError(player_id)
+            if self._too_fast(pre.last_action_at, now) or not await self._claim(session, player_id):
+                return ActionOutcome(events=rejected(TOO_FAST).events), []
 
+            room = self._target_room(action, pre.room_id, pre.checkpoint_room_id)
             repo = Repository(session)
-            snapshot = await repo.load_action_snapshot(player_id, room)
+            try:
+                snapshot = await repo.load_action_snapshot(player_id, room)
+            except UnknownPlayerError as exc:  # deleted in the meantime
+                raise NotPlayingError(player_id) from exc
             actor = await session.get(Player, player_id)  # refreshed under the lock
             if actor is None or not actor.online or actor.deleted_at is not None:
                 raise NotPlayingError(player_id)
-            if (actor.current_room_id, actor.checkpoint_room_id) != (origin, checkpoint):
+            if (actor.current_room_id, actor.checkpoint_room_id) != (
+                pre.room_id,
+                pre.checkpoint_room_id,
+            ):
                 raise SnapshotChangedError(f"{player_id} moved during the snapshot load")
+            if self._too_fast(actor.last_action_at, now):
+                return ActionOutcome(events=rejected(TOO_FAST).events), []
 
-            interval = timedelta(milliseconds=self.content.rules.timings.min_action_interval_ms)
-            if actor.last_action_at is not None and now - actor.last_action_at < interval:
-                events = rejected(TOO_FAST).events
-            else:
-                actor.last_action_at = now
-                respawns = respawn_due_monsters(snapshot, self.content, now)
-                await repo.apply_changes(respawns.changes)
-                result = self._dispatch(action, snapshot, now, rng)
-                await repo.apply_changes(result.changes)
-                events = [*respawns.events, *result.events]
-
+            actor.last_action_at = now
+            respawns = respawn_due_monsters(snapshot, self.content, now)
+            await repo.apply_changes(respawns.changes)
+            result = self._dispatch(action, snapshot, now, rng)
+            await repo.apply_changes(result.changes)
+            events = [*respawns.events, *result.events]
             await self._write_log(session, player_id, events, now)
 
         actor_events = [e for e in events if isinstance(e.audience, ActorAudience)]
         others = [e for e in events if not isinstance(e.audience, ActorAudience)]
         return ActionOutcome(events=actor_events), others
 
-    async def _pre_read(self, session: AsyncSession, player_id: UUID) -> tuple[str, str]:
+    def _too_fast(self, last_action_at: datetime | None, now: datetime) -> bool:
+        if last_action_at is None:
+            return False
+        interval = timedelta(milliseconds=self.content.rules.timings.min_action_interval_ms)
+        # a clock that went backwards (other worker, NTP step) never locks a player out
+        return timedelta(0) <= now - last_action_at < interval
+
+    async def _claim(self, session: AsyncSession, player_id: UUID) -> bool:
+        """At most one action per player in flight across all processes. Non-blocking (try),
+        transaction-scoped, taken before any row lock: cannot deadlock with the lock order."""
+        claimed = await session.scalar(
+            select(func.pg_try_advisory_xact_lock(func.hashtextextended(f"action:{player_id}", 0)))
+        )
+        return bool(claimed)
+
+    async def _pre_read(self, session: AsyncSession, player_id: UUID) -> PreRead:
+        """Unlocked read of the actor; only used to choose rows to lock and for cheap
+        rejections. Everything that matters is re-checked on the locked row."""
         row = (
             await session.execute(
-                select(col(Player.current_room_id), col(Player.checkpoint_room_id)).where(
-                    col(Player.id) == player_id, col(Player.deleted_at).is_(None)
-                )
+                select(
+                    col(Player.current_room_id),
+                    col(Player.checkpoint_room_id),
+                    col(Player.online),
+                    col(Player.last_action_at),
+                ).where(col(Player.id) == player_id, col(Player.deleted_at).is_(None))
             )
         ).first()
         if row is None:
             raise NotPlayingError(player_id)
-        return row.current_room_id, row.checkpoint_room_id
+        return PreRead(*row)
 
     def _target_room(self, action: GameAction, origin: str, checkpoint: str) -> str:
         """The room the action ends in, i.e. the room the snapshot must describe."""

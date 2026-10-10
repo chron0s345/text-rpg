@@ -685,9 +685,11 @@ Jede Aktion und jeder Ticker-Schritt ist **eine Datenbanktransaktion**. Nach dem
 Umsetzung: `ActionService.execute` (`app/services/action_service.py`).
 
 - Vor der Aktion werden fällige Monster im Raum lazy respawnt (`engine/respawn.py`).
-- Rate Limit: Aktionen innerhalb von `min_action_interval_ms` nach der letzten werden mit „Nicht so schnell.“ abgelehnt (ohne Zustandsänderung).
+- Rate Limit: Aktionen innerhalb von `min_action_interval_ms` nach der letzten werden mit „Nicht so schnell.“ abgelehnt – ohne Zustandsänderung und ohne Log-Eintrag. Schon **vor** jeder Zeilensperre wird abgewiesen, wenn die ungesperrte Vorab-Lesung zu kurz nach der letzten Aktion liegt oder bereits eine andere Aktion desselben Spielers läuft (nicht blockierendes `pg_try_advisory_xact_lock` pro Spieler). So kann ein Client mit vielen parallelen Anfragen weder Verbindungen binden noch andere Spieler im Raum ausbremsen. Verbindlich bleibt die Prüfung am gesperrten Datensatz. Eine rückwärts gestellte Uhr sperrt niemanden aus.
+- Veröffentlichen ist „best effort“: Schlägt es nach dem Commit fehl, wird das geloggt und die Aktion trotzdem als erfolgreich beantwortet (sonst würde der Client sie erneut senden). Empfänger holen verpasste Events über ihre Log-Einträge nach.
 - Log-Einträge bekommt jeder Empfänger eines Events (Handelnder, `Players`, Online-Spieler im Raum, Gruppenmitglieder; ausgeschlossene Spieler nicht; `Global` wird nicht pro Spieler geloggt).
 - Wiederholt wird bei `SnapshotChangedError`, Deadlock (`40P01`) und Serialisierungsfehler (`40001`), höchstens dreimal; danach `RetryLimitExceededError`.
+- Ist der Charakter offline, gelöscht oder unbekannt (auch wenn das erst während des Wartens auf die Sperre passiert), gibt es `NotPlayingError` (HTTP 401).
 - Zufall: `random.SystemRandom` (Würfe sind nicht aus früheren Ergebnissen vorhersagbar); Tests injizieren einen festen Seed und eine feste Uhr.
 - Aktionen späterer Schritte (Gruppen, Handel, Bank, Händler, Logout) werden vorerst mit „Diese Aktion ist noch nicht verfügbar.“ abgelehnt.
 

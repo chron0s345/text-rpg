@@ -14,7 +14,11 @@ from app.engine.events import GameEvent
 
 class EventPublisher(Protocol):
     async def publish(self, events: Sequence[GameEvent]) -> None:
-        """Delivers events to their audiences. Called only after the transaction committed."""
+        """Delivers events to their audiences. Called only after the transaction committed.
+
+        Best effort: a failure is logged by the caller and does not undo or fail the action;
+        recipients catch up via their log entries.
+        """
 
 
 class NullPublisher:

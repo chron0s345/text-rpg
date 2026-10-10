@@ -52,6 +52,15 @@ class ServiceHarness:
         self.committed.rooms.append(room_id)
         return room_id
 
+    def scratch_path(self) -> tuple[str, str]:
+        """Private copies of forest_gate and dark_forest, linked south/north to each other
+        (and otherwise like the originals: unsafe, no checkpoint)."""
+        gate, forest = self.scratch_room("forest_gate"), self.scratch_room("dark_forest")
+        rooms = self.content.rooms
+        rooms[gate] = rooms[gate].model_copy(update={"exits": {"south": forest}})
+        rooms[forest] = rooms[forest].model_copy(update={"exits": {"north": gate}})
+        return gate, forest
+
 
 @pytest.fixture(scope="session")
 def content() -> ContentRegistry:
