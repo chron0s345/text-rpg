@@ -5,6 +5,9 @@ import yaml
 
 from app.content.schemas import Rules
 
+# PostgreSQL fixtures (one Testcontainers instance per test session, shared by all packages)
+pytest_plugins = ["tests.pg"]
+
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
 

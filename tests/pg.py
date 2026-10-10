@@ -1,4 +1,6 @@
-"""PostgreSQL via Testcontainers. Tests in this package are skipped when Docker is unavailable.
+"""PostgreSQL fixtures (pytest plugin, registered in tests/conftest.py) via Testcontainers.
+
+Tests using these fixtures are skipped when Docker is unavailable (CI fails on skips).
 
 The schema is created with the real Alembic migrations (upgrade -> downgrade -> upgrade, so the
 downgrade path is exercised too). Each test runs in a transaction that is rolled back.
@@ -17,7 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from app.db.session import create_engine
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.fixture(scope="session")

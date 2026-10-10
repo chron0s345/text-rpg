@@ -26,8 +26,8 @@ from app.db.seed import seed
 from app.engine.events import PlayerUpdate, StateChanges
 from app.engine.state import ActionSnapshot
 from tests.conftest import DATA_DIR
-from tests.db.conftest import Committed, backend_pid, wait_until_blocked
 from tests.db.factories import NOW, add_player
+from tests.pg import Committed, backend_pid, wait_until_blocked
 
 
 async def setup_actor(committed: Committed, room: str) -> Player:
@@ -61,10 +61,16 @@ async def against_writer(
     try:
         await wait_until_blocked(committed.engine, writer_pid)
         await writer.commit()
-    except BaseException:
-        await writer.rollback()
-        with contextlib.suppress(BaseException):
-            await asyncio.wait_for(task, timeout=10)
+    except BaseException as failure:
+        try:
+            await writer.rollback()
+        finally:
+            # always settle the task (it can finish once the writer's locks are gone)
+            with contextlib.suppress(BaseException):
+                await asyncio.wait_for(task, timeout=10)
+        if task.done() and not task.cancelled() and task.exception() is not None:
+            # the load failed early: its own error explains the failure better than ours
+            raise task.exception() from failure  # type: ignore[misc]
         raise
     return await asyncio.wait_for(task, timeout=30)
 
@@ -206,3 +212,15 @@ async def test_repository_refuses_locks_inside_a_savepoint(committed: Committed)
         await db.begin_nested()
         with pytest.raises(StaleRepositoryError):
             await Repository(db).load_action_snapshot(actor.id)
+
+
+async def test_savepoint_after_locking_blocks_apply(committed: Committed) -> None:
+    actor = await setup_actor(committed, f"room-{uuid4().hex[:6]}")
+    async with committed.session() as db, db.begin():
+        repo = Repository(db)
+        await repo.load_action_snapshot(actor.id)
+        await db.begin_nested()
+        with pytest.raises(StaleRepositoryError):
+            await repo.apply_changes(
+                StateChanges(players=[PlayerUpdate(player_id=actor.id, gold=1)])
+            )
