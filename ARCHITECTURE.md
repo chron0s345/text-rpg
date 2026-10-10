@@ -87,6 +87,7 @@ app/
 │   ├── channels.py      # Raum, Spieler, Gruppe, global
 │   └── connections.py   # SSE-Verbindungen pro Prozess
 ├── services/            # Orchestrierung: sperrt & lädt Zustand, ruft Engine, speichert, publiziert
+│   ├── events.py            # EventPublisher-Interface (Umsetzung im Realtime-Layer)
 │   ├── action_service.py
 │   ├── session_service.py   # Login/Logout eines Charakters, Disconnect-Handling
 │   └── world_ticker.py      # Respawns, Aufräumen, Disconnect-Fristen
@@ -681,6 +682,15 @@ Jede Aktion und jeder Ticker-Schritt ist **eine Datenbanktransaktion**. Nach dem
 8. **Erst nach dem Commit** werden Events publiziert. Ein Rollback darf nie Events erzeugen.
 9. Route rendert die Antwort-Partials für den Handelnden.
 
+Umsetzung: `ActionService.execute` (`app/services/action_service.py`).
+
+- Vor der Aktion werden fällige Monster im Raum lazy respawnt (`engine/respawn.py`).
+- Rate Limit: Aktionen innerhalb von `min_action_interval_ms` nach der letzten werden mit „Nicht so schnell.“ abgelehnt (ohne Zustandsänderung).
+- Log-Einträge bekommt jeder Empfänger eines Events (Handelnder, `Players`, Online-Spieler im Raum, Gruppenmitglieder; ausgeschlossene Spieler nicht; `Global` wird nicht pro Spieler geloggt).
+- Wiederholt wird bei `SnapshotChangedError`, Deadlock (`40P01`) und Serialisierungsfehler (`40001`), höchstens dreimal; danach `RetryLimitExceededError`.
+- Zufall: `random.SystemRandom` (Würfe sind nicht aus früheren Ergebnissen vorhersagbar); Tests injizieren einen festen Seed und eine feste Uhr.
+- Aktionen späterer Schritte (Gruppen, Handel, Bank, Händler, Logout) werden vorerst mit „Diese Aktion ist noch nicht verfügbar.“ abgelehnt.
+
 ### Locking
 
 - `SELECT ... FOR UPDATE` auf betroffene Zeilen.
@@ -783,7 +793,19 @@ class TradeConfirmAction(BaseModel):
     revision: int  # muss der aktuellen Revision entsprechen
 
 
-# ... flee, use_item, equip, unequip, pick_up, drop, group_accept,
+class PickUpAction(BaseModel):
+    type: Literal["pick_up"]
+    floor_item_id: UUID
+    quantity: PositiveInt | None = None  # None = so viel wie passt
+
+
+class DropAction(BaseModel):
+    type: Literal["drop"]
+    inventory_item_id: UUID
+    quantity: PositiveInt | None = None  # None = ganzer Stapel
+
+
+# ... flee, use_item, equip, unequip, inventory, group_accept,
 #     group_leave, group_kick, respawn, look,
 #     trade_request, trade_accept, trade_offer_gold, trade_remove_item, trade_cancel,
 #     bank_deposit, bank_withdraw, buy, sell

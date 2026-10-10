@@ -40,12 +40,13 @@ class UnequipAction(BaseModel):
 class PickUpAction(BaseModel):
     type: Literal["pick_up"] = "pick_up"
     floor_item_id: UUID
+    quantity: PositiveInt | None = None  # None = as much as fits
 
 
 class DropAction(BaseModel):
     type: Literal["drop"] = "drop"
     inventory_item_id: UUID
-    quantity: PositiveInt = 1
+    quantity: PositiveInt | None = None  # None = the whole stack
 
 
 class SayAction(BaseModel):
@@ -146,6 +147,10 @@ class LookAction(BaseModel):
     type: Literal["look"] = "look"
 
 
+class InventoryAction(BaseModel):
+    type: Literal["inventory"] = "inventory"
+
+
 class LogoutAction(BaseModel):
     type: Literal["logout"] = "logout"
     confirm_death: bool = False
@@ -178,6 +183,7 @@ GameAction = Annotated[
     | SellAction
     | RespawnAction
     | LookAction
+    | InventoryAction
     | LogoutAction,
     Field(discriminator="type"),
 ]
