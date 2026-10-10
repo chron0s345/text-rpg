@@ -2,12 +2,20 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field, NonNegativeInt, PositiveFloat, PositiveInt
+from pydantic import (
+    BaseModel,
+    Field,
+    NonNegativeInt,
+    PositiveFloat,
+    PositiveInt,
+    model_validator,
+)
 
 Direction = Literal["north", "south", "east", "west", "up", "down"]
 ItemKind = Literal["weapon", "armor", "consumable", "bag", "misc"]
-EquipSlot = Literal["weapon", "armor", "head", "chest", "legs", "feet", "bag"]
+EquipSlot = Literal["weapon", "head", "chest", "legs", "feet", "bag"]
 PlayerState = Literal["exploring", "in_combat", "dead"]
+Probability = Annotated[float, Field(ge=0.0, le=1.0)]
 
 
 class SpawnRule(BaseModel):
@@ -39,14 +47,15 @@ class Regeneration(BaseModel):
 
 
 class Ambush(BaseModel):
-    chance_on_enter: float = Field(ge=0.0, le=1.0)  # beim Betreten des Raums
-    chance_per_tick: float = Field(ge=0.0, le=1.0)  # während Spieler im Raum verweilen
-    max_level_difference: int | None = None  # greift keine deutlich stärkeren Spieler an
+    chance_on_enter: Probability  # beim Betreten des Raums
+    chance_per_tick: Probability  # während Spieler im Raum verweilen
+    # greift keine Spieler an, deren Level um mehr als diesen Wert über dem Monster-Level liegt
+    max_level_difference: NonNegativeInt | None = None
 
 
 class LootEntry(BaseModel):
     item_id: str
-    chance: float = Field(ge=0.0, le=1.0)
+    chance: Probability
     min_qty: PositiveInt = 1
     max_qty: PositiveInt = 1
 
@@ -54,6 +63,7 @@ class LootEntry(BaseModel):
 class MonsterTemplate(BaseModel):
     id: str
     name: str
+    level: PositiveInt = 1  # Grundlage für Ambush.max_level_difference
     max_hp: PositiveInt
     attack: NonNegativeInt
     defense: NonNegativeInt
@@ -92,7 +102,7 @@ class ItemTemplate(BaseModel):
     max_stack: PositiveInt = 1  # > 1 nur bei stackable
     keep_on_death: bool = False  # z. B. Quest-Items, nie verlierbar
     tradable: bool = True  # Quest-Items u. Ä. nicht handelbar
-    icon: str | None = None  # Icon Identifier oder Emoji für UI-Darstellung
+    icon: str | None = None  # Dateiname (ohne .svg) in app/web/static/icons/
     effects: list[Effect] = Field(default_factory=list)
 
 
@@ -109,40 +119,63 @@ class MerchantTemplate(BaseModel):
     sells: list[MerchantOffer] = Field(default_factory=list)  # Sortiment, unbegrenzter Vorrat
     buys: Literal["all", "listed"] = "all"
     buys_kinds: list[ItemKind] = Field(default_factory=list)  # bei "listed": nur diese Item-Arten
-    sell_ratio: float | None = None  # überschreibt rules.merchant.sell_ratio
+    sell_ratio: Probability | None = None  # überschreibt rules.merchant.sell_ratio
+
+
+# --- rules.yaml -------------------------------------------------------------
+# Bewusst ohne Defaults: Alle Balancing-Werte stehen ausschließlich in data/rules.yaml.
 
 
 class InventoryRules(BaseModel):
-    slots: PositiveInt = 20
-    bag_slots: PositiveInt = 4
+    slots: PositiveInt
+    bag_slots: PositiveInt
 
 
 class BankRules(BaseModel):
-    slots: PositiveInt = 40
+    slots: PositiveInt
 
 
 class MerchantRules(BaseModel):
-    buy_ratio: float = 1.0
-    sell_ratio: float = 0.25
+    buy_ratio: PositiveFloat
+    sell_ratio: Probability
 
 
 class TradeRules(BaseModel):
-    request_ttl_seconds: PositiveInt = 60
-    max_offer_entries: PositiveInt = 8
+    request_ttl_seconds: PositiveInt
+    max_offer_entries: PositiveInt
 
 
 class DeathRules(BaseModel):
-    gold_loss_percent: tuple[NonNegativeInt, NonNegativeInt] = (5, 20)
-    item_loss_chance: float = Field(default=0.15, ge=0.0, le=1.0)
-    equipped_loss_chance: float = Field(default=0.05, ge=0.0, le=1.0)
-    max_items_lost: PositiveInt = 3
+    gold_loss_percent: tuple[NonNegativeInt, NonNegativeInt]
+    item_loss_chance: Probability
+    equipped_loss_chance: Probability
+    max_items_lost: NonNegativeInt
+
+    @model_validator(mode="after")
+    def _check_range(self) -> DeathRules:
+        lo, hi = self.gold_loss_percent
+        if lo > hi or hi > 100:
+            raise ValueError(f"gold_loss_percent must satisfy 0 <= min <= max <= 100, got {lo, hi}")
+        return self
+
+
+class CombatRules(BaseModel):
+    min_damage: PositiveInt  # Mindestschaden pro Treffer
+    damage_variance: NonNegativeInt  # Schaden schwankt um ±damage_variance
+    flee_chance: Probability  # Erfolgschance einer Flucht
+
+
+class XpRules(BaseModel):
+    # Gewicht untätiger Gruppenmitglieder im Raum, relativ zum Durchschnittsschaden der Angreifer
+    group_idle_share: Probability
 
 
 class TimingsRules(BaseModel):
-    floor_item_ttl_seconds: PositiveInt = 600
-    disconnect_grace_seconds: PositiveInt = 60
-    ticker_interval_seconds: PositiveInt = 5
-    min_action_interval_ms: PositiveInt = 800
+    floor_item_ttl_seconds: PositiveInt
+    disconnect_grace_seconds: PositiveInt
+    ticker_interval_seconds: PositiveInt
+    min_action_interval_ms: PositiveInt
+    group_invite_ttl_seconds: PositiveInt
 
 
 class LevelRule(BaseModel):
@@ -154,14 +187,34 @@ class LevelRule(BaseModel):
 
 
 class Rules(BaseModel):
-    start_room_id: str = "town_square"
-    town_room_id: str = "town_square"
-    max_characters_per_account: PositiveInt = 5
-    max_group_size: PositiveInt = 4
-    inventory: InventoryRules = Field(default_factory=InventoryRules)
-    bank: BankRules = Field(default_factory=BankRules)
-    merchant: MerchantRules = Field(default_factory=MerchantRules)
-    trade: TradeRules = Field(default_factory=TradeRules)
-    death: DeathRules = Field(default_factory=DeathRules)
-    timings: TimingsRules = Field(default_factory=TimingsRules)
-    levels: list[LevelRule] = Field(default_factory=list)
+    start_room_id: str
+    town_room_id: str
+    max_characters_per_account: PositiveInt
+    max_group_size: PositiveInt
+    inventory: InventoryRules
+    bank: BankRules
+    merchant: MerchantRules
+    trade: TradeRules
+    death: DeathRules
+    combat: CombatRules
+    xp: XpRules
+    timings: TimingsRules
+    levels: list[LevelRule] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _check_levels(self) -> Rules:
+        ordered = sorted(self.levels, key=lambda rule: rule.level)
+        if ordered[0].level != 1 or ordered[0].xp_required != 0:
+            raise ValueError("levels must start with level 1 at xp_required 0")
+        for prev, cur in zip(ordered, ordered[1:], strict=False):
+            if cur.level != prev.level + 1:
+                raise ValueError(f"levels must be consecutive, gap after level {prev.level}")
+            if cur.xp_required <= prev.xp_required:
+                raise ValueError(f"xp_required must increase (level {cur.level})")
+        return self
+
+    def level_rule(self, level: int) -> LevelRule:
+        for rule in self.levels:
+            if rule.level == level:
+                return rule
+        raise KeyError(f"No level rule for level {level}")

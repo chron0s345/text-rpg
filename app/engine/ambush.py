@@ -29,9 +29,8 @@ def check_enter_ambush(
             continue
 
         if tmpl.ambush.max_level_difference is not None:
-            # Monster doesn't attack much stronger players
-            # e.g., player_level - 1 > max_level_difference
-            if player_level > tmpl.ambush.max_level_difference:
+            # Monster doesn't attack players too far above its own level
+            if player_level - tmpl.level > tmpl.ambush.max_level_difference:
                 continue
 
         if rng.random() < tmpl.ambush.chance_on_enter:

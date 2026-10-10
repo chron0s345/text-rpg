@@ -1,5 +1,6 @@
 - id: goblin
   name: "Goblin-Späher"
+  level: 1
   max_hp: 12
   attack: 4
   defense: 1
@@ -25,6 +26,7 @@
 
 - id: wolf
   name: "Hungriger Wolf"
+  level: 2
   max_hp: 18
   attack: 6
   defense: 2

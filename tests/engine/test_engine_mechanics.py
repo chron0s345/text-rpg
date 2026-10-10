@@ -11,13 +11,13 @@ from app.content.schemas import (
 )
 from app.engine.death import resolve_death_losses
 from app.engine.inventory import (
-    InventoryItemState,
     add_item_to_inventory,
     calculate_inventory_capacity,
     can_unequip_bag,
     get_occupied_slots,
 )
 from app.engine.regeneration import calculate_current_monster_hp
+from app.engine.state import InventoryItemState, new_id
 from app.engine.stats import calculate_effective_stats
 
 
@@ -44,7 +44,10 @@ def test_effective_stats_calculation() -> None:
         base_max_hp=20,
         base_attack=5,
         base_defense=2,
-        equipped_items=[("dagger", "weapon"), ("armor", "chest")],
+        inventory=[
+            InventoryItemState(id=uuid4(), item_id="dagger", quantity=1, equipped_slot="weapon"),
+            InventoryItemState(id=uuid4(), item_id="armor", quantity=1, equipped_slot="chest"),
+        ],
         item_templates=templates,
     )
     assert stats.max_hp == 20
@@ -108,8 +111,9 @@ def test_inventory_stacking_and_capacity() -> None:
     assert get_occupied_slots(items) == 1
 
     # Adding 4 potions: 2 fit into existing stack (up to 5), 2 go into a new stack
-    added = add_item_to_inventory(items, potion, 4, cap)
+    added, touched = add_item_to_inventory(items, potion, 4, cap, uuid4)
     assert added == 4
+    assert touched == [items[1], items[2]]
     assert get_occupied_slots(items) == 2
     assert items[1].quantity == 5  # filled
     assert items[2].quantity == 2  # new stack
@@ -183,3 +187,29 @@ def test_death_loss_resolution() -> None:
     # Quest item and bag are never lost
     assert len(res.lost_item_ids) == 1
     assert "Schwert" in res.lost_item_names[0]
+
+
+def test_add_item_partial_fit_uses_id_factory() -> None:
+    sword = ItemTemplate(id="sword", name="Schwert", description="", kind="weapon", slot="weapon")
+    items = [InventoryItemState(id=uuid4(), item_id="other", quantity=1)]
+    rng = random.Random(3)
+    expected_ids = [new_id(random.Random(3)) for _ in range(1)]
+
+    # capacity 3, 1 occupied -> only 2 of 5 swords fit, one entry each
+    added, touched = add_item_to_inventory(items, sword, 5, 3, lambda: new_id(rng))
+
+    assert added == 2
+    assert [t.quantity for t in touched] == [1, 1]
+    assert touched[0].id == expected_ids[0]
+    assert len({t.id for t in touched}) == 2
+    assert get_occupied_slots(items) == 3
+
+
+def test_add_item_no_space_changes_nothing() -> None:
+    potion = ItemTemplate(
+        id="potion", name="Trank", description="", kind="consumable", stackable=True, max_stack=5
+    )
+    items = [InventoryItemState(id=uuid4(), item_id="potion", quantity=5)]
+    added, touched = add_item_to_inventory(items, potion, 2, 1, uuid4)
+    assert (added, touched) == (0, [])
+    assert len(items) == 1

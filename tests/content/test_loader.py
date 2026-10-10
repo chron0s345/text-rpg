@@ -28,7 +28,7 @@ def test_load_real_content_data() -> None:
     assert registry.rules.start_room_id == "town_square"
 
 
-def test_missing_bank_room() -> None:
+def test_missing_bank_room(rules: Rules) -> None:
     rooms = {
         "town_square": RoomTemplate(
             id="town_square",
@@ -40,12 +40,10 @@ def test_missing_bank_room() -> None:
         )
     }
     with pytest.raises(ContentValidationError, match="No room with bank: true"):
-        validate_content(
-            rooms, {}, {}, {}, Rules(start_room_id="town_square", town_room_id="town_square")
-        )
+        validate_content(rooms, {}, {}, {}, rules)
 
 
-def test_safe_room_with_spawns() -> None:
+def test_safe_room_with_spawns(rules: Rules) -> None:
     rooms = {
         "town_square": RoomTemplate(
             id="town_square",
@@ -69,12 +67,10 @@ def test_safe_room_with_spawns() -> None:
         )
     }
     with pytest.raises(ContentValidationError, match="cannot have monster spawns"):
-        validate_content(
-            rooms, monsters, {}, {}, Rules(start_room_id="town_square", town_room_id="town_square")
-        )
+        validate_content(rooms, monsters, {}, {}, rules)
 
 
-def test_infinite_money_loop_detection() -> None:
+def test_infinite_money_loop_detection(rules: Rules) -> None:
     rooms = {
         "town_square": RoomTemplate(
             id="town_square",
@@ -107,6 +103,5 @@ def test_infinite_money_loop_detection() -> None:
             sell_ratio=0.25,
         )
     }
-    rules = Rules(start_room_id="town_square", town_room_id="town_square")
     with pytest.raises(ContentValidationError, match="Infinite money loop detected"):
         validate_content(rooms, {}, items, merchants, rules)

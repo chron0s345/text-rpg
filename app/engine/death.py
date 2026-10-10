@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from app.content.schemas import DeathRules, ItemTemplate
-from app.engine.inventory import InventoryItemState
+from app.engine.state import InventoryItemState
 
 
 @dataclass

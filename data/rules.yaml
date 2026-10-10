@@ -24,11 +24,20 @@ death:
   equipped_loss_chance: 0.05
   max_items_lost: 3
 
+combat:
+  min_damage: 1                    # Mindestschaden pro Treffer
+  damage_variance: 1               # Schaden schwankt um ±1
+  flee_chance: 0.5                 # Erfolgschance einer Flucht
+
+xp:
+  group_idle_share: 0.5            # untätige Gruppenmitglieder im Raum zählen mit 50 % des Durchschnittsschadens
+
 timings:
   floor_item_ttl_seconds: 600
   disconnect_grace_seconds: 60
   ticker_interval_seconds: 5
   min_action_interval_ms: 800
+  group_invite_ttl_seconds: 60
 
 levels:
   - level: 1

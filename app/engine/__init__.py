@@ -13,11 +13,10 @@ from app.engine.events import (
     GameEvent,
     GlobalAudience,
     GroupAudience,
-    PlayerAudience,
+    PlayersAudience,
     RoomAudience,
 )
 from app.engine.inventory import (
-    InventoryItemState,
     add_item_to_inventory,
     calculate_inventory_capacity,
     can_add_quantity,
@@ -35,6 +34,7 @@ from app.engine.loot import (
 from app.engine.movement import MoveResult, resolve_movement
 from app.engine.progression import LevelUpResult, calculate_level_progression
 from app.engine.regeneration import calculate_current_monster_hp
+from app.engine.state import InventoryItemState
 from app.engine.stats import EffectiveStats, calculate_effective_stats
 
 __all__ = [
@@ -51,7 +51,7 @@ __all__ = [
     "InventoryItemState",
     "LevelUpResult",
     "MoveResult",
-    "PlayerAudience",
+    "PlayersAudience",
     "RolledLootItem",
     "RoomAudience",
     "add_item_to_inventory",

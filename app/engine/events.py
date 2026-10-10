@@ -1,14 +1,28 @@
+"""Result types of engine functions: state changes + events (ARCHITECTURE.md, Engine-Schnittstelle).
+
+Update models use pydantic's ``model_fields_set``: only explicitly set fields are applied by the
+service (``update.model_dump(exclude_unset=True)``). This allows setting a field to ``None``
+(e.g. clearing ``combat_target_id``) without ambiguity.
+"""
+
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from app.content.schemas import PlayerState
+from app.engine.state import InventoryItemState
+
+# --- Audiences --------------------------------------------------------------
+
 
 class ActorAudience(BaseModel):
+    """The acting player (delivered via HTTP response, not SSE)."""
+
     kind: Literal["actor"] = "actor"
-    player_id: UUID
 
 
 class RoomAudience(BaseModel):
@@ -21,9 +35,9 @@ class GroupAudience(BaseModel):
     group_id: UUID
 
 
-class PlayerAudience(BaseModel):
-    kind: Literal["player"] = "player"
-    player_id: UUID
+class PlayersAudience(BaseModel):
+    kind: Literal["players"] = "players"
+    player_ids: list[UUID]
 
 
 class GlobalAudience(BaseModel):
@@ -31,12 +45,149 @@ class GlobalAudience(BaseModel):
 
 
 Audience = Annotated[
-    ActorAudience | RoomAudience | GroupAudience | PlayerAudience | GlobalAudience,
+    ActorAudience | RoomAudience | GroupAudience | PlayersAudience | GlobalAudience,
     Field(discriminator="kind"),
 ]
 
 
 class GameEvent(BaseModel):
-    event_type: str
+    kind: str  # e.g. "combat.hit", "monster.killed", "player.died", "move.enter"
     audience: Audience
-    payload: dict[str, Any] = Field(default_factory=dict)
+    text: str  # rendered, player-facing message (German)
+    exclude_player_ids: list[UUID] = Field(default_factory=list)  # e.g. actor in room broadcasts
+    data: dict[str, Any] = Field(default_factory=dict)
+
+
+# --- State changes ----------------------------------------------------------
+
+
+class PlayerUpdate(BaseModel):
+    player_id: UUID
+    hp: int | None = None
+    base_max_hp: int | None = None
+    base_attack: int | None = None
+    base_defense: int | None = None
+    xp: int | None = None
+    level: int | None = None
+    gold: int | None = None
+    current_room_id: str | None = None
+    checkpoint_room_id: str | None = None
+    state: PlayerState | None = None
+    combat_target_id: UUID | None = None
+
+
+class MonsterUpdate(BaseModel):
+    monster_instance_id: UUID
+    hp: int | None = None
+    alive: bool | None = None
+    last_combat_at: datetime | None = None
+    respawn_at: datetime | None = None
+    tagged_by_party: str | None = None
+
+
+class ParticipationUpsert(BaseModel):
+    monster_instance_id: UUID
+    player_id: UUID
+    party_key: str
+    damage_dealt: int
+
+
+class ParticipationDelete(BaseModel):
+    monster_instance_id: UUID
+    player_id: UUID
+
+
+class InventoryUpsert(BaseModel):
+    player_id: UUID
+    item: InventoryItemState
+
+
+class FloorItemCreate(BaseModel):
+    id: UUID
+    room_id: str
+    item_id: str
+    quantity: int
+    source: Literal["spawn", "drop", "loot"]
+    dropped_by_account_id: UUID | None = None
+    expires_at: datetime | None = None
+
+
+class GroupUpdate(BaseModel):
+    group_id: UUID
+    loot_cursor: int
+
+
+class StateChanges(BaseModel):
+    players: list[PlayerUpdate] = Field(default_factory=list)
+    monsters: list[MonsterUpdate] = Field(default_factory=list)
+    participations_upsert: list[ParticipationUpsert] = Field(default_factory=list)
+    participations_delete: list[ParticipationDelete] = Field(default_factory=list)
+    participations_clear_monster_ids: list[UUID] = Field(default_factory=list)
+    inventory_upsert: list[InventoryUpsert] = Field(default_factory=list)
+    inventory_delete: list[UUID] = Field(default_factory=list)
+    floor_items_create: list[FloorItemCreate] = Field(default_factory=list)
+    groups: list[GroupUpdate] = Field(default_factory=list)
+
+
+class ActionResult(BaseModel):
+    changes: StateChanges = Field(default_factory=StateChanges)
+    events: list[GameEvent] = Field(default_factory=list)
+
+
+# --- Builder ----------------------------------------------------------------
+
+
+class ResultBuilder:
+    """Accumulates changes while an engine function runs; merges updates per entity."""
+
+    def __init__(self) -> None:
+        self._players: dict[UUID, dict[str, Any]] = {}
+        self._monsters: dict[UUID, dict[str, Any]] = {}
+        self.changes = StateChanges()
+        self.events: list[GameEvent] = []
+
+    def update_player(self, player_id: UUID, **fields: Any) -> None:
+        self._players.setdefault(player_id, {}).update(fields)
+
+    def update_monster(self, monster_instance_id: UUID, **fields: Any) -> None:
+        self._monsters.setdefault(monster_instance_id, {}).update(fields)
+
+    def event(
+        self,
+        kind: str,
+        audience: ActorAudience | RoomAudience | GroupAudience | PlayersAudience | GlobalAudience,
+        text: str,
+        *,
+        exclude: list[UUID] | None = None,
+        **data: Any,
+    ) -> None:
+        self.events.append(
+            GameEvent(
+                kind=kind,
+                audience=audience,
+                text=text,
+                exclude_player_ids=exclude or [],
+                data=data,
+            )
+        )
+
+    def to_actor(self, kind: str, text: str, **data: Any) -> None:
+        self.event(kind, ActorAudience(), text, **data)
+
+    def build(self) -> ActionResult:
+        self.changes.players = [
+            PlayerUpdate.model_validate({"player_id": pid, **fields})
+            for pid, fields in self._players.items()
+        ]
+        self.changes.monsters = [
+            MonsterUpdate.model_validate({"monster_instance_id": mid, **fields})
+            for mid, fields in self._monsters.items()
+        ]
+        return ActionResult(changes=self.changes, events=self.events)
+
+
+def rejected(text: str) -> ActionResult:
+    """Action not allowed in current state: no HTTP error, just a log message (ARCHITECTURE.md)."""
+    builder = ResultBuilder()
+    builder.to_actor("action.rejected", text)
+    return builder.build()

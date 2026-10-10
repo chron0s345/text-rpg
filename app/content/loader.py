@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import logging
 import math
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar
 
 import yaml
+from pydantic import BaseModel, ValidationError
 
 from app.content.registry import ContentRegistry
 from app.content.schemas import (
@@ -18,44 +20,65 @@ from app.content.schemas import (
 
 logger = logging.getLogger(__name__)
 
+T = TypeVar("T", bound=BaseModel)
+
 
 class ContentValidationError(Exception):
     """Raised when game content validation fails."""
-
-    pass
 
 
 def load_yaml_file(path: Path) -> Any:
     if not path.is_file():
         raise ContentValidationError(f"Required content file not found: {path}")
-    with open(path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+    with open(path, encoding="utf-8") as f:
+        try:
+            return yaml.safe_load(f)
+        except yaml.YAMLError as exc:
+            raise ContentValidationError(f"Invalid YAML in {path}: {exc}") from exc
 
 
-def load_content(data_dir: Path) -> ContentRegistry:
+def _parse_list(path: Path, model: type[T], get_id: Callable[[T], str]) -> dict[str, T]:
+    raw = load_yaml_file(path)
+    if raw is None:
+        raw = []
+    if not isinstance(raw, list):
+        raise ContentValidationError(f"{path.name} must contain a YAML list at top level")
+    result: dict[str, T] = {}
+    for index, entry in enumerate(raw):
+        try:
+            parsed = model.model_validate(entry)
+        except ValidationError as exc:
+            raise ContentValidationError(f"{path.name} entry #{index}: {exc}") from exc
+        key = get_id(parsed)
+        if key in result:
+            raise ContentValidationError(f"Duplicate ID in {path.name}: '{key}'")
+        result[key] = parsed
+    return result
+
+
+def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegistry:
+    """Loads and validates all content. Aborts with ContentValidationError on any problem.
+
+    If ``icons_dir`` is given, every ``ItemTemplate.icon`` must exist as ``<icon>.svg`` there.
+    """
     data_dir = Path(data_dir)
 
-    rooms_raw = load_yaml_file(data_dir / "rooms.yaml")
-    monsters_raw = load_yaml_file(data_dir / "monsters.yaml")
-    items_raw = load_yaml_file(data_dir / "items.yaml")
-    merchants_raw = load_yaml_file(data_dir / "merchants.yaml")
+    rooms = _parse_list(data_dir / "rooms.yaml", RoomTemplate, lambda r: r.id)
+    monsters = _parse_list(data_dir / "monsters.yaml", MonsterTemplate, lambda m: m.id)
+    items = _parse_list(data_dir / "items.yaml", ItemTemplate, lambda i: i.id)
+    merchants = _parse_list(data_dir / "merchants.yaml", MerchantTemplate, lambda m: m.id)
+
     rules_raw = load_yaml_file(data_dir / "rules.yaml")
+    if not isinstance(rules_raw, dict):
+        raise ContentValidationError("rules.yaml must contain a YAML mapping at top level")
+    try:
+        rules = Rules.model_validate(rules_raw)
+    except ValidationError as exc:
+        raise ContentValidationError(f"rules.yaml: {exc}") from exc
 
-    # Parse and check duplicate IDs
-    rooms: dict[str, RoomTemplate] = {}
-    for r_data in rooms_raw if isinstance(rooms_raw, list) else []:
-        room = RoomTemplate.model_validate(r_data)
-        if room.id in rooms:
-            raise ContentValidationError(f"Duplicate room ID: '{room.id}'")
-        rooms[room.id] = room
-
-    monsters: dict[str, MonsterTemplate] = {}
-    for m_data in monsters_raw if isinstance(monsters_raw, list) else []:
-        monster = MonsterTemplate.model_validate(m_data)
-        if monster.id in monsters:
-            raise ContentValidationError(f"Duplicate monster ID: '{monster.id}'")
-        if monster.gold_reward[0] > monster.gold_reward[1]:
-            min_g, max_g = monster.gold_reward
+    for monster in monsters.values():
+        min_g, max_g = monster.gold_reward
+        if min_g > max_g:
             raise ContentValidationError(
                 f"Monster '{monster.id}' gold_reward min ({min_g}) > max ({max_g})"
             )
@@ -64,30 +87,10 @@ def load_content(data_dir: Path) -> ContentRegistry:
                 raise ContentValidationError(
                     f"Monster '{monster.id}' loot entry '{loot.item_id}' min_qty > max_qty"
                 )
-        monsters[monster.id] = monster
 
-    items: dict[str, ItemTemplate] = {}
-    for i_data in items_raw if isinstance(items_raw, list) else []:
-        item = ItemTemplate.model_validate(i_data)
-        if item.id in items:
-            raise ContentValidationError(f"Duplicate item ID: '{item.id}'")
-        items[item.id] = item
-
-    merchants: dict[str, MerchantTemplate] = {}
-    for merc_data in merchants_raw if isinstance(merchants_raw, list) else []:
-        merchant = MerchantTemplate.model_validate(merc_data)
-        if merchant.id in merchants:
-            raise ContentValidationError(f"Duplicate merchant ID: '{merchant.id}'")
-        merchants[merchant.id] = merchant
-
-    rules = Rules.model_validate(rules_raw if isinstance(rules_raw, dict) else {})
-    if rules.death.gold_loss_percent[0] > rules.death.gold_loss_percent[1]:
-        raise ContentValidationError(
-            f"rules.death.gold_loss_percent min > max: {rules.death.gold_loss_percent}"
-        )
-
-    # Perform Cross-Validations as specified in ARCHITECTURE.md
     validate_content(rooms, monsters, items, merchants, rules)
+    if icons_dir is not None:
+        validate_icons(items, Path(icons_dir))
 
     return ContentRegistry(
         rooms=rooms,
@@ -96,6 +99,14 @@ def load_content(data_dir: Path) -> ContentRegistry:
         merchants=merchants,
         rules=rules,
     )
+
+
+def validate_icons(items: dict[str, ItemTemplate], icons_dir: Path) -> None:
+    for item in items.values():
+        if item.icon is not None and not (icons_dir / f"{item.icon}.svg").is_file():
+            raise ContentValidationError(
+                f"Item '{item.id}' references missing icon '{item.icon}.svg' in {icons_dir}"
+            )
 
 
 def validate_content(
@@ -185,6 +196,10 @@ def validate_content(
         if merchant.room_id not in rooms:
             raise ContentValidationError(
                 f"Merchant '{merchant.id}' is in unknown room '{merchant.room_id}'"
+            )
+        if merchant.buys == "listed" and not merchant.buys_kinds:
+            raise ContentValidationError(
+                f"Merchant '{merchant.id}' has buys: listed but no buys_kinds"
             )
 
         for offer in merchant.sells:

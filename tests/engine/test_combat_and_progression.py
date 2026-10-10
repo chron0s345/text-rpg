@@ -44,12 +44,14 @@ def test_combat_round_mutual_exchange() -> None:
     assert res.new_player_hp < 20
 
 
-def test_level_progression() -> None:
-    rules = Rules(
-        levels=[
-            LevelRule(level=1, xp_required=0, max_hp=20, attack=5, defense=2),
-            LevelRule(level=2, xp_required=100, max_hp=30, attack=8, defense=4),
-        ]
+def test_level_progression(rules: Rules) -> None:
+    rules = rules.model_copy(
+        update={
+            "levels": [
+                LevelRule(level=1, xp_required=0, max_hp=20, attack=5, defense=2),
+                LevelRule(level=2, xp_required=100, max_hp=30, attack=8, defense=4),
+            ]
+        }
     )
     # Player has 120 xp at level 1 -> levels up to 2
     res = calculate_level_progression(

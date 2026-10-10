@@ -11,13 +11,15 @@ from app.content.schemas import (
 )
 
 
-@dataclass
+@dataclass(frozen=True)
 class ContentRegistry:
+    """Immutable in-memory content (templates + rules), loaded once at startup."""
+
+    rules: Rules
     rooms: dict[str, RoomTemplate] = field(default_factory=dict)
     monsters: dict[str, MonsterTemplate] = field(default_factory=dict)
     items: dict[str, ItemTemplate] = field(default_factory=dict)
     merchants: dict[str, MerchantTemplate] = field(default_factory=dict)
-    rules: Rules = field(default_factory=Rules)
 
     def get_room(self, room_id: str) -> RoomTemplate:
         if room_id not in self.rooms:
@@ -38,3 +40,6 @@ class ContentRegistry:
         if merchant_id not in self.merchants:
             raise KeyError(f"Merchant '{merchant_id}' not found in registry")
         return self.merchants[merchant_id]
+
+    def merchants_in_room(self, room_id: str) -> list[MerchantTemplate]:
+        return [m for m in self.merchants.values() if m.room_id == room_id]

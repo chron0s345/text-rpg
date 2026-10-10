@@ -16,7 +16,8 @@ content_registry: ContentRegistry | None = None
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     global content_registry
     data_dir = Path("data")
-    content_registry = load_content(data_dir)
+    icons_dir = Path("app/web/static/icons")
+    content_registry = load_content(data_dir, icons_dir=icons_dir)
     app.state.content = content_registry
     yield
     # Shutdown logic (event bus, ticker, etc.)
