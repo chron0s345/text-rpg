@@ -694,7 +694,8 @@ Jede Aktion und jeder Ticker-Schritt ist **eine Datenbanktransaktion**. Nach dem
 - `Repository.apply_changes` schreibt **nur Zeilen, die dieselbe Repository-Instanz gesperrt hat** (Spieler, Inventar, Monster, Kampfteilnahmen, Floor-Items und neue Floor-Items/Spawn-Zustände nur im gesperrten Raum, Gruppen). Alles andere – etwa das Löschen eines Items eines Spielers in einem anderen Raum oder ein Inventar-Eintrag, der den Besitzer wechselt – wird mit `InconsistentChangesError` abgelehnt.
 - Ein im Handel angebotenes Item kann in der Datenbank nicht gelöscht werden (`trade_offer` → `inventory_item` ohne Cascade); der Handel muss vorher abgebrochen oder ausgeführt werden.
 - Der Seed läuft unter einem Advisory-Lock, damit parallele Seeds keine Monster doppelt anlegen.
-- `ItemSpawnState` hat keine eigene Sperre: Aufheben ändert ihn nur, während das zugehörige Floor-Item (Sperre auf den Raum) gesperrt ist. **Der Ticker muss für Item-Respawns ebenfalls zuerst die Floor-Items des Raums sperren** (bzw. den Raum über `load_action_snapshot`-äquivalente Sperren), sonst drohen verlorene Updates oder doppelte Spawn-Items.
+- `ItemSpawnState`: Aufheben setzt `next_spawn_at` nur, während es das zugehörige Spawn-Floor-Item gesperrt hält. Der Ticker darf ein Spawn-Item nur neu anlegen, wenn er die `ItemSpawnState`-Zeile mit `FOR UPDATE` sperrt und `next_spawn_at` danach noch fällig ist (eine Sperre auf die Floor-Items des Raums reicht nicht, weil nach dem Aufheben dort oft keine Zeile mehr existiert). Zusätzlich tickt immer nur ein Prozess (Advisory Lock, siehe World-Ticker).
+- Zwischen dem Sperren (`load_action_snapshot`) und `apply_changes` sind keine Savepoints erlaubt (`begin_nested`): Ein Rollback auf einen Savepoint gibt in PostgreSQL die danach gesetzten Zeilensperren frei. Das `Repository` lehnt Sperren innerhalb eines Savepoints ab.
 
 ### Migrationen
 

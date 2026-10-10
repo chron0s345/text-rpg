@@ -98,7 +98,13 @@ class Repository:
         self._transaction: object | None = None  # the transaction the locks belong to
 
     def _bind_transaction(self) -> None:
-        """Ties the lock set to the current transaction; any other transaction is an error."""
+        """Ties the lock set to the current transaction; any other transaction is an error.
+
+        Savepoints are refused: rolling back to a savepoint releases row locks taken after it
+        in PostgreSQL, while the lock set here would still claim them.
+        """
+        if self.session.in_nested_transaction():
+            raise StaleRepositoryError("row locks inside a savepoint are not supported")
         current = self.session.get_transaction()
         if current is None:
             raise StaleRepositoryError("no active transaction")

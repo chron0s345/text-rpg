@@ -7,7 +7,10 @@ and blocks on that lock (verified via pg_stat_activity); B commits; A must see B
 from __future__ import annotations
 
 import asyncio
+import contextlib
+from collections.abc import Callable, Coroutine
 from datetime import timedelta
+from typing import Any, TypeVar
 from uuid import uuid4
 
 import pytest
@@ -41,13 +44,37 @@ async def lock_player(db: AsyncSession, player_id: object) -> Player:
     ).one()
 
 
+T = TypeVar("T")
+
+
+async def against_writer(
+    committed: Committed, writer: AsyncSession, load: Callable[[], Coroutine[Any, Any, T]]
+) -> T:
+    """Runs ``load`` while ``writer`` holds row locks: waits until ``load`` is blocked by the
+    writer, commits the writer and returns ``load``'s result.
+
+    Never hangs: on any failure the writer is rolled back first (releasing its locks so ``load``
+    can finish), and every wait has a timeout.
+    """
+    writer_pid = await backend_pid(writer)
+    task: asyncio.Task[T] = asyncio.create_task(load())
+    try:
+        await wait_until_blocked(committed.engine, writer_pid)
+        await writer.commit()
+    except BaseException:
+        await writer.rollback()
+        with contextlib.suppress(BaseException):
+            await asyncio.wait_for(task, timeout=10)
+        raise
+    return await asyncio.wait_for(task, timeout=30)
+
+
 async def test_snapshot_sees_data_committed_while_waiting(committed: Committed) -> None:
     room = f"room-{uuid4().hex[:6]}"
     actor = await setup_actor(committed, room)
 
     async with committed.session() as writer, committed.session() as reader:
         await writer.begin()
-        writer_pid = await backend_pid(writer)
         row = await lock_player(writer, actor.id)
         row.gold = 50
 
@@ -62,10 +89,7 @@ async def test_snapshot_sees_data_committed_while_waiting(committed: Committed) 
                 assert cached.gold == 50  # the cached object was refreshed under the lock
                 return snapshot
 
-        task = asyncio.create_task(load())
-        await wait_until_blocked(committed.engine, writer_pid)
-        await writer.commit()
-        snapshot = await task
+        snapshot = await against_writer(committed, writer, load)
 
     assert snapshot.actor.gold == 50
 
@@ -76,7 +100,6 @@ async def test_group_joined_while_waiting_requests_retry(committed: Committed) -
 
     async with committed.session() as writer, committed.session() as reader:
         await writer.begin()
-        writer_pid = await backend_pid(writer)
         row = await lock_player(writer, actor.id)
         group = Group(leader_id=actor.id)
         writer.add(group)
@@ -87,11 +110,8 @@ async def test_group_joined_while_waiting_requests_retry(committed: Committed) -
             async with reader.begin():
                 return await Repository(reader).load_action_snapshot(actor.id)
 
-        task = asyncio.create_task(load())
-        await wait_until_blocked(committed.engine, writer_pid)
-        await writer.commit()
         with pytest.raises(SnapshotChangedError):
-            await task
+            await against_writer(committed, writer, load)
 
 
 async def test_actor_moved_while_waiting_requests_retry(committed: Committed) -> None:
@@ -100,7 +120,6 @@ async def test_actor_moved_while_waiting_requests_retry(committed: Committed) ->
 
     async with committed.session() as writer, committed.session() as reader:
         await writer.begin()
-        writer_pid = await backend_pid(writer)
         row = await lock_player(writer, actor.id)
         row.current_room_id = "elsewhere"
 
@@ -108,11 +127,8 @@ async def test_actor_moved_while_waiting_requests_retry(committed: Committed) ->
             async with reader.begin():
                 return await Repository(reader).load_action_snapshot(actor.id)
 
-        task = asyncio.create_task(load())
-        await wait_until_blocked(committed.engine, writer_pid)
-        await writer.commit()
         with pytest.raises(SnapshotChangedError):
-            await task
+            await against_writer(committed, writer, load)
 
 
 async def test_snapshot_locks_players_and_monsters_until_commit(committed: Committed) -> None:
@@ -182,3 +198,11 @@ async def test_repository_cannot_outlive_its_transaction(committed: Committed) -
                 )
             with pytest.raises(StaleRepositoryError):
                 await repo.load_action_snapshot(actor.id)
+
+
+async def test_repository_refuses_locks_inside_a_savepoint(committed: Committed) -> None:
+    actor = await setup_actor(committed, f"room-{uuid4().hex[:6]}")
+    async with committed.session() as db, db.begin():
+        await db.begin_nested()
+        with pytest.raises(StaleRepositoryError):
+            await Repository(db).load_action_snapshot(actor.id)
