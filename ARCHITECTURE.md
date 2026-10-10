@@ -60,8 +60,10 @@ app/
 │   ├── regeneration.py  # Monster-HP außerhalb des Kampfes
 │   ├── loot.py          # Loot würfeln & verteilen (Gruppen)
 │   ├── groups.py        # Einladen, Beitreten, Verlassen, Leader
+│   ├── group_status.py  # Gruppenpanel: HP & Ort der Mitglieder
 │   ├── movement.py
 │   ├── inventory.py     # Plätze, Stapel, Kapazitätsprüfung
+│   ├── inventory_actions.py # equip, unequip, use_item, pick_up, drop, inventory
 │   ├── trade.py         # Handelsablauf zwischen zwei Spielern
 │   ├── bank.py          # Einlagern & Abheben
 │   ├── merchant.py      # Kaufen & Verkaufen bei NPCs
@@ -526,6 +528,9 @@ Fliehen oder sterben alle Mitglieder der markierenden Partei, wird die Markierun
   `kapazität = inventory.slots + Σ bag_slots ausgerüsteter Taschen`.
 - Eine Tasche kann nur abgelegt werden, wenn danach alle Items noch Platz haben (die abgelegte Tasche selbst belegt dann ebenfalls einen Platz). Sonst: "Leere die Tasche zuerst."
 - Die Kapazität ist ein abgeleiteter Wert (`engine/inventory.py`) und wird nicht gespeichert.
+- Ausrüsten/Ablegen wird geprüft, indem das resultierende Inventar simuliert wird (Tausch im selben Slot, Teilen eines Stapels, Taschen). Sinkt die Max-HP dadurch, werden die HP auf das neue Maximum gekürzt.
+- Items in einem offenen Handel (`PlayerSnapshot.locked_item_ids`) können nicht benutzt, ausgerüstet oder fallengelassen werden.
+- Aufheben gesperrt für Items, die ein Charakter desselben Accounts fallengelassen hat (auch der Charakter selbst, da nur `dropped_by_account_id` gespeichert wird).
 - Alle Wege, auf denen Items ins Inventar kommen (Aufheben, Loot, Handel), nutzen dieselbe Funktion `inventory.can_add(...)` / `inventory.add(...)` und prüfen vorher die Kapazität. Teilmengen sind erlaubt: Passen von 10 Pfeilen nur 4, werden 4 aufgehoben und 6 bleiben liegen.
 
 ### Handel
