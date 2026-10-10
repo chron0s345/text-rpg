@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  # only superseded PR runs are cancelled; every commit on main keeps its result
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  lint:
+    name: Lint & types
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - run: pip install -r requirements.txt
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: mypy .
+
+  test:
+    name: Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.12 is the minimum (pyproject), 3.14 is the local development version
+        python-version: ["3.12", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - run: pip install -r requirements.txt
+      # Database tests start PostgreSQL via Testcontainers (Docker is available on the runner).
+      # They skip themselves without Docker, so fail here if any test was skipped
+      # (expected failures, pytest.xfail, are reported as skipped in JUnit and are allowed).
+      - run: pytest tests/ -v -rs --junitxml=report.xml
+      - name: Fail on skipped tests
+        run: |
+          python - <<'EOF'
+          import sys
+          import xml.etree.ElementTree as ET
+
+          skipped = [
+              case.get("name")
+              for case in ET.parse("report.xml").iter("testcase")
+              for skip in case.findall("skipped")
+              if skip.get("type") != "pytest.xfail"
+          ]
+          if skipped:
+              sys.exit(f"{len(skipped)} test(s) were skipped in CI: {skipped}")
+          EOF
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-${{ matrix.python-version }}
+          path: report.xml
