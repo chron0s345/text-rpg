@@ -501,7 +501,7 @@ Ein Event wie "Anna trifft den Goblin für 5 Schaden" geht an den Raum, "Du trif
 
 - Alle Aktionen haben die Form `resolve_<aktion>(snapshot, content, rules, now, rng, ...) -> ActionResult`. Abgelehnte Aktionen liefern nur ein `action.rejected`-Event an den Handelnden und keine Änderungen.
 - Der Snapshot beschreibt den Raum, in dem die Aktion endet: bei `move` den Zielraum, bei `respawn` den Checkpoint.
-- `StateChanges` enthält keine widersprüchlichen Einträge (eine beendete Kampfteilnahme steht nie zugleich in den Upserts), daher ist die Reihenfolge beim Anwenden egal.
+- `StateChanges` enthält keine widersprüchlichen Einträge: Was gelöscht wird (Inventar-Einträge, Floor-Items, Kampfteilnahmen), steht nie zugleich als Schreibvorgang darin – Löschungen gewinnen. Daher ist die Reihenfolge beim Anwenden egal.
 - Ergebnisse ohne Handelnden (z. B. Überfall durch den Ticker, `resolve_idle_ambush`) enthalten keine `Actor`-Events; der Betroffene wird über `Players([id])` benachrichtigt.
 
 ### Kampf

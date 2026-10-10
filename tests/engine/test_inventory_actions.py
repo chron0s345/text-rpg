@@ -567,3 +567,13 @@ def test_spawn_item_respawn_only_on_full_pickup_with_timer(
     )
     assert result.changes.floor_items_delete == [ear.id]
     assert result.changes.item_spawns == []
+
+
+def test_unequip_rejects_locked_entry(content: ContentRegistry, rules: Rules) -> None:
+    actor = make_player()
+    give(actor, "knives", quantity=2)
+    worn = give(actor, "knives", slot="weapon")
+    actor.locked_item_ids = [worn.id]
+    result = resolve_unequip(ActionSnapshot(actor=actor), content, rules, NOW, RNG, worn.id)
+    assert actor_texts(result) == ["Dieser Gegenstand ist im Handel angeboten."]
+    assert result.changes.inventory_delete == []
