@@ -74,6 +74,15 @@ def content() -> ContentRegistry:
         slot="head",
         effects=[StatModifier(stat="max_hp", amount=5)],
     )
+    knives = ItemTemplate(
+        id="knives",
+        name="Wurfmesser",
+        description="",
+        kind="weapon",
+        slot="weapon",
+        stackable=True,
+        max_stack=10,
+    )
     return dataclasses.replace(
         real,
         monsters={
@@ -84,7 +93,7 @@ def content() -> ContentRegistry:
             "ears": ears,
             "ambusher": ambusher,
         },
-        items={**real.items, "amulet": amulet},
+        items={**real.items, "amulet": amulet, "knives": knives},
     )
 
 

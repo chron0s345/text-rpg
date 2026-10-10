@@ -24,6 +24,14 @@ from app.engine.inventory import (
     can_unequip_item,
     get_occupied_slots,
 )
+from app.engine.inventory_actions import (
+    resolve_drop,
+    resolve_equip,
+    resolve_inventory,
+    resolve_pick_up,
+    resolve_unequip,
+    resolve_use_item,
+)
 from app.engine.loot import (
     RolledLootItem,
     distribute_gold,
@@ -37,6 +45,7 @@ from app.engine.progression import LevelUpResult, calculate_level_progression
 from app.engine.regeneration import calculate_current_monster_hp
 from app.engine.state import (
     ActionSnapshot,
+    FloorItemSnapshot,
     GroupSnapshot,
     InventoryItemState,
     MonsterSnapshot,
@@ -53,6 +62,7 @@ __all__ = [
     "Audience",
     "DeathLossResult",
     "EffectiveStats",
+    "FloorItemSnapshot",
     "GameEvent",
     "GlobalAudience",
     "GroupAudience",
@@ -82,12 +92,18 @@ __all__ = [
     "is_allowed",
     "resolve_attack",
     "resolve_death_losses",
+    "resolve_drop",
+    "resolve_equip",
     "resolve_flee",
     "resolve_idle_ambush",
+    "resolve_inventory",
     "resolve_look",
     "resolve_move",
+    "resolve_pick_up",
     "resolve_respawn",
     "resolve_say",
+    "resolve_unequip",
+    "resolve_use_item",
     "roll_monster_gold",
     "roll_monster_loot",
 ]

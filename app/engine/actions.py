@@ -8,6 +8,8 @@ from datetime import datetime
 from app.content.registry import ContentRegistry
 from app.content.schemas import Rules
 from app.engine.events import ActionResult, ResultBuilder, RoomAudience, rejected
+from app.engine.group_status import report_hp, report_location
+from app.engine.movement import DIRECTION_NAMES
 from app.engine.permissions import check_state
 from app.engine.regeneration import calculate_current_monster_hp
 from app.engine.state import ActionSnapshot
@@ -71,16 +73,32 @@ def resolve_look(
         if p.current_room_id == room.id
     ]
     merchants = [{"id": m.id, "name": m.name} for m in content.merchants_in_room(room.id)]
+    floor_items = []
+    for floor in snapshot.floor_items:
+        if floor.room_id != room.id or not floor.visible_at(now):
+            continue
+        item = content.get_item(floor.item_id)
+        floor_items.append(
+            {"id": str(floor.id), "item_id": item.id, "name": item.name, "quantity": floor.quantity}
+        )
 
     lines = [room.name, room.description]
     if room.exits:
-        lines.append("Ausgänge: " + ", ".join(room.exits))
+        lines.append("Ausgänge: " + ", ".join(DIRECTION_NAMES[d] for d in room.exits))
     if monsters:
         lines.append("Gegner: " + ", ".join(f"{m['name']} ({m['hp']} HP)" for m in monsters))
     if players:
         lines.append("Hier sind: " + ", ".join(str(p["name"]) for p in players))
     if merchants:
         lines.append("Händler: " + ", ".join(m["name"] for m in merchants))
+    if floor_items:
+        lines.append(
+            "Am Boden: "
+            + ", ".join(
+                f"{f['quantity']}x {f['name']}" if f["quantity"] != 1 else str(f["name"])
+                for f in floor_items
+            )
+        )
 
     builder = ResultBuilder(actor_id=actor.id)
     builder.to_actor(
@@ -95,6 +113,7 @@ def resolve_look(
         monsters=monsters,
         players=players,
         merchants=merchants,
+        floor_items=floor_items,
     )
     return builder.build()
 
@@ -116,6 +135,7 @@ def resolve_respawn(
     checkpoint = content.get_room(actor.checkpoint_room_id)
 
     builder = ResultBuilder(actor_id=actor.id)
+    death_room_id = actor.current_room_id
     actor.hp = stats_of(actor, content.items).max_hp
     actor.state = "exploring"
     actor.combat_target_id = None
@@ -137,4 +157,14 @@ def resolve_respawn(
         exclude=[actor.id],
         player_id=str(actor.id),
     )
+    if death_room_id != checkpoint.id:
+        builder.event(
+            "player.left",
+            RoomAudience(room_id=death_room_id),
+            f"Der leblose Körper von {actor.name} verblasst.",
+            exclude=[actor.id],
+            player_id=str(actor.id),
+        )
+    report_hp(builder, actor)
+    report_location(builder, actor, checkpoint.name)
     return builder.build()

@@ -26,7 +26,11 @@ from app.engine.state import ActionSnapshot, MonsterSnapshot, PlayerSnapshot
 def ambush_candidates(
     snapshot: ActionSnapshot, victim: PlayerSnapshot, content: ContentRegistry
 ) -> list[tuple[MonsterSnapshot, MonsterTemplate]]:
-    """Monsters in the victim's room that may ambush the victim right now."""
+    """Monsters in the victim's room that may ambush the victim right now.
+
+    Precondition (not visible in the snapshot): the victim is online. The world ticker must only
+    roll for online characters (ARCHITECTURE.md: "nie gegen tote oder offline Charaktere").
+    """
     if victim.state != "exploring" or content.get_room(victim.current_room_id).safe:
         return []
     fighting = {p.monster_instance_id for p in snapshot.participations}

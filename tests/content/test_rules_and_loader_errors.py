@@ -179,3 +179,12 @@ def test_missing_icon_rejected(data_dir: Path, tmp_path: Path) -> None:
     (icons / "potion.svg").unlink()
     with pytest.raises(ContentValidationError, match="missing icon 'potion.svg'"):
         load_content(data_dir, icons_dir=icons)
+
+
+def test_duplicate_item_spawn_rule_in_room_rejected(data_dir: Path) -> None:
+    rooms = _read(data_dir / "rooms.yaml")
+    room = next(r for r in rooms if r["items"])
+    room["items"].append(dict(room["items"][0]))
+    _write(data_dir / "rooms.yaml", rooms)
+    with pytest.raises(ContentValidationError, match="several spawn rules"):
+        load_content(data_dir)

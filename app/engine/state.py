@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import random
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -48,6 +49,11 @@ class PlayerSnapshot(BaseModel):
     combat_target_id: UUID | None = None
     group_id: UUID | None = None
     inventory: list[InventoryItemState] = Field(default_factory=list)
+    # inventory entries offered in an open trade: cannot be dropped, used, equipped, sold, banked
+    locked_item_ids: list[UUID] = Field(default_factory=list)
+
+    def item(self, inventory_item_id: UUID) -> InventoryItemState | None:
+        return next((i for i in self.inventory if i.id == inventory_item_id), None)
 
     @property
     def party_key(self) -> str:
@@ -63,6 +69,20 @@ class MonsterSnapshot(BaseModel):
     last_combat_at: datetime | None = None
     respawn_at: datetime | None = None
     tagged_by_party: str | None = None
+
+
+class FloorItemSnapshot(BaseModel):
+    id: UUID
+    room_id: str
+    item_id: str
+    quantity: int = Field(ge=1)
+    source: Literal["spawn", "drop", "loot"]
+    dropped_by_account_id: UUID | None = None
+    expires_at: datetime | None = None  # None only for source = "spawn"
+
+    def visible_at(self, now: datetime) -> bool:
+        """Expired items are filtered out immediately, even before the ticker deletes them."""
+        return self.expires_at is None or self.expires_at > now
 
 
 class ParticipationSnapshot(BaseModel):
@@ -86,6 +106,7 @@ class ActionSnapshot(BaseModel):
       For ``move`` this is the *destination* room.
     - ``monsters``: monster instances in that room.
     - ``participations``: combat participations for those monsters.
+    - ``floor_items``: items lying in that room.
     - ``groups``: groups of the actor and of all ``room_players`` (needed for kill credit and
       round-robin loot of a tagging party that is not the actor's).
     """
@@ -95,6 +116,7 @@ class ActionSnapshot(BaseModel):
     monsters: list[MonsterSnapshot] = Field(default_factory=list)
     participations: list[ParticipationSnapshot] = Field(default_factory=list)
     groups: list[GroupSnapshot] = Field(default_factory=list)
+    floor_items: list[FloorItemSnapshot] = Field(default_factory=list)
 
     @property
     def players_in_room(self) -> list[PlayerSnapshot]:
