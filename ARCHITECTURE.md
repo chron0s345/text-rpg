@@ -83,9 +83,8 @@ app/
 │   ├── session.py
 │   └── repository.py    # inkl. Locking-Queries
 ├── realtime/
-│   ├── bus.py           # EventBus-Interface + PostgreSQL-Implementierung
-│   ├── channels.py      # Raum, Spieler, Gruppe, global
-│   └── connections.py   # SSE-Verbindungen pro Prozess
+│   ├── bus.py           # PostgresEventBus (LISTEN/NOTIFY), implementiert services.events.EventPublisher
+│   └── connections.py   # SSE-Verbindungen pro Prozess, Zustellung nach Raum/Gruppe/Spieler/global
 ├── services/            # Orchestrierung: sperrt & lädt Zustand, ruft Engine, speichert, publiziert
 │   ├── events.py            # EventPublisher-Interface (Umsetzung im Realtime-Layer)
 │   ├── action_service.py
@@ -730,6 +729,14 @@ Umsetzung: `ActionService.execute` (`app/services/action_service.py`).
 - Jeder eingeloggte Client hält eine SSE-Verbindung auf `GET /stream`.
 - Der Prozess, der die Verbindung hält, abonniert `player:{id}`, `global`, den aktuellen Raum und ggf. die Gruppe. Bei Raum- oder Gruppenwechsel werden die Abos umgeschaltet.
 - `NOTIFY` transportiert nur kleine JSON-Payloads (Event-Typ + IDs, Limit 8000 Byte).
+
+Umsetzung (`app/realtime/`):
+
+- Es gibt **einen** PostgreSQL-Kanal (`game_events`). Jeder Prozess lauscht einmal und verteilt lokal an seine Verbindungen (`ConnectionManager`); die „Kanäle“ Raum/Gruppe/Spieler/global sind Filter auf den Subscriptions, keine eigenen `LISTEN`s.
+- Nachrichten: `event` (ein `GameEvent`) und `relocate` (Raum/Gruppe eines Spielers hat sich geändert). Relocations werden vor den Events derselben Aktion gesendet, damit ein Spieler Events im neuen Raum schon bekommt.
+- Passt ein Event nicht in 8000 Byte, entfallen seine `data`, und vom Text bleibt der längste passende Anfang (UTF-8-genau). Der Client kann den Zustand jederzeit über die API neu laden.
+- Langsame Clients blockieren nichts: Ist die Warteschlange einer Verbindung voll, wird verworfen und die Verbindung als `overflowed` markiert (der Client muss neu laden).
+- Bricht die `LISTEN`-Verbindung ab, verbindet sich der Bus neu; in der Zwischenzeit verpasste Events holen Clients über `GET /log?after=` nach.
 - Der SSE-Handler rendert Events zu HTMX-Partials und sendet sie als benannte SSE-Events (`log`, `room`, `status`, `group`).
 - Der Handelnde bekommt seine Ergebnisse über die HTTP-Antwort, nicht zusätzlich über SSE.
 
