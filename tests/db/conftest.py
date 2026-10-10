@@ -97,27 +97,41 @@ class Committed:
             for room in self.rooms:
                 await db.execute(text("DELETE FROM floor_item WHERE room_id = :r"), {"r": room})
                 await db.execute(
+                    text("DELETE FROM item_spawn_state WHERE room_id = :r"), {"r": room}
+                )
+                await db.execute(
                     text("DELETE FROM monster_instance WHERE room_id = :r"), {"r": room}
                 )
             for account_id in self.accounts:
                 await db.execute(text("DELETE FROM account WHERE id = :id"), {"id": account_id})
 
 
-async def wait_until_blocked(engine: AsyncEngine, timeout: float = 5.0) -> None:
-    """Waits until some other connection is waiting for a row lock."""
+async def backend_pid(session: AsyncSession) -> int:
+    """PostgreSQL backend pid of the session's connection (starts a transaction if needed)."""
+    from sqlalchemy import text
+
+    pid = await session.scalar(text("SELECT pg_backend_pid()"))
+    assert isinstance(pid, int)
+    return pid
+
+
+async def wait_until_blocked(
+    engine: AsyncEngine, blocker_pid: int | None = None, timeout: float = 5.0
+) -> None:
+    """Waits until a connection waits for a lock held by ``blocker_pid`` (any lock if None)."""
     import asyncio
 
     from sqlalchemy import text
 
+    query = text(
+        "SELECT count(*) FROM pg_stat_activity "
+        "WHERE datname = current_database() AND wait_event_type = 'Lock' "
+        "AND (CAST(:blocker AS integer) IS NULL "
+        "     OR CAST(:blocker AS integer) = ANY(pg_blocking_pids(pid)))"
+    )
     async with engine.connect() as probe:
         for _ in range(int(timeout / 0.05)):
-            waiting = await probe.scalar(
-                text(
-                    "SELECT count(*) FROM pg_stat_activity "
-                    "WHERE wait_event_type = 'Lock' AND datname = current_database()"
-                )
-            )
-            if waiting:
+            if await probe.scalar(query, {"blocker": blocker_pid}):
                 return
             await asyncio.sleep(0.05)
     raise AssertionError("no transaction is waiting for a lock")

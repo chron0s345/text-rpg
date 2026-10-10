@@ -66,6 +66,14 @@ class InconsistentChangesError(Exception):
     """An engine result touches rows outside the locked snapshot (programming error)."""
 
 
+class StaleRepositoryError(Exception):
+    """A Repository was used in a different transaction than the one its locks belong to.
+
+    Row locks end with commit/rollback. Create a new Repository per transaction (e.g. per retry
+    after ``SnapshotChangedError``); a stale lock set must never authorize writes.
+    """
+
+
 @dataclass
 class Locks:
     """Rows locked in the current transaction; ``apply_changes`` may only write these."""
@@ -87,6 +95,22 @@ class Repository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
         self.locks = Locks()
+        self._transaction: object | None = None  # the transaction the locks belong to
+
+    def _bind_transaction(self) -> None:
+        """Ties the lock set to the current transaction; any other transaction is an error."""
+        current = self.session.get_transaction()
+        if current is None:
+            raise StaleRepositoryError("no active transaction")
+        if self._transaction is None:
+            self._transaction = current
+        elif current is not self._transaction:
+            raise StaleRepositoryError("repository reused across transactions")
+
+    async def _lock_rows(self, stmt: Select[Any]) -> list[Any]:
+        rows = list((await self.session.scalars(_locked(stmt))).all())
+        self._bind_transaction()  # after executing: the statement may have started the transaction
+        return rows
 
     # --- locking primitives (always in lock order, sorted by primary key) ---------------------
 
@@ -95,7 +119,7 @@ class Repository:
         if not ids:
             return []
         stmt = select(Group).where(col(Group.id).in_(ids)).order_by(col(Group.id))
-        rows = list((await self.session.scalars(_locked(stmt))).all())
+        rows = await self._lock_rows(stmt)
         self.locks.groups.update(r.id for r in rows)
         return rows
 
@@ -104,7 +128,7 @@ class Repository:
         if not ids:
             return []
         stmt = select(Player).where(col(Player.id).in_(ids)).order_by(col(Player.id))
-        rows = list((await self.session.scalars(_locked(stmt))).all())
+        rows = await self._lock_rows(stmt)
         self.locks.players.update(r.id for r in rows)
         return rows
 
@@ -117,7 +141,7 @@ class Repository:
             .where(col(InventoryItem.player_id).in_(ids))
             .order_by(col(InventoryItem.player_id), col(InventoryItem.id))
         )
-        rows = list((await self.session.scalars(_locked(stmt))).all())
+        rows = await self._lock_rows(stmt)
         self.locks.inventory.update({r.id: r.player_id for r in rows})
         return rows
 
@@ -127,7 +151,7 @@ class Repository:
             .where(col(MonsterInstance.room_id) == room_id)
             .order_by(col(MonsterInstance.id))
         )
-        rows = list((await self.session.scalars(_locked(stmt))).all())
+        rows = await self._lock_rows(stmt)
         self.locks.monsters.update(r.id for r in rows)
         return rows
 
@@ -141,7 +165,7 @@ class Repository:
                 col(CombatParticipation.monster_instance_id), col(CombatParticipation.player_id)
             )
         )
-        rows = list((await self.session.scalars(_locked(stmt))).all())
+        rows = await self._lock_rows(stmt)
         self.locks.participations.update((r.monster_instance_id, r.player_id) for r in rows)
         return rows
 
@@ -149,7 +173,7 @@ class Repository:
         stmt = (
             select(FloorItem).where(col(FloorItem.room_id) == room_id).order_by(col(FloorItem.id))
         )
-        rows = list((await self.session.scalars(_locked(stmt))).all())
+        rows = await self._lock_rows(stmt)
         self.locks.floor_items.update(r.id for r in rows)
         return rows
 
@@ -260,8 +284,12 @@ class Repository:
             raise InconsistentChangesError(f"{what} is not locked by this transaction")
 
     async def apply_changes(self, changes: StateChanges) -> None:
-        """Writes an engine result. Only rows locked by this repository may be written;
-        locked rows are in the identity map, so lookups do not hit the database."""
+        """Writes an engine result. Only rows locked by this repository in the current
+        transaction may be written; locked rows are in the identity map, so lookups do not hit
+        the database."""
+        if self._transaction is None:
+            raise InconsistentChangesError("nothing is locked by this repository")
+        self._bind_transaction()
         session, locks = self.session, self.locks
 
         for player_update in changes.players:

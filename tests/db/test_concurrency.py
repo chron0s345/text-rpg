@@ -18,11 +18,12 @@ from sqlmodel import col
 
 from app.content.loader import load_content
 from app.db.models import Group, MonsterInstance, Player
-from app.db.repository import Repository, SnapshotChangedError
+from app.db.repository import Repository, SnapshotChangedError, StaleRepositoryError
 from app.db.seed import seed
+from app.engine.events import PlayerUpdate, StateChanges
 from app.engine.state import ActionSnapshot
 from tests.conftest import DATA_DIR
-from tests.db.conftest import Committed, wait_until_blocked
+from tests.db.conftest import Committed, backend_pid, wait_until_blocked
 from tests.db.factories import NOW, add_player
 
 
@@ -46,6 +47,7 @@ async def test_snapshot_sees_data_committed_while_waiting(committed: Committed) 
 
     async with committed.session() as writer, committed.session() as reader:
         await writer.begin()
+        writer_pid = await backend_pid(writer)
         row = await lock_player(writer, actor.id)
         row.gold = 50
 
@@ -61,7 +63,7 @@ async def test_snapshot_sees_data_committed_while_waiting(committed: Committed) 
                 return snapshot
 
         task = asyncio.create_task(load())
-        await wait_until_blocked(committed.engine)
+        await wait_until_blocked(committed.engine, writer_pid)
         await writer.commit()
         snapshot = await task
 
@@ -74,6 +76,7 @@ async def test_group_joined_while_waiting_requests_retry(committed: Committed) -
 
     async with committed.session() as writer, committed.session() as reader:
         await writer.begin()
+        writer_pid = await backend_pid(writer)
         row = await lock_player(writer, actor.id)
         group = Group(leader_id=actor.id)
         writer.add(group)
@@ -85,7 +88,7 @@ async def test_group_joined_while_waiting_requests_retry(committed: Committed) -
                 return await Repository(reader).load_action_snapshot(actor.id)
 
         task = asyncio.create_task(load())
-        await wait_until_blocked(committed.engine)
+        await wait_until_blocked(committed.engine, writer_pid)
         await writer.commit()
         with pytest.raises(SnapshotChangedError):
             await task
@@ -97,6 +100,7 @@ async def test_actor_moved_while_waiting_requests_retry(committed: Committed) ->
 
     async with committed.session() as writer, committed.session() as reader:
         await writer.begin()
+        writer_pid = await backend_pid(writer)
         row = await lock_player(writer, actor.id)
         row.current_room_id = "elsewhere"
 
@@ -105,7 +109,7 @@ async def test_actor_moved_while_waiting_requests_retry(committed: Committed) ->
                 return await Repository(reader).load_action_snapshot(actor.id)
 
         task = asyncio.create_task(load())
-        await wait_until_blocked(committed.engine)
+        await wait_until_blocked(committed.engine, writer_pid)
         await writer.commit()
         with pytest.raises(SnapshotChangedError):
             await task
@@ -131,9 +135,17 @@ async def test_snapshot_locks_players_and_monsters_until_commit(committed: Commi
 
 async def test_concurrent_seeds_do_not_duplicate(committed: Committed) -> None:
     content = load_content(DATA_DIR)
-    committed.rooms.extend(content.rooms)
-    async with committed.session() as db, db.begin():
-        before = len((await db.scalars(select(MonsterInstance))).all())
+    rooms = list(content.rooms)
+    committed.rooms.extend(rooms)  # cleanup removes seeded rows of these rooms, even on failure
+
+    async def count_monsters() -> int:
+        async with committed.session() as db:
+            rows = await db.scalars(
+                select(MonsterInstance).where(col(MonsterInstance.room_id).in_(rooms))
+            )
+            return len(rows.all())
+
+    before = await count_monsters()
 
     async def run_seed() -> None:
         async with committed.session() as db, db.begin():
@@ -142,11 +154,8 @@ async def test_concurrent_seeds_do_not_duplicate(committed: Committed) -> None:
 
     await asyncio.gather(run_seed(), run_seed())
 
-    async with committed.session() as db, db.begin():
-        monsters = (await db.scalars(select(MonsterInstance))).all()
-        await db.execute(text("DELETE FROM item_spawn_state"))
     wanted = sum(s.count for r in content.rooms.values() for s in r.spawns)
-    assert len(monsters) - before == wanted
+    assert await count_monsters() - before == wanted
 
 
 async def test_wait_helper_fails_without_waiter(
@@ -157,3 +166,19 @@ async def test_wait_helper_fails_without_waiter(
         await wait_until_blocked(
             committed.engine, timeout=timedelta(milliseconds=200).total_seconds()
         )
+
+
+async def test_repository_cannot_outlive_its_transaction(committed: Committed) -> None:
+    actor = await setup_actor(committed, f"room-{uuid4().hex[:6]}")
+    async with committed.session() as db:
+        repo = Repository(db)
+        async with db.begin():
+            await repo.load_action_snapshot(actor.id)
+        async with db.begin():
+            # the locks of the first transaction are gone; the old lock set must not authorize
+            with pytest.raises(StaleRepositoryError):
+                await repo.apply_changes(
+                    StateChanges(players=[PlayerUpdate(player_id=actor.id, gold=1)])
+                )
+            with pytest.raises(StaleRepositoryError):
+                await repo.load_action_snapshot(actor.id)

@@ -560,6 +560,7 @@ Regeln:
 - Nicht handelbar: Items mit `tradable: false` und ausgerüstete Items (müssen erst abgelegt werden).
 - Angebotene Items bleiben bis zur Ausführung im Inventar des Besitzers; sie können währenddessen nicht fallengelassen, benutzt oder ausgerüstet werden.
 - Ein Handel wird automatisch abgebrochen, wenn einer der beiden den Raum verlässt, in einen Kampf gerät (auch durch Überfall), stirbt, sich ausloggt oder die Disconnect-Frist beginnt.
+- **Endet ein Handel (`completed` oder `cancelled`), werden seine `TradeOffer`-Zeilen in derselben Transaktion gelöscht.** Ein angebotenes Item ist in der Datenbank gegen Löschen geschützt (kein Cascade); bleiben Angebote stehen, kann das Item danach nie mehr verbraucht, fallengelassen oder übertragen werden. Bei der Ausführung werden die Angebote vor dem Umbuchen der Items gelöscht.
 - Rate Limit auf `trade_request`, damit niemand mit Anfragen zugespammt werden kann.
 
 ### Bank
@@ -672,12 +673,13 @@ Jede Aktion und jeder Ticker-Schritt ist **eine Datenbanktransaktion**. Nach dem
 
 1. Route validiert die Aktion und ermittelt den aktiven Charakter aus der Session.
 2. Rate Limit über `last_action_at` prüfen.
-3. `ActionService` öffnet eine Transaktion und sperrt die beteiligten Zeilen.
-4. Engine berechnet das Ergebnis.
-5. Service schreibt Änderungen und Log-Einträge.
-6. **Commit.**
-7. **Erst nach dem Commit** werden Events publiziert. Ein Rollback darf nie Events erzeugen.
-8. Route rendert die Antwort-Partials für den Handelnden.
+3. `ActionService` öffnet eine Transaktion und sperrt die beteiligten Zeilen (`Repository.load_action_snapshot`). Pro Transaktion – also auch pro Wiederholung nach `SnapshotChangedError` – wird ein **neues** `Repository` erzeugt; ein wiederverwendetes wirft `StaleRepositoryError`.
+4. Der Service prüft am **gesperrten** Datensatz, dass der Charakter online und nicht gelöscht ist (Zustandsregeln wie „tot“ prüft die Engine). Das Rate Limit aus Schritt 2 wird ebenfalls erst hier am gesperrten Datensatz verbindlich gesetzt.
+5. Engine berechnet das Ergebnis.
+6. Service schreibt Änderungen und Log-Einträge.
+7. **Commit.**
+8. **Erst nach dem Commit** werden Events publiziert. Ein Rollback darf nie Events erzeugen.
+9. Route rendert die Antwort-Partials für den Handelnden.
 
 ### Locking
 
@@ -692,6 +694,7 @@ Jede Aktion und jeder Ticker-Schritt ist **eine Datenbanktransaktion**. Nach dem
 - `Repository.apply_changes` schreibt **nur Zeilen, die dieselbe Repository-Instanz gesperrt hat** (Spieler, Inventar, Monster, Kampfteilnahmen, Floor-Items und neue Floor-Items/Spawn-Zustände nur im gesperrten Raum, Gruppen). Alles andere – etwa das Löschen eines Items eines Spielers in einem anderen Raum oder ein Inventar-Eintrag, der den Besitzer wechselt – wird mit `InconsistentChangesError` abgelehnt.
 - Ein im Handel angebotenes Item kann in der Datenbank nicht gelöscht werden (`trade_offer` → `inventory_item` ohne Cascade); der Handel muss vorher abgebrochen oder ausgeführt werden.
 - Der Seed läuft unter einem Advisory-Lock, damit parallele Seeds keine Monster doppelt anlegen.
+- `ItemSpawnState` hat keine eigene Sperre: Aufheben ändert ihn nur, während das zugehörige Floor-Item (Sperre auf den Raum) gesperrt ist. **Der Ticker muss für Item-Respawns ebenfalls zuerst die Floor-Items des Raums sperren** (bzw. den Raum über `load_action_snapshot`-äquivalente Sperren), sonst drohen verlorene Updates oder doppelte Spawn-Items.
 
 ### Migrationen
 
