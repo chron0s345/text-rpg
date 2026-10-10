@@ -62,6 +62,11 @@ def remove_from_combat(
     ARCHITECTURE.md: "Fliehen oder sterben alle Mitglieder der markierenden Partei, wird die
     Markierung aufgehoben."
     """
+    builder.changes.participations_upsert = [
+        u
+        for u in builder.changes.participations_upsert
+        if not (u.monster_instance_id == monster_instance_id and u.player_id == player.id)
+    ]
     builder.changes.participations_delete.append(
         ParticipationDelete(monster_instance_id=monster_instance_id, player_id=player.id)
     )

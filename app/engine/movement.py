@@ -1,75 +1,82 @@
+"""Action ``move`` (ARCHITECTURE.md, "Charakterzustände", "Tod & Checkpoint", "Überfälle").
+
+The snapshot describes the *destination* room: ``room_players``, ``monsters`` and
+``participations`` belong to the room behind the chosen exit.
+"""
+
 from __future__ import annotations
 
 import random
-from dataclasses import dataclass
-from uuid import UUID
+from datetime import datetime
+from typing import Final
 
-from app.content.schemas import Direction, MonsterTemplate, RoomTemplate
-from app.engine.ambush import check_enter_ambush
+from app.content.registry import ContentRegistry
+from app.content.schemas import Direction, Rules
+from app.engine.ambush import ambush_candidates, apply_ambush, roll_ambush
+from app.engine.events import ActionResult, ResultBuilder, RoomAudience, rejected
+from app.engine.permissions import check_state
+from app.engine.state import ActionSnapshot
+
+DIRECTION_NAMES: Final[dict[Direction, str]] = {
+    "north": "Norden",
+    "south": "Süden",
+    "east": "Osten",
+    "west": "Westen",
+    "up": "oben",
+    "down": "unten",
+}
 
 
-@dataclass(frozen=True)
-class MoveResult:
-    success: bool
-    error_message: str | None
-    new_room_id: str | None
-    checkpoint_updated: bool
-    ambushed: bool
-    ambushing_monster_instance_id: UUID | None
-
-
-def resolve_movement(
-    current_room: RoomTemplate,
-    direction: Direction,
-    destination_room: RoomTemplate | None,
-    current_checkpoint_room_id: str,
-    player_level: int,
-    room_monsters: list[tuple[UUID, MonsterTemplate]],
+def resolve_move(
+    snapshot: ActionSnapshot,
+    content: ContentRegistry,
+    rules: Rules,
+    now: datetime,
     rng: random.Random,
-) -> MoveResult:
-    """Calculates room transition, checkpoint updates, and entry ambush checks.
+    direction: Direction,
+) -> ActionResult:
+    actor = snapshot.actor
+    if denied := check_state("move", actor):
+        return denied
+    origin = content.get_room(actor.current_room_id)
+    destination_id = origin.exits.get(direction)
+    if destination_id is None:
+        return rejected(f"Es gibt keinen Weg nach {DIRECTION_NAMES[direction]}.")
+    destination = content.get_room(destination_id)
 
-    Pure function adhering to ARCHITECTURE.md specs.
-    """
-    if direction not in current_room.exits:
-        return MoveResult(
-            success=False,
-            error_message=f"Es gibt keinen Weg nach {direction}.",
-            new_room_id=None,
-            checkpoint_updated=False,
-            ambushed=False,
-            ambushing_monster_instance_id=None,
-        )
-
-    exit_target_id = current_room.exits[direction]
-    if destination_room is None or destination_room.id != exit_target_id:
-        return MoveResult(
-            success=False,
-            error_message="Zielraum nicht gefunden.",
-            new_room_id=None,
-            checkpoint_updated=False,
-            ambushed=False,
-            ambushing_monster_instance_id=None,
-        )
-
-    # Checkpoint logic
-    checkpoint_updated = False
-    if destination_room.checkpoint and destination_room.id != current_checkpoint_room_id:
-        checkpoint_updated = True
-
-    # Ambush logic on entry
-    ambush_result = check_enter_ambush(
-        player_level=player_level,
-        is_safe_room=destination_room.safe,
-        available_monsters=room_monsters,
-        rng=rng,
+    builder = ResultBuilder(actor_id=actor.id)
+    actor.current_room_id = destination.id
+    builder.update_player(actor.id, current_room_id=destination.id)
+    builder.event(
+        "move.leave",
+        RoomAudience(room_id=origin.id),
+        f"{actor.name} geht nach {DIRECTION_NAMES[direction]}.",
+        exclude=[actor.id],
+        player_id=str(actor.id),
+    )
+    builder.event(
+        "move.enter",
+        RoomAudience(room_id=destination.id),
+        f"{actor.name} kommt herein.",
+        exclude=[actor.id],
+        player_id=str(actor.id),
+    )
+    builder.to_actor(
+        "move.enter",
+        f"Du gehst nach {DIRECTION_NAMES[direction]}: {destination.name}.",
+        room_id=destination.id,
     )
 
-    return MoveResult(
-        success=True,
-        error_message=None,
-        new_room_id=destination_room.id,
-        checkpoint_updated=checkpoint_updated,
-        ambushed=ambush_result.ambushed,
-        ambushing_monster_instance_id=ambush_result.ambushing_monster_instance_id,
-    )
+    if destination.checkpoint and actor.checkpoint_room_id != destination.id:
+        actor.checkpoint_room_id = destination.id
+        builder.update_player(actor.id, checkpoint_room_id=destination.id)
+        builder.to_actor(
+            "checkpoint.bound",
+            "Du fühlst dich mit diesem Ort verbunden.",
+            room_id=destination.id,
+        )
+
+    hit = roll_ambush(ambush_candidates(snapshot, actor, content), lambda a: a.chance_on_enter, rng)
+    if hit is not None:
+        apply_ambush(builder, snapshot, actor, *hit, content, rules, now, rng)
+    return builder.build()

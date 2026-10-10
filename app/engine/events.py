@@ -118,6 +118,13 @@ class GroupUpdate(BaseModel):
 
 
 class StateChanges(BaseModel):
+    """Final state changes of one engine call.
+
+    The lists never contradict each other: a participation that ends is only in
+    ``participations_delete`` (or covered by ``participations_clear_monster_ids``), never also in
+    ``participations_upsert``. The service may therefore apply them in any order.
+    """
+
     players: list[PlayerUpdate] = Field(default_factory=list)
     monsters: list[MonsterUpdate] = Field(default_factory=list)
     participations_upsert: list[ParticipationUpsert] = Field(default_factory=list)
