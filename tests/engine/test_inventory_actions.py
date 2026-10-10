@@ -437,3 +437,133 @@ def test_look_lists_visible_floor_items(content: ContentRegistry, rules: Rules) 
     [event] = resolve_look(snapshot, content, rules, NOW, RNG).events
     assert [f["id"] for f in event.data["floor_items"]] == [str(visible.id)]
     assert "Am Boden: 2x Goblinohr" in event.text
+
+
+# --- review follow-ups -------------------------------------------------------------------------
+
+
+def test_potion_stack_lost_on_death_is_not_brought_back(
+    content: ContentRegistry, rules: Rules
+) -> None:
+    harsh = rules.model_copy(
+        update={
+            "death": rules.death.model_copy(update={"item_loss_chance": 1.0, "max_items_lost": 5})
+        }
+    )
+    actor = make_player(hp=1)
+    potions = give(actor, "healing_potion", quantity=3)
+    troll = make_monster("troll")
+    fight(actor, troll)
+
+    result = resolve_use_item(
+        ActionSnapshot(actor=actor, monsters=[troll]), content, harsh, NOW, RNG, potions.id
+    )
+
+    assert player_update(result, actor.id)["state"] == "dead"
+    assert potions.id in result.changes.inventory_delete
+    upserted = {u.item.id for u in result.changes.inventory_upsert}
+    assert upserted.isdisjoint(result.changes.inventory_delete)
+
+
+def test_drop_announces_floor_item_and_updates_snapshot(
+    content: ContentRegistry, rules: Rules
+) -> None:
+    actor = make_player()
+    dagger = give(actor, "rusty_dagger")
+    snapshot = ActionSnapshot(actor=actor)
+
+    result = resolve_drop(snapshot, content, rules, NOW, RNG, dagger.id)
+
+    [created] = result.changes.floor_items_create
+    assert [f.id for f in snapshot.floor_items] == [created.id]
+    [room] = [e for e in result.events if e.kind == "floor.dropped"]
+    assert room.data == {"floor_item_id": str(created.id), "item_id": "rusty_dagger", "quantity": 1}
+
+
+def test_unequip_merges_split_piece_back_into_stack(content: ContentRegistry, rules: Rules) -> None:
+    actor = make_player()
+    stack = give(actor, "knives", quantity=2)
+    worn = give(actor, "knives", slot="weapon")
+
+    result = resolve_unequip(ActionSnapshot(actor=actor), content, rules, NOW, RNG, worn.id)
+
+    assert upserts(result)[stack.id].quantity == 3
+    assert result.changes.inventory_delete == [worn.id]
+    assert [i.id for i in actor.inventory] == [stack.id]
+
+
+def test_unequip_merge_even_with_full_inventory(content: ContentRegistry, rules: Rules) -> None:
+    actor = make_player()
+    give(actor, "knives", quantity=2)
+    worn = give(actor, "knives", slot="weapon")
+    fill(actor, rules)
+    result = resolve_unequip(ActionSnapshot(actor=actor), content, rules, NOW, RNG, worn.id)
+    assert result.changes.inventory_delete == [worn.id]
+
+
+def test_unequip_does_not_merge_into_full_or_locked_stack(
+    content: ContentRegistry, rules: Rules
+) -> None:
+    actor = make_player()
+    full = give(actor, "knives", quantity=10)
+    locked = give(actor, "knives", quantity=1)
+    actor.locked_item_ids = [locked.id]
+    worn = give(actor, "knives", slot="weapon")
+
+    result = resolve_unequip(ActionSnapshot(actor=actor), content, rules, NOW, RNG, worn.id)
+
+    assert upserts(result)[worn.id].equipped_slot is None
+    assert full.id not in upserts(result) and locked.id not in upserts(result)
+
+
+def test_equip_rejects_locked_item(content: ContentRegistry, rules: Rules) -> None:
+    actor = make_player()
+    dagger = give(actor, "rusty_dagger")
+    actor.locked_item_ids = [dagger.id]
+    result = resolve_equip(ActionSnapshot(actor=actor), content, rules, NOW, RNG, dagger.id)
+    assert actor_texts(result) == ["Dieser Gegenstand ist im Handel angeboten."]
+
+
+def test_pick_up_tops_up_existing_stack_first(content: ContentRegistry, rules: Rules) -> None:
+    actor = make_player()
+    ears = give(actor, "goblin_ear", quantity=18)
+    pile = floor(quantity=5)
+    result = resolve_pick_up(
+        ActionSnapshot(actor=actor, floor_items=[pile]), content, rules, NOW, RNG, pile.id
+    )
+    changed = upserts(result)
+    assert changed[ears.id].quantity == 20
+    assert sorted(i.quantity for i in changed.values()) == [3, 20]
+
+
+def test_pick_up_quantity_bounds(content: ContentRegistry, rules: Rules) -> None:
+    actor = make_player()
+    pile = floor(quantity=2)
+    snapshot = ActionSnapshot(actor=actor, floor_items=[pile])
+    zero = resolve_pick_up(snapshot, content, rules, NOW, RNG, pile.id, 0)
+    assert actor_texts(zero) == ["Ungültige Menge."]
+    too_many = resolve_pick_up(snapshot, content, rules, NOW, RNG, pile.id, 99)
+    assert [u.quantity for u in upserts(too_many).values()] == [2]
+    assert too_many.changes.floor_items_delete == [pile.id]
+
+
+def test_spawn_item_respawn_only_on_full_pickup_with_timer(
+    content: ContentRegistry, rules: Rules
+) -> None:
+    actor = make_player(room="goblin_camp")
+    bread = floor(
+        room_id="goblin_camp", item_id="bread", quantity=2, source="spawn", expires_at=None
+    )
+    partial = resolve_pick_up(
+        ActionSnapshot(actor=actor, floor_items=[bread]), content, rules, NOW, RNG, bread.id, 1
+    )
+    assert partial.changes.item_spawns == []
+
+    # dark_forest has no item spawn rule for goblin ears -> nothing to schedule
+    actor = make_player()
+    ear = floor(source="spawn", expires_at=None)
+    result = resolve_pick_up(
+        ActionSnapshot(actor=actor, floor_items=[ear]), content, rules, NOW, RNG, ear.id
+    )
+    assert result.changes.floor_items_delete == [ear.id]
+    assert result.changes.item_spawns == []

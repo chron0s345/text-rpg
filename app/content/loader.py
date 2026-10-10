@@ -177,6 +177,10 @@ def validate_content(
                     f"Room '{room.id}' spawns unknown monster '{spawn.monster_id}'"
                 )
 
+        spawn_item_ids = [item_spawn.item_id for item_spawn in room.items]
+        if len(spawn_item_ids) != len(set(spawn_item_ids)):
+            # item spawn state is keyed by (room, item): one rule per item and room
+            raise ContentValidationError(f"Room '{room.id}' has several spawn rules for one item")
         for item_spawn in room.items:
             if item_spawn.item_id not in items:
                 raise ContentValidationError(

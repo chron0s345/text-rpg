@@ -33,6 +33,7 @@ from app.engine.inventory import (
 from app.engine.permissions import check_state
 from app.engine.state import (
     ActionSnapshot,
+    FloorItemSnapshot,
     InventoryItemState,
     PlayerSnapshot,
     new_id,
@@ -154,6 +155,23 @@ def resolve_unequip(
     after = [i.model_copy() for i in actor.inventory]
     target = next(i for i in after if i.id == entry.id)
     target.equipped_slot = None
+    # a piece split off a stack (see equip) goes back onto a stack with room
+    stack = next(
+        (
+            i
+            for i in after
+            if item.stackable
+            and i is not target
+            and i.item_id == item.id
+            and i.equipped_slot is None
+            and i.id not in actor.locked_item_ids
+            and i.quantity + target.quantity <= item.max_stack
+        ),
+        None,
+    )
+    if stack is not None:
+        stack.quantity += target.quantity
+        after = [i for i in after if i is not target]
     if not _fits(after, content, rules):
         if item.kind == "bag":
             return rejected("Leere die Tasche zuerst.")
@@ -161,7 +179,11 @@ def resolve_unequip(
 
     builder = ResultBuilder(actor_id=actor.id)
     actor.inventory = after
-    builder.upsert_inventory(actor.id, [target])
+    if stack is not None:
+        builder.upsert_inventory(actor.id, [stack])
+        builder.changes.inventory_delete.append(target.id)
+    else:
+        builder.upsert_inventory(actor.id, [target])
     builder.to_actor("inventory.unequipped", f"Du legst {item.name} ab.", item_id=item.id)
     _cap_hp(builder, actor, content)
     return builder.build()
@@ -324,17 +346,17 @@ def resolve_drop(
 
     builder = ResultBuilder(actor_id=actor.id)
     _remove_quantity(builder, actor, entry, amount)
-    builder.changes.floor_items_create.append(
-        FloorItemCreate(
-            id=new_id(rng),
-            room_id=actor.current_room_id,
-            item_id=item.id,
-            quantity=amount,
-            source="drop",
-            dropped_by_account_id=actor.account_id,
-            expires_at=now + timedelta(seconds=rules.timings.floor_item_ttl_seconds),
-        )
+    created = FloorItemCreate(
+        id=new_id(rng),
+        room_id=actor.current_room_id,
+        item_id=item.id,
+        quantity=amount,
+        source="drop",
+        dropped_by_account_id=actor.account_id,
+        expires_at=now + timedelta(seconds=rules.timings.floor_item_ttl_seconds),
     )
+    builder.changes.floor_items_create.append(created)
+    snapshot.floor_items.append(FloorItemSnapshot.model_validate(created.model_dump()))
     builder.to_actor(
         "inventory.dropped", f"Du lässt {_label(amount, item)} fallen.", item_id=item.id
     )
@@ -343,6 +365,9 @@ def resolve_drop(
         RoomAudience(room_id=actor.current_room_id),
         f"{actor.name} lässt {_label(amount, item)} fallen.",
         exclude=[actor.id],
+        floor_item_id=str(created.id),
+        item_id=item.id,
+        quantity=amount,
     )
     return builder.build()
 

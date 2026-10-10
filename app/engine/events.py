@@ -222,7 +222,39 @@ class ResultBuilder:
             MonsterUpdate.model_validate({"monster_instance_id": mid, **fields})
             for mid, fields in self._monsters.items()
         ]
+        self._deletions_win()
         return ActionResult(changes=self.changes, events=self.events)
+
+    def _deletions_win(self) -> None:
+        """Guarantees the StateChanges contract: nothing is both written and deleted.
+
+        Example: using a potion in combat upserts the reduced stack; if the counter-attack kills
+        the player and the loss roll takes that stack, the delete must win. Otherwise applying
+        upserts after deletes would bring the lost stack back.
+        """
+        changes = self.changes
+        deleted_items = set(changes.inventory_delete)
+        changes.inventory_upsert = [
+            u for u in changes.inventory_upsert if u.item.id not in deleted_items
+        ]
+        deleted_floor = set(changes.floor_items_delete)
+        changes.floor_items_update = [
+            u for u in changes.floor_items_update if u.id not in deleted_floor
+        ]
+        changes.floor_items_create = [
+            c for c in changes.floor_items_create if c.id not in deleted_floor
+        ]
+        cleared = set(changes.participations_clear_monster_ids)
+        ended = {(d.monster_instance_id, d.player_id) for d in changes.participations_delete}
+        changes.participations_upsert = [
+            u
+            for u in changes.participations_upsert
+            if u.monster_instance_id not in cleared
+            and (u.monster_instance_id, u.player_id) not in ended
+        ]
+        changes.participations_delete = [
+            d for d in changes.participations_delete if d.monster_instance_id not in cleared
+        ]
 
 
 def rejected(text: str) -> ActionResult:
