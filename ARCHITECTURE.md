@@ -419,6 +419,16 @@ class LogEntry(SQLModel, table=True):
 
 Ein Seed-Befehl erzeugt `MonsterInstance`- und Spawn-`FloorItem`-Einträge aus den Templates und gleicht bei Content-Änderungen fehlende Instanzen ab, ohne bestehende anzufassen.
 
+Umsetzung in `app/db/models.py` (Abweichungen und Ergänzungen zum Modell oben):
+
+- Tabellennamen in snake_case; `Group` heißt `player_group` (GROUP ist ein SQL-Schlüsselwort).
+- `Player.group_joined_at`: Beitrittszeit, bestimmt Round-Robin-Reihenfolge und Leader-Nachfolge.
+- `GroupInvite`: Schlüssel `(inviter_id, player_id)`, `group_id` ist `NULL`, solange der Einladende noch keine Gruppe hat (sie entsteht erst beim Annehmen).
+- `CombatParticipation`, `ItemSpawnState`, `TradeOffer` haben zusammengesetzte Primärschlüssel; `TradeLog.summary` ist JSONB.
+- Alle Zeitstempel sind `timestamptz` (UTC).
+- Integritätsregeln in der Datenbank: keine negativen Werte für Gold/HP/XP/Mengen, gültige Zustände und Slots, ablaufende Floor-Items außer Spawns, Charakternamen eindeutig (ohne Groß-/Kleinschreibung) unter nicht gelöschten Charakteren, Benutzernamen eindeutig (ohne Groß-/Kleinschreibung), **höchstens ein Charakter pro Account online** (partieller Unique-Index).
+- Seed: `python -m app.db.seed` (idempotent).
+
 ### Abgeleitete Werte
 
 Werte, die sich aus anderen ergeben, werden **berechnet, nicht gespeichert**:
@@ -676,6 +686,9 @@ Jede Aktion und jeder Ticker-Schritt ist **eine Datenbanktransaktion**. Nach dem
 - Die Handelsausführung sperrt den `Trade`, beide Spieler und alle beteiligten Inventar-Einträge. Damit kann ein Item nicht gleichzeitig gehandelt und fallengelassen werden.
 - Beutevergabe in Gruppen sperrt die Gruppe und alle Empfänger, damit Round-Robin und Inventar konsistent bleiben.
 - Überfälle aus dem Ticker sperren Monster und Opfer in derselben Reihenfolge wie Spieleraktionen.
+- Umsetzung: `Repository.load_action_snapshot` liest zuerst ungesperrt, wer im Raum ist und welche Gruppen betroffen sind, und sperrt dann in der festen Reihenfolge. Ist danach ein Spieler in einer nicht gesperrten Gruppe (Gruppenwechsel dazwischen), wird `SnapshotChangedError` geworfen; der Service rollt zurück und wiederholt die Transaktion.
+- Im Handel angebotene Items werden nach dem Sperren der Spieler gelesen (`locked_item_ids`); Angebote entstehen unter derselben Spielersperre.
+- `Repository.apply_changes` lehnt Inventar-Upserts ab, die einen Eintrag einem anderen Spieler zuordnen würden (`InconsistentChangesError`).
 
 ### Migrationen
 
