@@ -1,11 +1,5 @@
 from app.engine.ambush import AmbushCheckResult, check_enter_ambush
-from app.engine.combat import (
-    CombatRoundResult,
-    FleeResult,
-    calculate_damage,
-    resolve_combat_round,
-    resolve_flee,
-)
+from app.engine.combat import calculate_damage, resolve_attack, resolve_flee
 from app.engine.death import DeathLossResult, resolve_death_losses
 from app.engine.events import (
     ActorAudience,
@@ -41,10 +35,8 @@ __all__ = [
     "ActorAudience",
     "AmbushCheckResult",
     "Audience",
-    "CombatRoundResult",
     "DeathLossResult",
     "EffectiveStats",
-    "FleeResult",
     "GameEvent",
     "GlobalAudience",
     "GroupAudience",
@@ -67,7 +59,7 @@ __all__ = [
     "distribute_gold",
     "distribute_xp",
     "get_occupied_slots",
-    "resolve_combat_round",
+    "resolve_attack",
     "resolve_death_losses",
     "resolve_flee",
     "resolve_movement",

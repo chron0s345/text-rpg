@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import math
 import random
+from collections.abc import Mapping
 from dataclasses import dataclass
 from uuid import UUID
 
@@ -64,23 +66,24 @@ def distribute_gold(
     return distribution
 
 
-def distribute_xp(
-    total_xp: int,
-    damage_by_player: dict[UUID, int],
-) -> dict[UUID, int]:
-    """Distributes XP proportionally based on damage dealt by each participant."""
-    if total_xp <= 0 or not damage_by_player:
-        return {}
+def distribute_xp(total_xp: int, weights: Mapping[UUID, float]) -> dict[UUID, int]:
+    """Splits ``total_xp`` proportionally to ``weights`` without losing points to rounding.
 
-    total_damage = sum(damage_by_player.values())
-    if total_damage <= 0:
-        # Equal split if 0 damage recorded (fallback)
-        per_player = total_xp // len(damage_by_player)
-        return {pid: per_player for pid in damage_by_player}
+    Largest-remainder method: everyone gets the floor of their share, leftover points go to the
+    largest fractional remainders (ties: insertion order). Non-positive weights get nothing.
+    """
+    positive = {pid: w for pid, w in weights.items() if w > 0}
+    if total_xp <= 0 or not positive:
+        return {pid: 0 for pid in weights}
 
-    result: dict[UUID, int] = {}
-    for pid, dmg in damage_by_player.items():
-        share = int(total_xp * (dmg / total_damage))
-        result[pid] = share
+    total_weight = sum(positive.values())
+    exact = {pid: total_xp * w / total_weight for pid, w in positive.items()}
+    result = {pid: 0 for pid in weights}
+    for pid, share in exact.items():
+        result[pid] = math.floor(share)
 
+    leftover = total_xp - sum(result.values())
+    by_remainder = sorted(exact, key=lambda pid: exact[pid] - math.floor(exact[pid]), reverse=True)
+    for pid in by_remainder[:leftover]:
+        result[pid] += 1
     return result

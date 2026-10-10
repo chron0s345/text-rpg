@@ -140,7 +140,8 @@ class ActionResult(BaseModel):
 class ResultBuilder:
     """Accumulates changes while an engine function runs; merges updates per entity."""
 
-    def __init__(self) -> None:
+    def __init__(self, actor_id: UUID | None = None) -> None:
+        self.actor_id = actor_id
         self._players: dict[UUID, dict[str, Any]] = {}
         self._monsters: dict[UUID, dict[str, Any]] = {}
         self.changes = StateChanges()
@@ -151,6 +152,16 @@ class ResultBuilder:
 
     def update_monster(self, monster_instance_id: UUID, **fields: Any) -> None:
         self._monsters.setdefault(monster_instance_id, {}).update(fields)
+
+    def upsert_inventory(self, player_id: UUID, entries: list[InventoryItemState]) -> None:
+        """Records new/changed stacks; a later upsert of the same entry replaces the earlier one."""
+        ids = {e.id for e in entries}
+        self.changes.inventory_upsert = [
+            u for u in self.changes.inventory_upsert if u.item.id not in ids
+        ]
+        self.changes.inventory_upsert.extend(
+            InventoryUpsert(player_id=player_id, item=e.model_copy()) for e in entries
+        )
 
     def event(
         self,
@@ -173,6 +184,13 @@ class ResultBuilder:
 
     def to_actor(self, kind: str, text: str, **data: Any) -> None:
         self.event(kind, ActorAudience(), text, **data)
+
+    def to_player(self, player_id: UUID, kind: str, text: str, **data: Any) -> None:
+        """Personal message; the actor gets it via the HTTP response, others via SSE."""
+        if player_id == self.actor_id:
+            self.to_actor(kind, text, **data)
+        else:
+            self.event(kind, PlayersAudience(player_ids=[player_id]), text, **data)
 
     def build(self) -> ActionResult:
         self.changes.players = [
