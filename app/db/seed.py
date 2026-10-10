@@ -66,7 +66,12 @@ def plan_seed(
     return plan
 
 
+SEED_LOCK = "text-rpg:seed"
+
+
 async def seed(session: AsyncSession, content: ContentRegistry) -> SeedPlan:
+    # two seeds at once would both see the same gaps: serialize them for this transaction
+    await session.execute(select(func.pg_advisory_xact_lock(func.hashtext(SEED_LOCK))))
     rows = await session.execute(
         select(
             col(MonsterInstance.room_id), col(MonsterInstance.monster_id), func.count()

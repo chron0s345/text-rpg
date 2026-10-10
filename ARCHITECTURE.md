@@ -688,7 +688,10 @@ Jede Aktion und jeder Ticker-Schritt ist **eine Datenbanktransaktion**. Nach dem
 - Überfälle aus dem Ticker sperren Monster und Opfer in derselben Reihenfolge wie Spieleraktionen.
 - Umsetzung: `Repository.load_action_snapshot` liest zuerst ungesperrt, wer im Raum ist und welche Gruppen betroffen sind, und sperrt dann in der festen Reihenfolge. Ist danach ein Spieler in einer nicht gesperrten Gruppe (Gruppenwechsel dazwischen), wird `SnapshotChangedError` geworfen; der Service rollt zurück und wiederholt die Transaktion.
 - Im Handel angebotene Items werden nach dem Sperren der Spieler gelesen (`locked_item_ids`); Angebote entstehen unter derselben Spielersperre.
-- `Repository.apply_changes` lehnt Inventar-Upserts ab, die einen Eintrag einem anderen Spieler zuordnen würden (`InconsistentChangesError`).
+- Alle sperrenden Abfragen laufen mit `populate_existing`: Bereits in der Session geladene Zeilen werden mit den unter der Sperre gelesenen Werten aktualisiert. Sonst könnte eine Transaktion veraltete Werte (z. B. Gold) zurückschreiben, obwohl sie korrekt auf die Sperre gewartet hat. Die Vorab-Lesung ist rein spaltenbasiert. Hat sich der Handelnde inzwischen bewegt, gibt es ebenfalls `SnapshotChangedError`.
+- `Repository.apply_changes` schreibt **nur Zeilen, die dieselbe Repository-Instanz gesperrt hat** (Spieler, Inventar, Monster, Kampfteilnahmen, Floor-Items und neue Floor-Items/Spawn-Zustände nur im gesperrten Raum, Gruppen). Alles andere – etwa das Löschen eines Items eines Spielers in einem anderen Raum oder ein Inventar-Eintrag, der den Besitzer wechselt – wird mit `InconsistentChangesError` abgelehnt.
+- Ein im Handel angebotenes Item kann in der Datenbank nicht gelöscht werden (`trade_offer` → `inventory_item` ohne Cascade); der Handel muss vorher abgebrochen oder ausgeführt werden.
+- Der Seed läuft unter einem Advisory-Lock, damit parallele Seeds keine Monster doppelt anlegen.
 
 ### Migrationen
 

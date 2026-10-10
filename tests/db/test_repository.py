@@ -29,7 +29,14 @@ from app.db.repository import (
     UnknownPlayerError,
 )
 from app.engine.combat import resolve_attack
-from app.engine.events import InventoryUpsert, StateChanges
+from app.engine.events import (
+    FloorItemCreate,
+    FloorItemUpdate,
+    InventoryUpsert,
+    MonsterUpdate,
+    PlayerUpdate,
+    StateChanges,
+)
 from app.engine.inventory_actions import resolve_drop
 from app.engine.state import InventoryItemState
 from tests.conftest import DATA_DIR
@@ -313,3 +320,58 @@ async def add_player_with_account(session: AsyncSession, account_id: object) -> 
     session.add(player)
     await session.flush()
     return player
+
+
+# --- apply_changes only writes locked rows -------------------------------------------------------
+
+
+async def test_apply_changes_rejects_rows_outside_the_snapshot(session: AsyncSession) -> None:
+    actor = await add_player(session)
+    stranger = await add_player(session, current_room_id="goblin_camp")
+    foreign_item = InventoryItem(player_id=stranger.id, item_id="bread")
+    far_floor = FloorItem(
+        room_id="goblin_camp", item_id="bread", source="loot", expires_at=NOW + timedelta(1)
+    )
+    far_monster = MonsterInstance(monster_id="goblin", room_id="goblin_camp", hp=12)
+    session.add_all([foreign_item, far_floor, far_monster])
+    await session.flush()
+    repo = Repository(session)
+    await repo.load_action_snapshot(actor.id)
+
+    forbidden = [
+        StateChanges(inventory_delete=[foreign_item.id]),
+        StateChanges(players=[PlayerUpdate(player_id=stranger.id, gold=999)]),
+        StateChanges(monsters=[MonsterUpdate(monster_instance_id=far_monster.id, hp=0)]),
+        StateChanges(floor_items_update=[FloorItemUpdate(id=far_floor.id, quantity=5)]),
+        StateChanges(floor_items_delete=[far_floor.id]),
+        StateChanges(
+            floor_items_create=[
+                FloorItemCreate(
+                    id=uuid4(), room_id="goblin_camp", item_id="bread", quantity=1, source="spawn"
+                )
+            ]
+        ),
+        StateChanges(
+            inventory_upsert=[
+                InventoryUpsert(
+                    player_id=stranger.id,
+                    item=InventoryItemState(id=uuid4(), item_id="bread", quantity=1),
+                )
+            ]
+        ),
+    ]
+    for changes in forbidden:
+        with pytest.raises(InconsistentChangesError):
+            await repo.apply_changes(changes)
+
+    await session.refresh(foreign_item)
+    await session.refresh(far_floor)
+    assert (foreign_item.quantity, far_floor.quantity) == (1, 1)
+
+
+async def test_apply_changes_without_snapshot_writes_nothing(session: AsyncSession) -> None:
+    player = await add_player(session)
+    with pytest.raises(InconsistentChangesError):
+        await Repository(session).apply_changes(
+            StateChanges(players=[PlayerUpdate(player_id=player.id, gold=5)])
+        )

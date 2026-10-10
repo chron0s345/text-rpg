@@ -159,7 +159,9 @@ class CombatParticipation(SQLModel, table=True):
     monster_instance_id: UUID = Field(
         foreign_key="monster_instance.id", ondelete="CASCADE", primary_key=True
     )
-    player_id: UUID = Field(foreign_key="player.id", ondelete="CASCADE", primary_key=True)
+    player_id: UUID = Field(
+        foreign_key="player.id", ondelete="CASCADE", primary_key=True, index=True
+    )
     party_key: str  # "group:{id}" or "solo:{player_id}"
     damage_dealt: int = 0
 
@@ -175,7 +177,12 @@ class Group(SQLModel, table=True):
         sa_column=Column(
             Uuid,
             # player.group_id -> player_group and player_group.leader_id -> player form a cycle
-            ForeignKey("player.id", use_alter=True, name="fk_player_group_leader_id_player"),
+            ForeignKey(
+                "player.id",
+                use_alter=True,
+                name="fk_player_group_leader_id_player",
+                ondelete="CASCADE",  # hard-deleting the leader's account dissolves the group
+            ),
             nullable=False,
         )
     )
@@ -188,9 +195,12 @@ class GroupInvite(SQLModel, table=True):
     with the inviter as leader (ARCHITECTURE.md, "Gruppen")."""
 
     __tablename__ = "group_invite"
+    __table_args__ = (CheckConstraint("inviter_id <> player_id", name="distinct_players"),)
 
     inviter_id: UUID = Field(foreign_key="player.id", ondelete="CASCADE", primary_key=True)
-    player_id: UUID = Field(foreign_key="player.id", ondelete="CASCADE", primary_key=True)
+    player_id: UUID = Field(
+        foreign_key="player.id", ondelete="CASCADE", primary_key=True, index=True
+    )
     group_id: UUID | None = Field(default=None, foreign_key="player_group.id", ondelete="CASCADE")
     expires_at: datetime = Field(sa_type=DateTime(timezone=True), index=True)
 
@@ -262,9 +272,10 @@ class TradeOffer(SQLModel, table=True):
     __table_args__ = (CheckConstraint("quantity >= 1", name="quantity"),)
 
     trade_id: UUID = Field(foreign_key="trade.id", ondelete="CASCADE", primary_key=True)
-    inventory_item_id: UUID = Field(
-        foreign_key="inventory_item.id", ondelete="CASCADE", primary_key=True
-    )
+    # NO ACTION (no ondelete): an offered item cannot be deleted while the offer exists, so a
+    # partner never confirms an offer that silently changed. Unlike RESTRICT it is checked at
+    # the end of the statement, so deleting a whole player (offers cascade too) still works.
+    inventory_item_id: UUID = Field(foreign_key="inventory_item.id", primary_key=True)
     player_id: UUID = Field(foreign_key="player.id", ondelete="CASCADE")
     quantity: int
 

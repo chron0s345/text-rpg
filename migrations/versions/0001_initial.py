@@ -223,12 +223,21 @@ def upgrade() -> None:
             "monster_instance_id", "player_id", name=op.f("pk_combat_participation")
         ),
     )
+    op.create_index(
+        op.f("ix_combat_participation_player_id"),
+        "combat_participation",
+        ["player_id"],
+        unique=False,
+    )
     op.create_table(
         "group_invite",
         sa.Column("inviter_id", sa.Uuid(), nullable=False),
         sa.Column("player_id", sa.Uuid(), nullable=False),
         sa.Column("group_id", sa.Uuid(), nullable=True),
         sa.Column("expires_at", sa.DateTime(timezone=True), nullable=False),
+        sa.CheckConstraint(
+            "inviter_id <> player_id", name=op.f("ck_group_invite_distinct_players")
+        ),
         sa.ForeignKeyConstraint(
             ["group_id"],
             ["player_group.id"],
@@ -252,6 +261,7 @@ def upgrade() -> None:
     op.create_index(
         op.f("ix_group_invite_expires_at"), "group_invite", ["expires_at"], unique=False
     )
+    op.create_index(op.f("ix_group_invite_player_id"), "group_invite", ["player_id"], unique=False)
     op.create_table(
         "inventory_item",
         sa.Column("id", sa.Uuid(), nullable=False),
@@ -339,7 +349,6 @@ def upgrade() -> None:
             ["inventory_item_id"],
             ["inventory_item.id"],
             name=op.f("fk_trade_offer_inventory_item_id_inventory_item"),
-            ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(
             ["player_id"],
@@ -358,7 +367,12 @@ def upgrade() -> None:
     # ### end Alembic commands ###
     # player.group_id -> player_group and player_group.leader_id -> player form a cycle
     op.create_foreign_key(
-        "fk_player_group_leader_id_player", "player_group", "player", ["leader_id"], ["id"]
+        "fk_player_group_leader_id_player",
+        "player_group",
+        "player",
+        ["leader_id"],
+        ["id"],
+        ondelete="CASCADE",
     )
 
 
