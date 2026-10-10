@@ -1,6 +1,7 @@
 """ActionService: runs one player action end to end (ARCHITECTURE.md, "Ablauf einer Aktion").
 
-Login (``login``) uses the same path; it is the only operation for an offline character.
+Login (``login``) and the world ticker's per-player steps (``expire_connection``,
+``idle_ambush``) use the same path; login is the only operation for an offline character.
 
 Per attempt, in one transaction:
 1. decide which room the action ends in (unlocked pre-read; verified after locking),
@@ -47,6 +48,7 @@ from app.content.registry import ContentRegistry
 from app.db.models import Player
 from app.db.repository import Repository, SnapshotChangedError, UnknownPlayerError
 from app.engine.actions import resolve_look, resolve_respawn, resolve_say
+from app.engine.ambush import resolve_idle_ambush
 from app.engine.combat import resolve_attack, resolve_flee
 from app.engine.events import ActionResult, ActorAudience, GameEvent, rejected
 from app.engine.inventory_actions import (
@@ -58,7 +60,12 @@ from app.engine.inventory_actions import (
     resolve_use_item,
 )
 from app.engine.movement import resolve_move
-from app.engine.presence import resolve_login, resolve_logout
+from app.engine.presence import (
+    connection_expired,
+    resolve_connection_lost,
+    resolve_login,
+    resolve_logout,
+)
 from app.engine.respawn import respawn_due_monsters
 from app.engine.state import ActionSnapshot
 from app.services.events import EventPublisher, Relocation
@@ -93,10 +100,29 @@ Resolver = Callable[[ActionSnapshot, Player, datetime, random.Random], ActionRes
 
 
 @dataclass(frozen=True)
+class Mode:
+    """How an operation goes through the common path."""
+
+    require_online: bool  # offline characters -> NotPlayingError
+    rate_limited: bool  # min_action_interval_ms against last_action_at
+    player_action: bool  # sets last_action_at
+    lazy_respawn: bool  # due monsters in the room come back first (actor is told)
+
+
+PLAYER_ACTION = Mode(require_online=True, rate_limited=True, player_action=True, lazy_respawn=True)
+# logout always goes through: a player must never be stuck in the world
+LOGOUT = Mode(require_online=True, rate_limited=False, player_action=True, lazy_respawn=True)
+LOGIN = Mode(require_online=False, rate_limited=False, player_action=False, lazy_respawn=True)
+# world ticker; its respawn step brings monsters back, and nobody is "acting" to be told
+SYSTEM = Mode(require_online=True, rate_limited=False, player_action=False, lazy_respawn=False)
+
+
+@dataclass(frozen=True)
 class ActionOutcome:
     """Events for the acting player, delivered with the HTTP response (not via SSE)."""
 
     events: list[GameEvent]
+    changed: bool = False  # anything happened at all (incl. events for others)
 
 
 def utc_now() -> datetime:
@@ -135,9 +161,7 @@ class ActionService:
             player_id,
             resolve,
             lambda pre: self._target_room(action, pre.room_id, pre.checkpoint_room_id),
-            login=False,
-            # logout always goes through: a player must never be stuck in the world
-            rate_limited=not isinstance(action, LogoutAction),
+            LOGOUT if isinstance(action, LogoutAction) else PLAYER_ACTION,
         )
 
     async def login(self, player_id: UUID) -> ActionOutcome:
@@ -156,23 +180,43 @@ class ActionService:
                 already_online=actor.online,
             )
 
-        return await self._run(
-            player_id, resolve, lambda pre: pre.room_id, login=True, rate_limited=False
-        )
+        return await self._run(player_id, resolve, lambda pre: pre.room_id, LOGIN)
+
+    async def expire_connection(self, player_id: UUID) -> ActionOutcome:
+        """World ticker: logs the character out if its disconnect grace period is over (checked
+        on the locked row: a reconnect in the meantime wins). In combat it dies."""
+        rules = self.content.rules
+
+        def resolve(
+            snapshot: ActionSnapshot, actor: Player, now: datetime, rng: random.Random
+        ) -> ActionResult:
+            if not connection_expired(actor.disconnected_at, now, rules):
+                return ActionResult()
+            return resolve_connection_lost(snapshot, self.content, rules, now, rng)
+
+        return await self._run(player_id, resolve, lambda pre: pre.room_id, SYSTEM)
+
+    async def idle_ambush(self, player_id: UUID) -> ActionOutcome:
+        """World ticker: ``chance_per_tick`` ambush roll for a character idling in its room."""
+
+        def resolve(
+            snapshot: ActionSnapshot, _actor: Player, now: datetime, rng: random.Random
+        ) -> ActionResult:
+            return resolve_idle_ambush(snapshot, self.content, self.content.rules, now, rng)
+
+        return await self._run(player_id, resolve, lambda pre: pre.room_id, SYSTEM)
 
     async def _run(
         self,
         player_id: UUID,
         resolve: Resolver,
         target_room: Callable[[PreRead], str],
-        *,
-        login: bool,
-        rate_limited: bool,
+        mode: Mode,
     ) -> ActionOutcome:
         for _ in range(MAX_ATTEMPTS):
             try:
                 outcome, to_publish, relocations = await self._attempt(
-                    player_id, resolve, target_room, login=login, rate_limited=rate_limited
+                    player_id, resolve, target_room, mode
                 )
             except SnapshotChangedError:
                 continue
@@ -197,9 +241,7 @@ class ActionService:
         player_id: UUID,
         resolve: Resolver,
         target_room: Callable[[PreRead], str],
-        *,
-        login: bool,
-        rate_limited: bool,
+        mode: Mode,
     ) -> tuple[ActionOutcome, list[GameEvent], list[Relocation]]:
         now = self.clock()
         rng = self.rng_factory()
@@ -208,9 +250,9 @@ class ActionService:
             # Cheap rejections before any row lock, so spamming requests cannot tie up
             # connections or block other players in the room. The checks below on the
             # locked row stay authoritative.
-            if not pre.online and not login:
+            if not pre.online and mode.require_online:
                 raise NotPlayingError(player_id)
-            too_fast = rate_limited and self._too_fast(pre.last_action_at, now)
+            too_fast = mode.rate_limited and self._too_fast(pre.last_action_at, now)
             if too_fast or not await self._claim(session, player_id):
                 return ActionOutcome(events=rejected(TOO_FAST).events), [], []
 
@@ -221,19 +263,25 @@ class ActionService:
             except UnknownPlayerError as exc:  # deleted in the meantime
                 raise NotPlayingError(player_id) from exc
             actor = await session.get(Player, player_id)  # refreshed under the lock
-            if actor is None or actor.deleted_at is not None or not (actor.online or login):
+            if actor is None or actor.deleted_at is not None:
+                raise NotPlayingError(player_id)
+            if mode.require_online and not actor.online:
                 raise NotPlayingError(player_id)
             if (actor.current_room_id, actor.checkpoint_room_id) != (
                 pre.room_id,
                 pre.checkpoint_room_id,
             ):
                 raise SnapshotChangedError(f"{player_id} moved during the snapshot load")
-            if rate_limited and self._too_fast(actor.last_action_at, now):
+            if mode.rate_limited and self._too_fast(actor.last_action_at, now):
                 return ActionOutcome(events=rejected(TOO_FAST).events), [], []
 
-            if not login:
+            if mode.player_action:
                 actor.last_action_at = now
-            respawns = respawn_due_monsters(snapshot, self.content, now)
+            respawns = (
+                respawn_due_monsters(snapshot, self.content, now)
+                if mode.lazy_respawn
+                else ActionResult()
+            )
             await repo.apply_changes(respawns.changes)
             result = resolve(snapshot, actor, now, rng)
             await repo.apply_changes(result.changes)
@@ -243,7 +291,7 @@ class ActionService:
 
         actor_events = [e for e in events if isinstance(e.audience, ActorAudience)]
         others = [e for e in events if not isinstance(e.audience, ActorAudience)]
-        return ActionOutcome(events=actor_events), others, relocations
+        return ActionOutcome(events=actor_events, changed=bool(events)), others, relocations
 
     @staticmethod
     def _relocations(snapshot: ActionSnapshot, result: ActionResult) -> list[Relocation]:

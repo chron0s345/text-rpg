@@ -2,7 +2,8 @@
 
 Lock order (ARCHITECTURE.md, "Locking") — every code path takes row locks in this order to avoid
 deadlocks: Group -> Trade -> Player (sorted by id) -> InventoryItem -> BankItem ->
-MonsterInstance -> FloorItem. Within a table rows are locked sorted by primary key.
+MonsterInstance -> FloorItem -> ItemSpawnState. Within a table rows are locked sorted by primary
+key.
 
 Two rules make the locks meaningful:
 
@@ -182,6 +183,19 @@ class Repository:
         rows = await self._lock_rows(stmt)
         self.locks.floor_items.update(r.id for r in rows)
         return rows
+
+    async def lock_room_items(self, room_id: str) -> tuple[list[FloorItem], list[ItemSpawnState]]:
+        """Floor items and spawn states of a room (world ticker: item respawns). Same order as
+        picking up (floor items, then the spawn state), so the two serialize on the room."""
+        floor_items = await self.lock_floor_items_in_room(room_id)
+        stmt = (
+            select(ItemSpawnState)
+            .where(col(ItemSpawnState.room_id) == room_id)
+            .order_by(col(ItemSpawnState.item_id))
+        )
+        spawn_states = await self._lock_rows(stmt)
+        self.locks.rooms.add(room_id)
+        return floor_items, spawn_states
 
     # --- snapshot ----------------------------------------------------------------------------
 

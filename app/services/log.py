@@ -23,7 +23,7 @@ from app.engine.events import (
 
 async def write_log(
     session: AsyncSession,
-    actor_id: UUID,
+    actor_id: UUID | None,
     events: Sequence[GameEvent],
     now: datetime,
 ) -> None:
@@ -37,11 +37,11 @@ async def write_log(
         )
 
 
-async def _recipients(session: AsyncSession, actor_id: UUID, event: GameEvent) -> list[UUID]:
+async def _recipients(session: AsyncSession, actor_id: UUID | None, event: GameEvent) -> list[UUID]:
     audience = event.audience
     excluded = set(event.exclude_player_ids)
     if isinstance(audience, ActorAudience):
-        return [actor_id]
+        return [actor_id] if actor_id is not None else []
     if isinstance(audience, PlayersAudience):
         candidates = list(audience.player_ids)
     elif isinstance(audience, RoomAudience):

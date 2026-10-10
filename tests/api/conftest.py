@@ -51,7 +51,12 @@ class Api:
 
 
 def settings_for(database_url: str) -> Settings:
-    return Settings(database_url=database_url, session_secret="test-secret", heartbeat_seconds=0.2)
+    return Settings(
+        database_url=database_url,
+        session_secret="test-secret",
+        heartbeat_seconds=0.2,
+        world_ticker=False,  # ticks are tested on their own (tests/services/test_world_ticker.py)
+    )
 
 
 @pytest.fixture

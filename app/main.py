@@ -1,11 +1,12 @@
 """FastAPI app. Lifespan: load content, connect the database and the event bus, wire services.
 
 ``create_app`` takes overrides for tests (database, clock, RNG); uvicorn uses ``app``.
-The world ticker (respawns, cleanup, disconnect deadlines) follows in a later step.
+The world ticker runs as a background task (only one process ticks, see services/world_ticker.py).
 """
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import random
 from collections.abc import AsyncGenerator, Callable
@@ -25,6 +26,7 @@ from app.realtime.connections import ConnectionManager
 from app.services.account_service import AccountService
 from app.services.action_service import ActionService, utc_now
 from app.services.session_service import SessionService
+from app.services.world_ticker import WorldTicker
 from app.settings import Settings
 
 logger = logging.getLogger(__name__)
@@ -67,9 +69,25 @@ def create_app(
         marked = await presence.mark_all_disconnected()
         if marked:
             logger.info("marked %d online characters as disconnected", marked)
+        stop = asyncio.Event()
+        ticker_task: asyncio.Task[None] | None = None
+        if settings.world_ticker:
+            ticker = WorldTicker(
+                engine,
+                sessions,
+                content,
+                actions_service,
+                bus,
+                clock=clock,
+                rng_factory=rng_factory,
+            )
+            ticker_task = asyncio.create_task(ticker.run(stop), name="world-ticker")
         try:
             yield
         finally:
+            stop.set()
+            if ticker_task is not None:
+                await ticker_task
             await bus.stop()
             await engine.dispose()
 

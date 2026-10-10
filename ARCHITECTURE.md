@@ -649,7 +649,8 @@ Umsetzung: Engine `engine/presence.py` (`resolve_login`, `resolve_logout`), Kont
 - Logout außerhalb des Kampfes setzt nach `town_room_id`; tote Charaktere bleiben liegen und erwachen nach dem nächsten Login am Checkpoint.
 - Charakterwechsel loggt den bisherigen Charakter zuerst in einer eigenen Transaktion aus (im Kampf nur mit `confirm_death`, sonst `409`), danach wird der neue eingeloggt. Ein gleichzeitiger zweiter Login scheitert am partiellen Unique-Index (ein Online-Charakter pro Account) und wird als `409` gemeldet.
 - Ein Login eines bereits eingeloggten Charakters (zweiter Tab, Reconnect) setzt nur `disconnected_at = null`, ohne den Raum erneut zu benachrichtigen.
-- Gruppe verlassen und laufenden Handel abbrechen beim Logout sowie das Abarbeiten abgelaufener Fristen folgen mit `groups.py`, `trade.py` und dem World-Ticker.
+- Abgelaufene Fristen arbeitet der World-Ticker ab (`connection_expired`, `resolve_connection_lost` = Logout mit `confirm_death`). Ob die Frist abgelaufen ist, wird am gesperrten Datensatz geprüft; ein Reconnect kurz davor gewinnt.
+- Gruppe verlassen und laufenden Handel abbrechen beim Logout folgen mit `groups.py` und `trade.py`.
 
 ### Respawn & Aufräumen
 
@@ -669,6 +670,17 @@ Ein Hintergrund-Task läuft alle `ticker_interval_seconds` und erledigt in getre
 6. Abgelaufene Gruppeneinladungen und Handelsanfragen löschen
 
 Bei mehreren Server-Prozessen holt sich der Ticker vorher ein PostgreSQL Advisory Lock (`pg_try_advisory_lock`), sodass nur ein Prozess tickt. Die Entscheidungen ("ist fällig", "wird überfallen") liegen in der Engine; der Ticker orchestriert nur.
+
+Umsetzung (`app/services/world_ticker.py`, Engine: `engine/respawn.py`, `engine/cleanup.py`, `engine/presence.py`, `engine/ambush.py`):
+
+- Kandidaten werden ungesperrt gesucht (Räume mit fälligen Monstern/Items/abgelaufenen Floor-Items, Spieler mit abgelaufener Frist, verweilende Spieler); entschieden wird erst am gesperrten Zustand. Jeder Raum bzw. Spieler ist eine eigene kurze Transaktion; Events werden nach dem Commit publiziert, ein fehlschlagender Schritt hält die anderen nicht auf.
+- Schritte 4 (Fristen) und 5 (Überfälle) laufen über `ActionService` im Modus „System“: gleiche Sperren, Log-Einträge und Wiederholungen wie Spieleraktionen, aber kein Rate Limit, kein `last_action_at` und kein Lazy Respawn. Läuft gerade eine Aktion desselben Spielers, wird er bis zum nächsten Tick übersprungen.
+- Überfall-Kandidaten: online, `exploring`, in einem nicht sicheren Raum mit einem lebenden Monster mit `ambush`. Auch Charaktere mit laufender Frist (Verbindung weg) können überfallen werden.
+- Spawn-Items: Sperre auf die Floor-Items des Raums, dann auf die `ItemSpawnState`-Zeilen (dieselbe Reihenfolge wie beim Aufheben). Liegt das Spawn-Item noch, wird es nicht verdoppelt; Regeln, die aus dem Content entfernt wurden, werden nur zurückgesetzt. Ein neues Spawn-Item erzeugt ein Raum-Event.
+- Abgelaufene Floor-Items verschwinden ohne Event (sie werden ohnehin schon ausgeblendet).
+- Gelöscht werden abgelaufene Gruppeneinladungen und nur Handelsanfragen im Status `requested`.
+- Leader-Wahl: Der Lock hängt an einer eigenen, dauerhaft gehaltenen Verbindung; jeder Tick prüft, ob sie noch lebt. Beim Freigeben wird der Lock explizit zurückgegeben (eine nur in den Pool zurückgegebene Verbindung hielte ihn sonst weiter). Bricht die Verbindung ab, übernimmt ein anderer Prozess beim nächsten Tick.
+- Abschaltbar mit `WORLD_TICKER=0` (z. B. für API-Tests); getestet wird mit fester Zeit und einem `tick()` pro Test.
 
 ### Zufall & Zeit
 
@@ -707,7 +719,7 @@ Umsetzung: `ActionService.execute` (`app/services/action_service.py`).
 ### Locking
 
 - `SELECT ... FOR UPDATE` auf betroffene Zeilen.
-- **Feste Sperrreihenfolge**, um Deadlocks zu vermeiden: (`Account`, nur beim Anlegen von Charakteren für das Charakterlimit) → `Group` → `Trade` → `Player` (sortiert nach ID) → `InventoryItem` → `BankItem` → `MonsterInstance` → `FloorItem`.
+- **Feste Sperrreihenfolge**, um Deadlocks zu vermeiden: (`Account`, nur beim Anlegen von Charakteren für das Charakterlimit) → `Group` → `Trade` → `Player` (sortiert nach ID) → `InventoryItem` → `BankItem` → `MonsterInstance` → `FloorItem` → `ItemSpawnState`.
 - Die Handelsausführung sperrt den `Trade`, beide Spieler und alle beteiligten Inventar-Einträge. Damit kann ein Item nicht gleichzeitig gehandelt und fallengelassen werden.
 - Beutevergabe in Gruppen sperrt die Gruppe und alle Empfänger, damit Round-Robin und Inventar konsistent bleiben.
 - Überfälle aus dem Ticker sperren Monster und Opfer in derselben Reihenfolge wie Spieleraktionen.

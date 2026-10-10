@@ -32,3 +32,5 @@ class Settings:
     data_dir: str = "data"
     icons_dir: str = "app/web/static/icons"
     heartbeat_seconds: float = 15.0
+    # background upkeep (respawns, cleanup, disconnect deadlines, ambushes); WORLD_TICKER=0 disables
+    world_ticker: bool = field(default_factory=lambda: os.environ.get("WORLD_TICKER", "1") != "0")

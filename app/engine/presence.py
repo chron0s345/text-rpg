@@ -3,14 +3,18 @@
 ``online``/``disconnected_at`` are written through ``PlayerUpdate`` like any other change, so
 login and logout go through the same lock -> engine -> apply -> commit -> publish path as actions.
 
-Not covered yet (later steps): leaving the group and cancelling a running trade on logout, and the
-disconnect deadline (world ticker). Until groups and trades exist, a character has neither.
+A lost connection is handled by the world ticker: once ``disconnect_grace_seconds`` have passed
+(``connection_expired``), the character is logged out like ``logout`` with ``confirm_death``
+(``resolve_connection_lost``).
+
+Not covered yet (later steps): leaving the group and cancelling a running trade on logout. Until
+groups and trades exist, a character has neither.
 """
 
 from __future__ import annotations
 
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Final
 
 from app.content.registry import ContentRegistry
@@ -100,3 +104,21 @@ def resolve_logout(
         player_id=str(actor.id),
     )
     return builder.build()
+
+
+def connection_expired(disconnected_at: datetime | None, now: datetime, rules: Rules) -> bool:
+    if disconnected_at is None:
+        return False
+    return now - disconnected_at >= timedelta(seconds=rules.timings.disconnect_grace_seconds)
+
+
+def resolve_connection_lost(
+    snapshot: ActionSnapshot,
+    content: ContentRegistry,
+    rules: Rules,
+    now: datetime,
+    rng: random.Random,
+) -> ActionResult:
+    """Grace period over: like a confirmed logout. Out of combat back to town; in combat the
+    character dies with loss rolls (closing the tab never saves a lost fight)."""
+    return resolve_logout(snapshot, content, rules, now, rng, confirm_death=True)
