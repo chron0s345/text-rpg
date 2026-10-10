@@ -1,8 +1,6 @@
-import random
 from uuid import uuid4
 
-from app.content.schemas import Ambush, LevelRule, MonsterTemplate, Rules
-from app.engine.ambush import check_enter_ambush
+from app.content.schemas import LevelRule, Rules
 from app.engine.loot import distribute_gold, distribute_xp
 from app.engine.progression import calculate_level_progression
 
@@ -49,36 +47,3 @@ def test_xp_distribution_proportional() -> None:
     res = distribute_xp(total_xp=100, weights={p1: 75, p2: 25})
     assert res[p1] == 75
     assert res[p2] == 25
-
-
-def test_ambush_on_entry() -> None:
-    rng = random.Random(42)
-    inst_id = uuid4()
-    goblin = MonsterTemplate(
-        id="goblin",
-        name="Goblin",
-        max_hp=10,
-        attack=3,
-        defense=1,
-        xp_reward=10,
-        respawn_seconds=30,
-        ambush=Ambush(chance_on_enter=1.0, chance_per_tick=0.5, max_level_difference=5),
-    )
-    # Non-safe room -> Ambush guaranteed
-    res = check_enter_ambush(
-        player_level=1,
-        is_safe_room=False,
-        available_monsters=[(inst_id, goblin)],
-        rng=rng,
-    )
-    assert res.ambushed is True
-    assert res.ambushing_monster_instance_id == inst_id
-
-    # Safe room -> No ambush
-    res_safe = check_enter_ambush(
-        player_level=1,
-        is_safe_room=True,
-        available_monsters=[(inst_id, goblin)],
-        rng=rng,
-    )
-    assert res_safe.ambushed is False

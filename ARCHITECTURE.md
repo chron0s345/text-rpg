@@ -49,8 +49,14 @@ app/
 │   ├── stream.py        # GET /stream (SSE)
 │   └── views.py         # Seiten & Partials
 ├── engine/              # Reine Spiellogik, kein HTTP, kein DB-Zugriff
-│   ├── combat.py
-│   ├── ambush.py        # Überfälle durch Monster
+│   ├── state.py         # Snapshots (ActionSnapshot, PlayerSnapshot, ...) als Engine-Eingabe
+│   ├── permissions.py   # Erlaubte Aktionen je Charakterzustand
+│   ├── actions.py       # say, look, respawn
+│   ├── combat.py        # attack, flee
+│   ├── encounter.py     # Gemeinsame Kampfbausteine (Schaden, Kampfkontakt, Monsterschlag)
+│   ├── participation.py # Kampfteilnahme & Aufheben der Markierung
+│   ├── rewards.py       # Kill: XP, Gold, Beute
+│   ├── ambush.py        # Überfälle durch Monster (beim Betreten & für den Ticker)
 │   ├── regeneration.py  # Monster-HP außerhalb des Kampfes
 │   ├── loot.py          # Loot würfeln & verteilen (Gruppen)
 │   ├── groups.py        # Einladen, Beitreten, Verlassen, Leader
@@ -480,6 +486,11 @@ class GameEvent(BaseModel):
 ```
 
 Ein Event wie "Anna trifft den Goblin für 5 Schaden" geht an den Raum, "Du triffst den Goblin für 5 Schaden" an Anna selbst.
+
+- Alle Aktionen haben die Form `resolve_<aktion>(snapshot, content, rules, now, rng, ...) -> ActionResult`. Abgelehnte Aktionen liefern nur ein `action.rejected`-Event an den Handelnden und keine Änderungen.
+- Der Snapshot beschreibt den Raum, in dem die Aktion endet: bei `move` den Zielraum, bei `respawn` den Checkpoint.
+- `StateChanges` enthält keine widersprüchlichen Einträge (eine beendete Kampfteilnahme steht nie zugleich in den Upserts), daher ist die Reihenfolge beim Anwenden egal.
+- Ergebnisse ohne Handelnden (z. B. Überfall durch den Ticker, `resolve_idle_ambush`) enthalten keine `Actor`-Events; der Betroffene wird über `Players([id])` benachrichtigt.
 
 ### Kampf
 

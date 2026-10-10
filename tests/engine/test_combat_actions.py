@@ -1,21 +1,11 @@
-import dataclasses
 import random
-from datetime import datetime, timedelta
-from typing import Any
+from datetime import timedelta
 from uuid import UUID, uuid4
 
-import pytest
-
-from app.content.loader import load_content
 from app.content.registry import ContentRegistry
 from app.content.schemas import (
     CombatRules,
-    ItemTemplate,
-    LootEntry,
-    MonsterTemplate,
-    Regeneration,
     Rules,
-    StatModifier,
 )
 from app.engine.combat import calculate_damage, resolve_attack, resolve_flee
 from app.engine.events import ActionResult, PlayersAudience
@@ -29,136 +19,16 @@ from app.engine.state import (
     PlayerSnapshot,
     party_key_for,
 )
-from tests.conftest import DATA_DIR
-
-NOW = datetime(2026, 1, 1, 12, 0, 0)
-ROOM = "dark_forest"
-
-
-@pytest.fixture(scope="module")
-def content() -> ContentRegistry:
-    real = load_content(DATA_DIR)
-    dummy = MonsterTemplate(
-        id="dummy",
-        name="Übungspuppe",
-        max_hp=10,
-        attack=5,
-        defense=0,
-        xp_reward=30,
-        gold_reward=(7, 7),
-        respawn_seconds=60,
-        loot_table=[LootEntry(item_id="goblin_ear", chance=1.0, min_qty=2, max_qty=2)],
-    )
-    troll = dummy.model_copy(
-        update={
-            "id": "troll",
-            "name": "Troll",
-            "attack": 100,
-            "regen": Regeneration(delay_seconds=10, hp_per_second=1.0),
-        }
-    )
-    hoard = dummy.model_copy(
-        update={
-            "id": "hoard",
-            "gold_reward": (0, 0),
-            "loot_table": [
-                LootEntry(item_id="goblin_ear", chance=1.0, min_qty=2, max_qty=2),
-                LootEntry(item_id="healing_potion", chance=1.0),
-                LootEntry(item_id="bread", chance=1.0),
-            ],
-        }
-    )
-    ears = dummy.model_copy(
-        update={
-            "id": "ears",
-            "gold_reward": (0, 0),
-            "loot_table": [LootEntry(item_id="goblin_ear", chance=1.0, min_qty=30, max_qty=30)],
-        }
-    )
-    amulet = ItemTemplate(
-        id="amulet",
-        name="Amulett",
-        description="",
-        kind="armor",
-        slot="head",
-        effects=[StatModifier(stat="max_hp", amount=5)],
-    )
-    return dataclasses.replace(
-        real,
-        monsters={**real.monsters, "dummy": dummy, "troll": troll, "hoard": hoard, "ears": ears},
-        items={**real.items, "amulet": amulet},
-    )
-
-
-@pytest.fixture
-def rules(content: ContentRegistry) -> Rules:
-    """Real rules, but deterministic damage (no variance)."""
-    return content.rules.model_copy(
-        update={"combat": CombatRules(min_damage=1, damage_variance=0, flee_chance=0.5)}
-    )
-
-
-def make_player(
-    name: str = "Anna",
-    *,
-    group_id: UUID | None = None,
-    hp: int = 20,
-    gold: int = 0,
-    xp: int = 0,
-    room: str = ROOM,
-) -> PlayerSnapshot:
-    return PlayerSnapshot(
-        id=uuid4(),
-        account_id=uuid4(),
-        name=name,
-        hp=hp,
-        base_max_hp=20,
-        base_attack=5,
-        base_defense=2,
-        xp=xp,
-        level=1,
-        gold=gold,
-        current_room_id=room,
-        checkpoint_room_id="town_square",
-        state="exploring",
-        group_id=group_id,
-    )
-
-
-def make_monster(monster_id: str = "dummy", hp: int = 10, **fields: object) -> MonsterSnapshot:
-    return MonsterSnapshot.model_validate(
-        {
-            "id": uuid4(),
-            "monster_id": monster_id,
-            "room_id": ROOM,
-            "hp": hp,
-            "alive": True,
-            **fields,
-        }
-    )
-
-
-def fight(player: PlayerSnapshot, monster: MonsterSnapshot) -> None:
-    player.state = "in_combat"
-    player.combat_target_id = monster.id
-
-
-def player_update(result: ActionResult, player_id: UUID) -> dict[str, Any]:
-    return next(
-        u.model_dump(exclude_unset=True) for u in result.changes.players if u.player_id == player_id
-    )
-
-
-def monster_update(result: ActionResult, monster_id: UUID) -> dict[str, Any]:
-    return next(
-        u.model_dump(exclude_unset=True)
-        for u in result.changes.monsters
-        if u.monster_instance_id == monster_id
-    )
-
-
-def actor_texts(result: ActionResult) -> list[str]:
-    return [e.text for e in result.events if e.audience.kind == "actor"]
+from tests.engine.factories import (
+    NOW,
+    ROOM,
+    actor_texts,
+    fight,
+    make_monster,
+    make_player,
+    monster_update,
+    player_update,
+)
 
 
 def attack(

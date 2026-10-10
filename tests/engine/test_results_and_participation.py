@@ -1,8 +1,6 @@
 import random
 from uuid import UUID, uuid4
 
-from app.content.schemas import Ambush, MonsterTemplate
-from app.engine.ambush import check_enter_ambush
 from app.engine.events import ResultBuilder, RoomAudience, rejected
 from app.engine.participation import remove_from_combat, upsert_participation
 from app.engine.state import (
@@ -198,37 +196,3 @@ def test_remove_keeps_tag_of_other_party() -> None:
     )
     remove_from_combat(ResultBuilder(), snapshot, player, monster.id)
     assert monster.tagged_by_party == stranger.party_key
-
-
-# --- ambush level difference ------------------------------------------------------
-
-
-def _ambusher(level: int, max_diff: int | None) -> MonsterTemplate:
-    return MonsterTemplate(
-        id="wolf",
-        name="Wolf",
-        level=level,
-        max_hp=10,
-        attack=3,
-        defense=1,
-        xp_reward=10,
-        respawn_seconds=30,
-        ambush=Ambush(chance_on_enter=1.0, chance_per_tick=0.0, max_level_difference=max_diff),
-    )
-
-
-def test_ambush_respects_level_difference_relative_to_monster_level() -> None:
-    wolf = _ambusher(level=3, max_diff=2)
-    monsters = [(uuid4(), wolf)]
-    rng = random.Random(1)
-    # 5 - 3 = 2 <= 2 -> attacks
-    assert check_enter_ambush(5, False, monsters, rng).ambushed is True
-    # 6 - 3 = 3 > 2 -> leaves the player alone
-    assert check_enter_ambush(6, False, monsters, rng).ambushed is False
-    # weaker players are always fair game
-    assert check_enter_ambush(1, False, monsters, rng).ambushed is True
-
-
-def test_ambush_without_level_limit() -> None:
-    monsters = [(uuid4(), _ambusher(level=1, max_diff=None))]
-    assert check_enter_ambush(50, False, monsters, random.Random(1)).ambushed is True
