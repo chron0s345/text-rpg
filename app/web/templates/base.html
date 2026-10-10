@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Oakhaven{% endblock %}</title>
+  <link rel="icon" href="/static/icons/dagger.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/vendor/htmx-2.0.4.min.js"></script>
+  <script src="/static/vendor/htmx-ext-sse-2.2.2.js"></script>
+  <script src="/static/app.js" defer></script>
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  {% block body %}{% endblock %}
+</body>
+</html>

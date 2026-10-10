@@ -49,7 +49,7 @@ app/
 │   ├── characters.py    # Charaktere anlegen, auswählen, löschen
 │   ├── actions.py       # POST /actions
 │   ├── stream.py        # GET /stream (SSE), GET /log
-│   └── views.py         # Seiten & Partials
+│   └── views.py         # Seiten & HTMX-Partials (/welcome, /select, /, /ui/*)
 ├── engine/              # Reine Spiellogik, kein HTTP, kein DB-Zugriff
 │   ├── state.py         # Snapshots (ActionSnapshot, PlayerSnapshot, ...) als Engine-Eingabe
 │   ├── permissions.py   # Erlaubte Aktionen je Charakterzustand
@@ -93,10 +93,12 @@ app/
 │   ├── log.py               # Log-Einträge pro Empfänger eines Events
 │   ├── account_service.py   # Registrierung, Passwortprüfung (argon2), Charaktere anlegen/löschen
 │   ├── session_service.py   # Login/Logout eines Charakters, Disconnect-Handling
+│   ├── view_service.py      # Lesende Spielansicht (Status, Raum, Inventar, Log) für die Seiten
 │   └── world_ticker.py      # Respawns, Aufräumen, Disconnect-Fristen
 └── web/
-    ├── templates/
-    └── static/
+    ├── render.py        # Jinja2-Umgebung (Autoescape), gemeinsam für Seiten und SSE
+    ├── templates/       # Seiten + partials/ (status, room, actions, inventory, log_line)
+    └── static/          # style.css, app.js, icons/, vendor/ (htmx, htmx-ext-sse, unverändert)
 data/
 ├── rooms.yaml
 ├── monsters.yaml
@@ -774,7 +776,7 @@ Umsetzung (`app/api/stream.py`, `SessionService`):
 
 - Der Heartbeat prüft zugleich, ob der Charakter noch online ist (sonst `event: ended`, Stream endet – etwa nach Logout oder Charakterwechsel in einem anderen Tab), und löscht ein `disconnected_at`, das während einer offenen Verbindung gesetzt wurde (z. B. Neustart eines anderen Workers). Geschrieben wird nur dann.
 - Erst wenn die **letzte** Verbindung eines Charakters in diesem Prozess endet, wird `disconnected_at = now` gesetzt (als Task, da der Stream gerade abgebrochen wird).
-- Vorerst sendet der Stream JSON statt HTMX-Partials: `event: log` (`kind`, `text`, `data`), `event: reload` (Warteschlange übergelaufen) und `event: ended`. Die benannten Partial-Events (`room`, `status`, `group`) folgen mit dem Frontend.
+- Benannte SSE-Events: `log` (fertig gerendertes, escaptes `<li class="log-<kind>">`, wird ans Log angehängt), `update` (die Welt um den Spieler hat sich geändert; die Seite lädt ihre Panels über `GET /ui/panels` nach, entprellt; nicht bei Chat), `reload` (Warteschlange übergelaufen) und `ended`. Statt je Event eigene Partials pro Verbindung zu rendern (DB-Lesen pro Event und Zuschauer), holt sich jeder Client den Zustand einmal selbst.
 
 ## API
 
@@ -791,7 +793,7 @@ Umsetzung (`app/api/stream.py`, `SessionService`):
 | `GET` | `/stream` | SSE-Verbindung |
 | `GET` | `/log?before={id}` / `?after={id}` | Log nachladen |
 
-Umsetzung (`app/api/`, Stand: JSON-API, die HTML-Seiten folgen mit dem Frontend):
+Umsetzung (`app/api/`; die JSON-Routen oben bleiben neben den HTML-Seiten bestehen, z. B. für Tests und andere Clients):
 
 - Session: signiertes Cookie (`SessionMiddleware`, Secret aus `SESSION_SECRET`, `SameSite=Lax`, mit `SESSION_HTTPS_ONLY=1` nur über HTTPS) mit `account_id` und dem gewählten `player_id`. Ob der Charakter wirklich in der Welt ist, entscheidet immer `Player.online` in der Datenbank.
 - `POST /register` legt den Account an und meldet ihn an. Benutzernamen: 3–32 Zeichen `[A-Za-z0-9_.-]`, eindeutig ohne Groß-/Kleinschreibung; Passwort 8–128 Zeichen, argon2-Hash (im Worker-Thread; bei unbekanntem Benutzernamen wird gegen einen Dummy-Hash geprüft, damit die Antwortzeit nichts verrät).
@@ -886,6 +888,16 @@ Action = Annotated[
 - SSE über `hx-ext="sse"`; benannte Events tauschen gezielt die passenden Bereiche aus.
 - Buttons werden während laufender Requests deaktiviert (`hx-disabled-elt`).
 - `beforeunload`-Warnung, wenn der Tab im Kampf geschlossen wird.
+
+Umsetzung (`app/api/views.py`, `app/web/`, `app/services/view_service.py`):
+
+- Seiten: `/welcome` (Login & Registrierung), `/select` (Charakterauswahl, Anlegen, Löschen, Abmelden), `/` (Spielansicht). Normale Formulare mit Post-Redirect-Get; Fehler werden in der Seite angezeigt. Beim Wechsel aus einem Kampf zeigt `/select` eine Bestätigung („stirbt und verliert Gold und Gegenstände“).
+- Spielansicht: Status (inkl. `data-state` für die `beforeunload`-Warnung), Raum (Gegner mit HP, Spieler, Händler, Bodenitems, Ausgänge), Aktionsleiste (je nach Zustand: Angreifen/Fliehen, Erwachen, Umsehen, Ausloggen mit Bestätigung im Kampf), Inventar (Plätze, Taschen, Anlegen/Ablegen/Benutzen/Fallenlassen), Log (`aria-live`) und Chat.
+- Aktionen: `POST /ui/actions` (formularkodiert, dieselbe `GameAction`-Validierung). Antwort: die Log-Zeilen des Handelnden plus alle Panels als `hx-swap-oob`, damit die Ansicht immer dem gespeicherten Zustand entspricht. Logout bzw. nicht mehr im Spiel → `HX-Redirect` auf `/select`.
+- Die Panels liest `ViewService` ungesperrt und ohne Log-Einträge; abgeleitete Werte (effektive Werte, regenerierte Monster-HP, Kapazität) kommen aus denselben Engine-Funktionen wie bei den Aktionen. Buttons zeigen nur, was im aktuellen Zustand sinnvoll ist; entschieden wird trotzdem ausschließlich in der Engine.
+- Nach einem SSE-Reconnect lädt die Seite Log und Panels neu. Buttons sind während ihres Requests deaktiviert.
+- htmx 2.0.4 und htmx-ext-sse 2.2.2 liegen unverändert unter `static/vendor/` (0BSD); kein CDN, kein Build-Schritt.
+- Gruppenpanel, Handelsfenster, Bank- und Händleransicht folgen mit den jeweiligen Engine-Modulen.
 
 ## Coding Standards
 

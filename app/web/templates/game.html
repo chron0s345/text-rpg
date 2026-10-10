@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ view.player.name }} – Oakhaven{% endblock %}
+{% block body_class %}page-game{% endblock %}
+{% block body %}
+<div class="game" hx-ext="sse" sse-connect="/stream"
+     hx-target="#log" hx-swap="beforeend">
+  {% set oob = false %}
+  {% include "partials/status.html" %}
+  <div class="left">
+    {% include "partials/room.html" %}
+    {% include "partials/actions.html" %}
+  </div>
+  <main class="center">
+    <ol id="log" class="log" aria-live="polite" aria-label="Ereignisse" sse-swap="log" hx-swap="beforeend">
+      {% for line in log %}{% with kind=line.kind, text=line.text %}{% include "partials/log_line.html" %}{% endwith %}{% endfor %}
+    </ol>
+    <form class="chat" hx-post="/ui/actions" hx-on::after-request="if (event.detail.successful) this.reset()">
+      <input type="hidden" name="type" value="say">
+      <label class="visually-hidden" for="say">Sagen</label>
+      <input id="say" name="text" maxlength="300" autocomplete="off" placeholder="Etwas sagen …" required>
+      <button type="submit">Sagen</button>
+    </form>
+  </main>
+  {% include "partials/inventory.html" %}
+  <div id="refresher" hidden hx-get="/ui/panels" hx-trigger="sse:update delay:250ms, refresh" hx-swap="none"></div>
+</div>
+{% endblock %}

@@ -1,19 +1,20 @@
 """``GET /stream`` (Server-Sent Events) and ``GET /log`` (ARCHITECTURE.md, "Echtzeit").
 
-SSE messages:
-- ``event: log``    – a game event of another player or the world (JSON: kind, text, data)
-- ``event: reload`` – events were dropped (client too slow); reload the view, then reconnect
+SSE messages (named events for the HTMX SSE extension):
+- ``event: log``    – a game event of another player or the world, rendered as a log ``<li>``
+                      (escaped; ``class="log-<kind>"``), appended to the game log
+- ``event: update`` – the world around the player changed: the page reloads its panels
+                      (``GET /ui/panels``, debounced); not sent for chat
+- ``event: reload`` – events were dropped (client too slow); reload the page
 - ``event: ended``  – the character left the world (logout, other character chosen)
 - ``: ping``        – heartbeat comment, every ``heartbeat_seconds``
 
-The actor's own results come with the ``POST /actions`` response, not via SSE. Rendering events
-to HTMX partials (named ``room``/``status``/``group`` events) follows with the frontend.
+The actor's own results come with the action response, not via SSE.
 """
 
 from __future__ import annotations
 
 import asyncio
-import json
 from collections.abc import AsyncIterator
 from typing import Annotated
 
@@ -23,10 +24,11 @@ from sqlalchemy import select
 from sqlmodel import col
 
 from app.api.deps import PlayerId, Services, ServicesDep, not_playing
-from app.api.schemas import EventOut, LogEntryOut, LogPage
+from app.api.schemas import LogEntryOut, LogPage
 from app.db.models import LogEntry
 from app.engine.events import GameEvent
 from app.realtime.connections import Subscription
+from app.web.render import log_line
 
 router = APIRouter(tags=["game"])
 
@@ -40,8 +42,10 @@ def sse_message(event: str, data: str) -> str:
 
 
 def encode_game_event(event: GameEvent) -> str:
-    out = EventOut(kind=event.kind, text=event.text, data=event.data)
-    return sse_message("log", json.dumps(out.model_dump(mode="json"), ensure_ascii=False))
+    message = sse_message("log", log_line(event.kind, event.text))
+    if not event.kind.startswith("chat."):
+        message += sse_message("update", "{}")
+    return message
 
 
 async def event_stream(

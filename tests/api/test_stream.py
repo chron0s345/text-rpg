@@ -6,10 +6,8 @@ ASGITransport buffers whole responses, so streams need a real HTTP server here.
 from __future__ import annotations
 
 import asyncio
-import json
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
-from typing import Any
 
 import httpx
 import pytest
@@ -50,11 +48,11 @@ class Stream:
     def __init__(self, response: httpx.Response) -> None:
         self.lines = response.aiter_lines()
 
-    async def next(self, timeout: float = TIMEOUT) -> tuple[str, Any]:
+    async def next(self, timeout: float = TIMEOUT) -> tuple[str, str]:
         """Next named event (comments such as heartbeats are skipped)."""
         return await asyncio.wait_for(self._next(), timeout)
 
-    async def _next(self) -> tuple[str, Any]:
+    async def _next(self) -> tuple[str, str]:
         name, data = None, []
         async for line in self.lines:
             if line.startswith("event: "):
@@ -62,7 +60,7 @@ class Stream:
             elif line.startswith("data: "):
                 data.append(line.removeprefix("data: "))
             elif line == "" and name is not None:
-                return name, json.loads("\n".join(data))
+                return name, "\n".join(data)
         raise EOFError
 
     async def nothing_for(self, seconds: float) -> None:
@@ -99,8 +97,9 @@ async def test_events_reach_the_room_but_not_bystanders(api: Api, server: Server
 
             name, data = await heard.next()
             assert name == "log"
-            assert data["kind"] == "chat.say"
-            assert data["text"].endswith("sagt: <b>Hallo</b>")  # escaping is the renderer's job
+            # rendered for the page, escaped (no markup from players reaches other browsers)
+            assert data.startswith('<li class="log-chat-say">')
+            assert data.endswith("sagt: &lt;b&gt;Hallo&lt;/b&gt;</li>")
             await far.nothing_for(0.5)
             await mine.nothing_for(0.5)  # the actor got it with the HTTP response
     finally:
@@ -114,7 +113,7 @@ async def test_stream_ends_when_the_character_leaves(api: Api, server: Server) -
         async with client.stream("GET", "/stream") as response:
             stream = Stream(response)
             await client.post("/actions", json={"type": "logout"})
-            assert await stream.next() == ("ended", {})  # noticed on the next heartbeat
+            assert await stream.next() == ("ended", "{}")  # noticed on the next heartbeat
         assert (await client.get("/stream")).status_code == 401
     finally:
         await client.aclose()

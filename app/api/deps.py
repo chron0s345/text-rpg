@@ -19,6 +19,7 @@ from app.realtime.connections import ConnectionManager
 from app.services.account_service import AccountService
 from app.services.action_service import ActionService
 from app.services.session_service import SessionService
+from app.services.view_service import ViewService
 
 
 @dataclass
@@ -28,6 +29,7 @@ class Services:
     accounts: AccountService
     actions: ActionService
     presence: SessionService
+    views: ViewService
     connections: ConnectionManager
     heartbeat_seconds: float
     # SSE cleanup tasks scheduled from finished streams (kept so they are not garbage collected)

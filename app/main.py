@@ -15,9 +15,10 @@ from datetime import datetime
 from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
-from app.api import actions, auth, characters, stream
+from app.api import actions, auth, characters, stream, views
 from app.api.deps import Services
 from app.content.loader import load_content
 from app.db.session import create_engine, create_session_factory
@@ -26,8 +27,10 @@ from app.realtime.connections import ConnectionManager
 from app.services.account_service import AccountService
 from app.services.action_service import ActionService, utc_now
 from app.services.session_service import SessionService
+from app.services.view_service import ViewService
 from app.services.world_ticker import WorldTicker
 from app.settings import Settings
+from app.web.render import STATIC_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +65,7 @@ def create_app(
             accounts=AccountService(sessions, content, clock=clock),
             actions=actions_service,
             presence=presence,
+            views=ViewService(sessions, content, clock=clock),
             connections=connections,
             heartbeat_seconds=settings.heartbeat_seconds,
         )
@@ -109,6 +113,8 @@ def create_app(
     app.include_router(characters.router)
     app.include_router(actions.router)
     app.include_router(stream.router)
+    app.include_router(views.router)
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
     @app.get("/health")
     async def health_check() -> dict[str, str]:
