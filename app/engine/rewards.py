@@ -79,12 +79,22 @@ def resolve_kill(
 
     for participation in snapshot.participations_for(monster.id):
         participant = snapshot.player(participation.player_id)
-        if participant is not None and participant.combat_target_id == monster.id:
+        if (
+            participant is not None
+            and participant.state == "in_combat"
+            and participant.combat_target_id == monster.id
+        ):
             participant.state = "exploring"
             participant.combat_target_id = None
             builder.update_player(participant.id, state="exploring", combat_target_id=None)
     snapshot.participations = [
         p for p in snapshot.participations if p.monster_instance_id != monster.id
+    ]
+    builder.changes.participations_upsert = [
+        u for u in builder.changes.participations_upsert if u.monster_instance_id != monster.id
+    ]
+    builder.changes.participations_delete = [
+        d for d in builder.changes.participations_delete if d.monster_instance_id != monster.id
     ]
     builder.changes.participations_clear_monster_ids.append(monster.id)
 
@@ -179,16 +189,21 @@ def _grant_items(
     rng: random.Random,
 ) -> int:
     """Solo: straight into the inventory. Group: round-robin, skipping members without space.
-    Whatever fits nowhere lands on the floor (``source = "loot"``)."""
+    Whatever fits nowhere lands on the floor (``source = "loot"``).
+
+    The cursor moves past the member who received (the first part of) an item, so skipping a
+    full member never gives the next one two items in a row. Nobody received -> cursor stays.
+    """
     count = len(recipients)
     for rolled in roll_monster_loot(template, rng):
         item = content.get_item(rolled.item_id)
         remaining = rolled.quantity
         if count:
             cursor %= count
-            order = recipients[cursor:] + recipients[:cursor]
-            cursor = (cursor + 1) % count
-            for player in order:
+            order = [(cursor + offset) % count for offset in range(count)]
+            next_cursor = cursor
+            for index in order:
+                player = recipients[index]
                 capacity = calculate_inventory_capacity(
                     rules.inventory.slots, player.inventory, content.items
                 )
@@ -197,6 +212,8 @@ def _grant_items(
                 )
                 if added <= 0:
                     continue
+                if remaining == rolled.quantity:
+                    next_cursor = (index + 1) % count
                 remaining -= added
                 builder.upsert_inventory(player.id, touched)
                 label = f"{added}x {item.name}" if added > 1 else item.name
@@ -212,6 +229,7 @@ def _grant_items(
                     )
                 if remaining == 0:
                     break
+            cursor = next_cursor
 
         if remaining > 0:
             builder.changes.floor_items_create.append(
@@ -224,10 +242,13 @@ def _grant_items(
                     expires_at=now + timedelta(seconds=rules.timings.floor_item_ttl_seconds),
                 )
             )
+            text = f"Inventar voll: {remaining}x {item.name} fällt zu Boden."
+            builder.to_actor("loot.floor", text, item_id=item.id, quantity=remaining)
             builder.event(
                 "loot.floor",
                 RoomAudience(room_id=monster.room_id),
-                f"Inventar voll: {remaining}x {item.name} fällt zu Boden.",
+                text,
+                exclude=[builder.actor_id] if builder.actor_id else None,
                 item_id=item.id,
                 quantity=remaining,
             )

@@ -57,6 +57,24 @@ def content() -> ContentRegistry:
             "regen": Regeneration(delay_seconds=10, hp_per_second=1.0),
         }
     )
+    hoard = dummy.model_copy(
+        update={
+            "id": "hoard",
+            "gold_reward": (0, 0),
+            "loot_table": [
+                LootEntry(item_id="goblin_ear", chance=1.0, min_qty=2, max_qty=2),
+                LootEntry(item_id="healing_potion", chance=1.0),
+                LootEntry(item_id="bread", chance=1.0),
+            ],
+        }
+    )
+    ears = dummy.model_copy(
+        update={
+            "id": "ears",
+            "gold_reward": (0, 0),
+            "loot_table": [LootEntry(item_id="goblin_ear", chance=1.0, min_qty=30, max_qty=30)],
+        }
+    )
     amulet = ItemTemplate(
         id="amulet",
         name="Amulett",
@@ -67,7 +85,7 @@ def content() -> ContentRegistry:
     )
     return dataclasses.replace(
         real,
-        monsters={**real.monsters, "dummy": dummy, "troll": troll},
+        monsters={**real.monsters, "dummy": dummy, "troll": troll, "hoard": hoard, "ears": ears},
         items={**real.items, "amulet": amulet},
     )
 
@@ -493,3 +511,201 @@ def test_flee_with_vanished_monster_just_ends_combat(
     fight(actor, make_monster())
     result = resolve_flee(ActionSnapshot(actor=actor), content, rules, NOW, random.Random(1))
     assert player_update(result, actor.id)["state"] == "exploring"
+
+
+# --- review follow-ups ------------------------------------------------------------------
+
+
+def fill_inventory(player: PlayerSnapshot, free_slots: int, rules: Rules) -> None:
+    player.inventory = [
+        InventoryItemState(id=uuid4(), item_id="rusty_dagger", quantity=1)
+        for _ in range(rules.inventory.slots - free_slots)
+    ]
+
+
+def received(result: ActionResult) -> list[tuple[UUID, str, int]]:
+    return [(u.player_id, u.item.item_id, u.item.quantity) for u in result.changes.inventory_upsert]
+
+
+def test_round_robin_over_several_items_moves_cursor_by_recipient(
+    content: ContentRegistry, rules: Rules
+) -> None:
+    snapshot, (anna, ben, cleo), _monster, group = _group_snapshot()
+    monster = make_monster("hoard", hp=5, tagged_by_party=anna.party_key)
+    snapshot.monsters = [monster]
+    for p in snapshot.participations:
+        p.monster_instance_id = monster.id
+    ben.combat_target_id = monster.id
+    fill_inventory(ben, 0, rules)
+
+    result = attack(snapshot, content, rules, monster)
+
+    # cursor 0: ears -> Anna; cursor 1: Ben is full -> potion to Cleo; cursor 0 again: bread -> Anna
+    assert received(result) == [
+        (anna.id, "goblin_ear", 2),
+        (cleo.id, "healing_potion", 1),
+        (anna.id, "bread", 1),
+    ]
+    assert [(g.group_id, g.loot_cursor) for g in result.changes.groups] == [(group.id, 1)]
+
+
+def test_stack_split_rest_to_floor(content: ContentRegistry, rules: Rules) -> None:
+    snapshot, (anna, ben, cleo), _monster, _group = _group_snapshot()
+    monster = make_monster("ears", hp=5, tagged_by_party=anna.party_key)
+    snapshot.monsters = [monster]
+    snapshot.participations = []
+    ben.state, ben.combat_target_id = "exploring", None
+    fill_inventory(anna, 1, rules)  # room for one stack of 20
+    fill_inventory(ben, 0, rules)
+    fill_inventory(cleo, 0, rules)
+
+    result = attack(snapshot, content, rules, monster)
+
+    assert received(result) == [(anna.id, "goblin_ear", 20)]
+    [floor] = result.changes.floor_items_create
+    assert (floor.item_id, floor.quantity) == ("goblin_ear", 10)
+    # the actor learns about the overflow in its own response, the room via SSE without the actor
+    assert "Inventar voll: 10x Goblinohr fällt zu Boden." in actor_texts(result)
+    room_floor = [e for e in result.events if e.kind == "loot.floor" and e.audience.kind == "room"]
+    assert [e.exclude_player_ids for e in room_floor] == [[anna.id]]
+
+
+def test_partial_stack_goes_to_next_member(content: ContentRegistry, rules: Rules) -> None:
+    snapshot, (anna, ben, _cleo), _monster, _group = _group_snapshot()
+    monster = make_monster("ears", hp=5, tagged_by_party=anna.party_key)
+    snapshot.monsters = [monster]
+    snapshot.participations = []
+    ben.state, ben.combat_target_id = "exploring", None
+    fill_inventory(anna, 1, rules)
+
+    result = attack(snapshot, content, rules, monster)
+
+    assert received(result) == [(anna.id, "goblin_ear", 20), (ben.id, "goblin_ear", 10)]
+    assert result.changes.floor_items_create == []
+
+
+def test_dead_party_member_gets_no_xp_and_no_loot(content: ContentRegistry, rules: Rules) -> None:
+    snapshot, (anna, ben, cleo), monster, _group = _group_snapshot()
+    ben.state = "dead"  # died earlier, participation row not yet gone
+
+    result = attack(snapshot, content, rules, monster)
+
+    assert all(u.player_id != ben.id for u in result.changes.players)
+    assert all(u.player_id != ben.id for u in result.changes.inventory_upsert)
+    # Anna 5 damage, Cleo idle 2.5 -> 20 / 10
+    assert (player_update(result, anna.id)["xp"], player_update(result, cleo.id)["xp"]) == (20, 10)
+
+
+def test_idle_members_of_non_tagging_attacking_group_get_xp(
+    content: ContentRegistry, rules: Rules
+) -> None:
+    group_id = uuid4()
+    dora, emil = make_player("Dora", group_id=group_id), make_player("Emil", group_id=group_id)
+    tagger = make_player("Solo")
+    monster = make_monster(hp=5, tagged_by_party=tagger.party_key)
+    fight(tagger, monster)
+    snapshot = ActionSnapshot(
+        actor=dora,
+        room_players=[emil, tagger],
+        monsters=[monster],
+        participations=[
+            ParticipationSnapshot(
+                monster_instance_id=monster.id,
+                player_id=tagger.id,
+                party_key=tagger.party_key,
+                damage_dealt=5,
+            )
+        ],
+        groups=[GroupSnapshot(id=group_id, leader_id=dora.id, member_ids=[dora.id, emil.id])],
+    )
+
+    result = attack(snapshot, content, rules, monster)
+
+    xp = {p.name: player_update(result, p.id)["xp"] for p in (dora, emil, tagger)}
+    assert xp == {"Dora": 12, "Emil": 6, "Solo": 12}
+    assert player_update(result, tagger.id)["gold"] == 7
+    assert "gold" not in player_update(result, dora.id)
+
+
+def test_disbanded_tagging_group_loot_goes_to_floor(content: ContentRegistry, rules: Rules) -> None:
+    actor = make_player()
+    monster = make_monster(hp=5, tagged_by_party=f"group:{uuid4()}")
+
+    result = attack(ActionSnapshot(actor=actor, monsters=[monster]), content, rules, monster)
+
+    assert "gold" not in player_update(result, actor.id)
+    assert result.changes.inventory_upsert == []
+    assert [f.item_id for f in result.changes.floor_items_create] == ["goblin_ear"]
+    assert result.changes.groups == []
+
+
+def test_death_loses_items_and_reports_them(content: ContentRegistry, rules: Rules) -> None:
+    harsh = rules.model_copy(
+        update={
+            "death": rules.death.model_copy(
+                update={"item_loss_chance": 1.0, "max_items_lost": 5, "gold_loss_percent": (10, 10)}
+            )
+        }
+    )
+    actor = make_player(hp=1, gold=50)
+    ears = InventoryItemState(id=uuid4(), item_id="goblin_ear", quantity=3)
+    actor.inventory = [ears]
+    troll = make_monster("troll")
+
+    result = attack(ActionSnapshot(actor=actor, monsters=[troll]), content, harsh, troll)
+
+    assert result.changes.inventory_delete == [ears.id]
+    assert player_update(result, actor.id)["gold"] == 45
+    [died] = [e for e in result.events if e.kind == "player.died" and e.audience.kind == "actor"]
+    assert died.text == "Du bist gestorben. Verloren: 5 Gold, 3x Goblinohr."
+
+
+def test_death_leaves_no_contradicting_participation_changes(
+    content: ContentRegistry, rules: Rules
+) -> None:
+    actor = make_player(hp=1)
+    troll = make_monster("troll")
+    result = attack(ActionSnapshot(actor=actor, monsters=[troll]), content, rules, troll)
+    assert result.changes.participations_upsert == []
+    assert [d.player_id for d in result.changes.participations_delete] == [actor.id]
+
+
+def test_kill_leaves_only_the_clear(content: ContentRegistry, rules: Rules) -> None:
+    snapshot, _members, monster, _group = _group_snapshot()
+    result = attack(snapshot, content, rules, monster)
+    assert result.changes.participations_upsert == []
+    assert result.changes.participations_delete == []
+    assert result.changes.participations_clear_monster_ids == [monster.id]
+
+
+def test_tag_stays_while_another_party_member_fights(
+    content: ContentRegistry, rules: Rules
+) -> None:
+    snapshot, (anna, ben, _cleo), monster, _group = _group_snapshot(actor_index=1)
+    fight(anna, monster)
+    snapshot.participations.append(
+        ParticipationSnapshot(
+            monster_instance_id=monster.id, player_id=anna.id, party_key=anna.party_key
+        )
+    )
+    always = rules.model_copy(
+        update={"combat": rules.combat.model_copy(update={"flee_chance": 1.0})}
+    )
+
+    result = resolve_flee(snapshot, content, always, NOW, random.Random(1))
+
+    assert player_update(result, ben.id)["state"] == "exploring"
+    assert result.changes.monsters == []
+    assert monster.tagged_by_party == anna.party_key
+
+
+def test_attack_with_stale_target_starts_new_fight(content: ContentRegistry, rules: Rules) -> None:
+    actor = make_player()
+    old = make_monster(alive=False)
+    fight(actor, old)
+    new = make_monster()
+
+    result = attack(ActionSnapshot(actor=actor, monsters=[old, new]), content, rules, new)
+
+    assert [d.monster_instance_id for d in result.changes.participations_delete] == [old.id]
+    assert player_update(result, actor.id)["combat_target_id"] == new.id

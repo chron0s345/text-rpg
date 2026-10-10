@@ -40,7 +40,9 @@ def resolve_attack(
         return rejected("Du bist tot.")
     if content.get_room(actor.current_room_id).safe:
         return rejected("Hier wird nicht gekämpft.")
-    if actor.state == "in_combat" and actor.combat_target_id != target_id:
+    current = snapshot.monster(actor.combat_target_id) if actor.combat_target_id else None
+    stale = actor.state == "in_combat" and (current is None or not current.alive)
+    if actor.state == "in_combat" and not stale and actor.combat_target_id != target_id:
         return rejected("Du kämpfst bereits gegen einen anderen Gegner.")
     monster = snapshot.monster(target_id)
     if monster is None or not monster.alive or monster.room_id != actor.current_room_id:
@@ -48,6 +50,9 @@ def resolve_attack(
 
     template = content.get_monster(monster.monster_id)
     builder = ResultBuilder(actor_id=actor.id)
+    if stale and actor.combat_target_id is not None:
+        # The previous opponent is gone (e.g. killed by others): end that fight first.
+        remove_from_combat(builder, snapshot, actor, actor.combat_target_id)
     _touch_monster(builder, monster, template, now)
 
     damage = min(
