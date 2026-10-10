@@ -196,3 +196,64 @@ def test_remove_keeps_tag_of_other_party() -> None:
     )
     remove_from_combat(ResultBuilder(), snapshot, player, monster.id)
     assert monster.tagged_by_party == stranger.party_key
+
+
+# --- deletions win ------------------------------------------------------------------------------
+
+
+def test_deletions_win_for_floor_items_and_participations() -> None:
+    from datetime import datetime
+
+    from app.engine.events import (
+        FloorItemCreate,
+        FloorItemUpdate,
+        ParticipationDelete,
+        ParticipationUpsert,
+    )
+
+    builder = ResultBuilder()
+    gone, kept = uuid4(), uuid4()
+    builder.changes.floor_items_update += [
+        FloorItemUpdate(id=gone, quantity=1),
+        FloorItemUpdate(id=kept, quantity=2),
+    ]
+    builder.changes.floor_items_create.append(
+        FloorItemCreate(
+            id=gone,
+            room_id="r",
+            item_id="bread",
+            quantity=1,
+            source="loot",
+            expires_at=datetime(2026, 1, 1),
+        )
+    )
+    builder.changes.floor_items_delete.append(gone)
+
+    cleared, fighting, player = uuid4(), uuid4(), uuid4()
+    builder.changes.participations_upsert += [
+        ParticipationUpsert(
+            monster_instance_id=cleared, player_id=player, party_key="k", damage_dealt=1
+        ),
+        ParticipationUpsert(
+            monster_instance_id=fighting, player_id=player, party_key="k", damage_dealt=1
+        ),
+    ]
+    builder.changes.participations_delete += [
+        ParticipationDelete(monster_instance_id=cleared, player_id=player),
+        ParticipationDelete(monster_instance_id=fighting, player_id=player),
+    ]
+    builder.changes.participations_clear_monster_ids.append(cleared)
+
+    changes = builder.build().changes
+
+    assert [u.id for u in changes.floor_items_update] == [kept]
+    assert changes.floor_items_create == []
+    assert changes.participations_upsert == []
+    assert [d.monster_instance_id for d in changes.participations_delete] == [fighting]
+
+
+def test_build_returns_a_copy() -> None:
+    builder = ResultBuilder()
+    result = builder.build()
+    builder.changes.inventory_delete.append(uuid4())
+    assert result.changes.inventory_delete == []

@@ -1,0 +1,21 @@
+# Development database. Start: `docker compose up -d db`, then `alembic upgrade head` and
+# `python -m app.db.seed`. Matches DEFAULT_DATABASE_URL in app/db/session.py.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: rpg
+      POSTGRES_PASSWORD: rpg
+      POSTGRES_DB: rpg
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rpg -d rpg"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+volumes:
+  pgdata:

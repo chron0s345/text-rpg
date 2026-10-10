@@ -150,6 +150,8 @@ def resolve_unequip(
         return rejected(NOT_OWNED)
     if entry.equipped_slot is None:
         return rejected("Das trägst du nicht.")
+    if entry.id in actor.locked_item_ids:
+        return rejected(LOCKED)
     item = content.get_item(entry.item_id)
 
     after = [i.model_copy() for i in actor.inventory]

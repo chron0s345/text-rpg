@@ -419,6 +419,16 @@ class LogEntry(SQLModel, table=True):
 
 Ein Seed-Befehl erzeugt `MonsterInstance`- und Spawn-`FloorItem`-Einträge aus den Templates und gleicht bei Content-Änderungen fehlende Instanzen ab, ohne bestehende anzufassen.
 
+Umsetzung in `app/db/models.py` (Abweichungen und Ergänzungen zum Modell oben):
+
+- Tabellennamen in snake_case; `Group` heißt `player_group` (GROUP ist ein SQL-Schlüsselwort).
+- `Player.group_joined_at`: Beitrittszeit, bestimmt Round-Robin-Reihenfolge und Leader-Nachfolge.
+- `GroupInvite`: Schlüssel `(inviter_id, player_id)`, `group_id` ist `NULL`, solange der Einladende noch keine Gruppe hat (sie entsteht erst beim Annehmen).
+- `CombatParticipation`, `ItemSpawnState`, `TradeOffer` haben zusammengesetzte Primärschlüssel; `TradeLog.summary` ist JSONB.
+- Alle Zeitstempel sind `timestamptz` (UTC).
+- Integritätsregeln in der Datenbank: keine negativen Werte für Gold/HP/XP/Mengen, gültige Zustände und Slots, ablaufende Floor-Items außer Spawns, Charakternamen eindeutig (ohne Groß-/Kleinschreibung) unter nicht gelöschten Charakteren, Benutzernamen eindeutig (ohne Groß-/Kleinschreibung), **höchstens ein Charakter pro Account online** (partieller Unique-Index).
+- Seed: `python -m app.db.seed` (idempotent).
+
 ### Abgeleitete Werte
 
 Werte, die sich aus anderen ergeben, werden **berechnet, nicht gespeichert**:
@@ -491,7 +501,7 @@ Ein Event wie "Anna trifft den Goblin für 5 Schaden" geht an den Raum, "Du trif
 
 - Alle Aktionen haben die Form `resolve_<aktion>(snapshot, content, rules, now, rng, ...) -> ActionResult`. Abgelehnte Aktionen liefern nur ein `action.rejected`-Event an den Handelnden und keine Änderungen.
 - Der Snapshot beschreibt den Raum, in dem die Aktion endet: bei `move` den Zielraum, bei `respawn` den Checkpoint.
-- `StateChanges` enthält keine widersprüchlichen Einträge (eine beendete Kampfteilnahme steht nie zugleich in den Upserts), daher ist die Reihenfolge beim Anwenden egal.
+- `StateChanges` enthält keine widersprüchlichen Einträge: Was gelöscht wird (Inventar-Einträge, Floor-Items, Kampfteilnahmen), steht nie zugleich als Schreibvorgang darin – Löschungen gewinnen. Daher ist die Reihenfolge beim Anwenden egal.
 - Ergebnisse ohne Handelnden (z. B. Überfall durch den Ticker, `resolve_idle_ambush`) enthalten keine `Actor`-Events; der Betroffene wird über `Players([id])` benachrichtigt.
 
 ### Kampf
@@ -550,6 +560,7 @@ Regeln:
 - Nicht handelbar: Items mit `tradable: false` und ausgerüstete Items (müssen erst abgelegt werden).
 - Angebotene Items bleiben bis zur Ausführung im Inventar des Besitzers; sie können währenddessen nicht fallengelassen, benutzt oder ausgerüstet werden.
 - Ein Handel wird automatisch abgebrochen, wenn einer der beiden den Raum verlässt, in einen Kampf gerät (auch durch Überfall), stirbt, sich ausloggt oder die Disconnect-Frist beginnt.
+- **Endet ein Handel (`completed` oder `cancelled`), werden seine `TradeOffer`-Zeilen in derselben Transaktion gelöscht.** Ein angebotenes Item ist in der Datenbank gegen Löschen geschützt (kein Cascade); bleiben Angebote stehen, kann das Item danach nie mehr verbraucht, fallengelassen oder übertragen werden. Bei der Ausführung werden die Angebote vor dem Umbuchen der Items gelöscht.
 - Rate Limit auf `trade_request`, damit niemand mit Anfragen zugespammt werden kann.
 
 ### Bank
@@ -662,12 +673,13 @@ Jede Aktion und jeder Ticker-Schritt ist **eine Datenbanktransaktion**. Nach dem
 
 1. Route validiert die Aktion und ermittelt den aktiven Charakter aus der Session.
 2. Rate Limit über `last_action_at` prüfen.
-3. `ActionService` öffnet eine Transaktion und sperrt die beteiligten Zeilen.
-4. Engine berechnet das Ergebnis.
-5. Service schreibt Änderungen und Log-Einträge.
-6. **Commit.**
-7. **Erst nach dem Commit** werden Events publiziert. Ein Rollback darf nie Events erzeugen.
-8. Route rendert die Antwort-Partials für den Handelnden.
+3. `ActionService` öffnet eine Transaktion und sperrt die beteiligten Zeilen (`Repository.load_action_snapshot`). Pro Transaktion – also auch pro Wiederholung nach `SnapshotChangedError` – wird ein **neues** `Repository` erzeugt; ein wiederverwendetes wirft `StaleRepositoryError`.
+4. Der Service prüft am **gesperrten** Datensatz, dass der Charakter online und nicht gelöscht ist (Zustandsregeln wie „tot“ prüft die Engine). Das Rate Limit aus Schritt 2 wird ebenfalls erst hier am gesperrten Datensatz verbindlich gesetzt.
+5. Engine berechnet das Ergebnis.
+6. Service schreibt Änderungen und Log-Einträge.
+7. **Commit.**
+8. **Erst nach dem Commit** werden Events publiziert. Ein Rollback darf nie Events erzeugen.
+9. Route rendert die Antwort-Partials für den Handelnden.
 
 ### Locking
 
@@ -676,6 +688,14 @@ Jede Aktion und jeder Ticker-Schritt ist **eine Datenbanktransaktion**. Nach dem
 - Die Handelsausführung sperrt den `Trade`, beide Spieler und alle beteiligten Inventar-Einträge. Damit kann ein Item nicht gleichzeitig gehandelt und fallengelassen werden.
 - Beutevergabe in Gruppen sperrt die Gruppe und alle Empfänger, damit Round-Robin und Inventar konsistent bleiben.
 - Überfälle aus dem Ticker sperren Monster und Opfer in derselben Reihenfolge wie Spieleraktionen.
+- Umsetzung: `Repository.load_action_snapshot` liest zuerst ungesperrt, wer im Raum ist und welche Gruppen betroffen sind, und sperrt dann in der festen Reihenfolge. Ist danach ein Spieler in einer nicht gesperrten Gruppe (Gruppenwechsel dazwischen), wird `SnapshotChangedError` geworfen; der Service rollt zurück und wiederholt die Transaktion.
+- Im Handel angebotene Items werden nach dem Sperren der Spieler gelesen (`locked_item_ids`); Angebote entstehen unter derselben Spielersperre.
+- Alle sperrenden Abfragen laufen mit `populate_existing`: Bereits in der Session geladene Zeilen werden mit den unter der Sperre gelesenen Werten aktualisiert. Sonst könnte eine Transaktion veraltete Werte (z. B. Gold) zurückschreiben, obwohl sie korrekt auf die Sperre gewartet hat. Die Vorab-Lesung ist rein spaltenbasiert. Hat sich der Handelnde inzwischen bewegt, gibt es ebenfalls `SnapshotChangedError`.
+- `Repository.apply_changes` schreibt **nur Zeilen, die dieselbe Repository-Instanz gesperrt hat** (Spieler, Inventar, Monster, Kampfteilnahmen, Floor-Items und neue Floor-Items/Spawn-Zustände nur im gesperrten Raum, Gruppen). Alles andere – etwa das Löschen eines Items eines Spielers in einem anderen Raum oder ein Inventar-Eintrag, der den Besitzer wechselt – wird mit `InconsistentChangesError` abgelehnt.
+- Ein im Handel angebotenes Item kann in der Datenbank nicht gelöscht werden (`trade_offer` → `inventory_item` ohne Cascade); der Handel muss vorher abgebrochen oder ausgeführt werden.
+- Der Seed läuft unter einem Advisory-Lock, damit parallele Seeds keine Monster doppelt anlegen.
+- `ItemSpawnState`: Aufheben setzt `next_spawn_at` nur, während es das zugehörige Spawn-Floor-Item gesperrt hält. Der Ticker darf ein Spawn-Item nur neu anlegen, wenn er die `ItemSpawnState`-Zeile mit `FOR UPDATE` sperrt und `next_spawn_at` danach noch fällig ist (eine Sperre auf die Floor-Items des Raums reicht nicht, weil nach dem Aufheben dort oft keine Zeile mehr existiert). Zusätzlich tickt immer nur ein Prozess (Advisory Lock, siehe World-Ticker).
+- Zwischen dem Sperren (`load_action_snapshot`) und `apply_changes` sind keine Savepoints erlaubt (`begin_nested`): Ein Rollback auf einen Savepoint gibt in PostgreSQL die danach gesetzten Zeilensperren frei. Das `Repository` lehnt Sperren innerhalb eines Savepoints ab.
 
 ### Migrationen
 

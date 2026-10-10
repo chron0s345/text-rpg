@@ -131,9 +131,10 @@ class GroupUpdate(BaseModel):
 class StateChanges(BaseModel):
     """Final state changes of one engine call.
 
-    The lists never contradict each other: a participation that ends is only in
-    ``participations_delete`` (or covered by ``participations_clear_monster_ids``), never also in
-    ``participations_upsert``. The service may therefore apply them in any order.
+    The lists never contradict each other: whatever is deleted (inventory entries, floor items,
+    participations, incl. ``participations_clear_monster_ids``) never also appears as a write.
+    Deletions win (see ``ResultBuilder._deletions_win``). The service may therefore apply the
+    lists in any order.
     """
 
     players: list[PlayerUpdate] = Field(default_factory=list)
@@ -223,7 +224,8 @@ class ResultBuilder:
             for mid, fields in self._monsters.items()
         ]
         self._deletions_win()
-        return ActionResult(changes=self.changes, events=self.events)
+        # copies: later writes to the builder can never bypass the guard above
+        return ActionResult(changes=self.changes.model_copy(deep=True), events=list(self.events))
 
     def _deletions_win(self) -> None:
         """Guarantees the StateChanges contract: nothing is both written and deleted.
