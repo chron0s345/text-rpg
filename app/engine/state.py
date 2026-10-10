@@ -86,18 +86,27 @@ class ActionSnapshot(BaseModel):
       For ``move`` this is the *destination* room.
     - ``monsters``: monster instances in that room.
     - ``participations``: combat participations for those monsters.
+    - ``groups``: groups of the actor and of all ``room_players`` (needed for kill credit and
+      round-robin loot of a tagging party that is not the actor's).
     """
 
     actor: PlayerSnapshot
     room_players: list[PlayerSnapshot] = Field(default_factory=list)
     monsters: list[MonsterSnapshot] = Field(default_factory=list)
     participations: list[ParticipationSnapshot] = Field(default_factory=list)
-    group: GroupSnapshot | None = None
+    groups: list[GroupSnapshot] = Field(default_factory=list)
+
+    @property
+    def players_in_room(self) -> list[PlayerSnapshot]:
+        return [self.actor, *self.room_players]
 
     def player(self, player_id: UUID) -> PlayerSnapshot | None:
         if player_id == self.actor.id:
             return self.actor
         return next((p for p in self.room_players if p.id == player_id), None)
+
+    def group(self, group_id: UUID) -> GroupSnapshot | None:
+        return next((g for g in self.groups if g.id == group_id), None)
 
     def monster(self, monster_instance_id: UUID) -> MonsterSnapshot | None:
         return next((m for m in self.monsters if m.id == monster_instance_id), None)

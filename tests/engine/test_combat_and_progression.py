@@ -3,45 +3,8 @@ from uuid import uuid4
 
 from app.content.schemas import Ambush, LevelRule, MonsterTemplate, Rules
 from app.engine.ambush import check_enter_ambush
-from app.engine.combat import resolve_combat_round
 from app.engine.loot import distribute_gold, distribute_xp
 from app.engine.progression import calculate_level_progression
-
-
-def test_combat_round_player_defeats_monster() -> None:
-    rng = random.Random(42)
-    # Player attack 20 vs monster defense 2, monster hp 10 -> Monster dies, no counter-attack
-    res = resolve_combat_round(
-        player_hp=30,
-        player_attack=20,
-        player_defense=5,
-        monster_hp=10,
-        monster_attack=10,
-        monster_defense=2,
-        rng=rng,
-    )
-    assert res.monster_died is True
-    assert res.new_monster_hp == 0
-    assert res.monster_damage == 0
-    assert res.new_player_hp == 30
-
-
-def test_combat_round_mutual_exchange() -> None:
-    rng = random.Random(42)
-    # Monster has 50 hp, player hits for ~5, monster counters for ~5
-    res = resolve_combat_round(
-        player_hp=20,
-        player_attack=8,
-        player_defense=3,
-        monster_hp=50,
-        monster_attack=8,
-        monster_defense=3,
-        rng=rng,
-    )
-    assert res.monster_died is False
-    assert res.player_died is False
-    assert res.new_monster_hp < 50
-    assert res.new_player_hp < 20
 
 
 def test_level_progression(rules: Rules) -> None:
@@ -83,7 +46,7 @@ def test_xp_distribution_proportional() -> None:
     p1 = uuid4()
     p2 = uuid4()
     # p1 dealt 75 damage, p2 dealt 25 damage -> 75% vs 25% of 100 XP
-    res = distribute_xp(total_xp=100, damage_by_player={p1: 75, p2: 25})
+    res = distribute_xp(total_xp=100, weights={p1: 75, p2: 25})
     assert res[p1] == 75
     assert res[p2] == 25
 

@@ -4,8 +4,11 @@ import random
 from dataclasses import dataclass
 from uuid import UUID
 
-from app.content.schemas import DeathRules, ItemTemplate
-from app.engine.state import InventoryItemState
+from app.content.registry import ContentRegistry
+from app.content.schemas import DeathRules, ItemTemplate, Rules
+from app.engine.events import ResultBuilder, RoomAudience
+from app.engine.participation import remove_from_combat
+from app.engine.state import ActionSnapshot, InventoryItemState, PlayerSnapshot
 
 
 @dataclass
@@ -81,4 +84,48 @@ def resolve_death_losses(
         lost_item_ids=list(lost_ids),
         lost_item_names=lost_names,
         remaining_items=remaining_items,
+    )
+
+
+def apply_player_death(
+    builder: ResultBuilder,
+    snapshot: ActionSnapshot,
+    player: PlayerSnapshot,
+    content: ContentRegistry,
+    rules: Rules,
+    rng: random.Random,
+) -> None:
+    """HP <= 0: state ``dead``, combat ends, loss rolls apply immediately (mutates ``player``).
+
+    Lost gold and items vanish for good; the player sees exactly what was lost.
+    """
+    losses = resolve_death_losses(player.inventory, player.gold, rules.death, content.items, rng)
+    player.gold = losses.new_gold
+    player.inventory = losses.remaining_items
+    builder.changes.inventory_delete.extend(losses.lost_item_ids)
+
+    if player.combat_target_id is not None:
+        remove_from_combat(builder, snapshot, player, player.combat_target_id)
+
+    player.hp = 0
+    player.state = "dead"
+    builder.update_player(player.id, hp=0, state="dead", combat_target_id=None, gold=player.gold)
+
+    lost = [f"{losses.gold_lost} Gold"] if losses.gold_lost > 0 else []
+    lost += losses.lost_item_names
+    text = "Du bist gestorben."
+    text += f" Verloren: {', '.join(lost)}." if lost else " Du hast nichts verloren."
+    builder.to_player(
+        player.id,
+        "player.died",
+        text,
+        gold_lost=losses.gold_lost,
+        items_lost=losses.lost_item_names,
+    )
+    builder.event(
+        "player.died",
+        RoomAudience(room_id=player.current_room_id),
+        f"{player.name} ist gestorben.",
+        exclude=[player.id],
+        player_id=str(player.id),
     )

@@ -1,103 +1,182 @@
+"""Combat actions ``attack`` and ``flee`` (ARCHITECTURE.md, "Kampf").
+
+Fights are bound to the monster instance; several players may attack the same monster. Every
+``attack`` is one round: the player strikes, then the monster strikes back at *this* player.
+"""
+
 from __future__ import annotations
 
 import random
-from dataclasses import dataclass
+from datetime import datetime
+from uuid import UUID
+
+from app.content.registry import ContentRegistry
+from app.content.schemas import CombatRules, MonsterTemplate, Rules
+from app.engine.death import apply_player_death
+from app.engine.events import ActionResult, GroupAudience, ResultBuilder, RoomAudience, rejected
+from app.engine.participation import remove_from_combat, upsert_participation
+from app.engine.regeneration import calculate_current_monster_hp
+from app.engine.rewards import resolve_kill
+from app.engine.state import ActionSnapshot, MonsterSnapshot, PlayerSnapshot
+from app.engine.stats import stats_of
 
 
-@dataclass(frozen=True)
-class CombatRoundResult:
-    player_damage: int
-    monster_damage: int
-    new_monster_hp: int
-    new_player_hp: int
-    monster_died: bool
-    player_died: bool
+def calculate_damage(attack: int, defense: int, combat: CombatRules, rng: random.Random) -> int:
+    """``attack - defense ± damage_variance``, never below ``min_damage``."""
+    variance = rng.randint(-combat.damage_variance, combat.damage_variance)
+    return max(combat.min_damage, attack - defense + variance)
 
 
-def calculate_damage(attack: int, defense: int, rng: random.Random) -> int:
-    """Calculates combat damage with slight RNG variance."""
-    base = max(1, attack - defense)
-    # Variance of -1..+1 damage if base > 2
-    variance = rng.randint(-1, 1) if base > 2 else 0
-    return max(1, base + variance)
-
-
-def resolve_combat_round(
-    player_hp: int,
-    player_attack: int,
-    player_defense: int,
-    monster_hp: int,
-    monster_attack: int,
-    monster_defense: int,
+def resolve_attack(
+    snapshot: ActionSnapshot,
+    content: ContentRegistry,
+    rules: Rules,
+    now: datetime,
     rng: random.Random,
-) -> CombatRoundResult:
-    """Simulates a single combat round between a player and a monster.
+    target_id: UUID,
+) -> ActionResult:
+    actor = snapshot.actor
+    if actor.state == "dead":
+        return rejected("Du bist tot.")
+    if content.get_room(actor.current_room_id).safe:
+        return rejected("Hier wird nicht gekämpft.")
+    if actor.state == "in_combat" and actor.combat_target_id != target_id:
+        return rejected("Du kämpfst bereits gegen einen anderen Gegner.")
+    monster = snapshot.monster(target_id)
+    if monster is None or not monster.alive or monster.room_id != actor.current_room_id:
+        return rejected("Dieses Ziel gibt es hier nicht.")
 
-    1. Player strikes monster first.
-    2. If monster dies (hp <= 0), it cannot retaliate.
-    3. If monster survives, monster counter-attacks the acting player.
-    """
-    player_damage = calculate_damage(player_attack, monster_defense, rng)
-    new_monster_hp = max(0, monster_hp - player_damage)
+    template = content.get_monster(monster.monster_id)
+    builder = ResultBuilder(actor_id=actor.id)
+    _touch_monster(builder, monster, template, now)
 
-    if new_monster_hp <= 0:
-        return CombatRoundResult(
-            player_damage=player_damage,
-            monster_damage=0,
-            new_monster_hp=0,
-            new_player_hp=player_hp,
-            monster_died=True,
-            player_died=False,
-        )
+    damage = min(
+        calculate_damage(
+            stats_of(actor, content.items).attack, template.defense, rules.combat, rng
+        ),
+        monster.hp,
+    )
+    monster.hp -= damage
+    builder.update_monster(monster.id, hp=monster.hp)
+    if monster.tagged_by_party is None:
+        monster.tagged_by_party = actor.party_key
+        builder.update_monster(monster.id, tagged_by_party=actor.party_key)
+    upsert_participation(builder, snapshot, actor, monster.id, damage)
 
-    # Monster counter-attack
-    monster_damage = calculate_damage(monster_attack, player_defense, rng)
-    new_player_hp = max(0, player_hp - monster_damage)
-
-    return CombatRoundResult(
-        player_damage=player_damage,
-        monster_damage=monster_damage,
-        new_monster_hp=new_monster_hp,
-        new_player_hp=new_player_hp,
-        monster_died=False,
-        player_died=new_player_hp <= 0,
+    actor.state = "in_combat"
+    actor.combat_target_id = monster.id
+    builder.update_player(actor.id, state="in_combat", combat_target_id=monster.id)
+    builder.to_actor(
+        "combat.hit", f"Du triffst {template.name} für {damage} Schaden.", damage=damage
+    )
+    builder.event(
+        "combat.hit",
+        RoomAudience(room_id=monster.room_id),
+        f"{actor.name} trifft {template.name} für {damage} Schaden.",
+        exclude=[actor.id],
+        monster_instance_id=str(monster.id),
+        monster_hp=monster.hp,
     )
 
-
-@dataclass(frozen=True)
-class FleeResult:
-    success: bool
-    damage_taken: int
-    new_player_hp: int
-    player_died: bool
+    if monster.hp <= 0:
+        resolve_kill(builder, snapshot, monster, template, actor, content, rules, now, rng)
+    else:
+        _monster_strikes(builder, snapshot, actor, template, content, rules, rng)
+    return builder.build()
 
 
 def resolve_flee(
-    player_hp: int,
-    player_defense: int,
-    monster_attack: int,
+    snapshot: ActionSnapshot,
+    content: ContentRegistry,
+    rules: Rules,
+    now: datetime,
     rng: random.Random,
-    flee_chance: float = 0.5,
-) -> FleeResult:
-    """Resolves a player's attempt to flee from active combat.
+) -> ActionResult:
+    """Success (``combat.flee_chance``): combat ends without a counter-attack.
+    Failure: the monster strikes the fleeing player."""
+    actor = snapshot.actor
+    if actor.state != "in_combat":
+        return rejected("Du bist in keinem Kampf.")
 
-    If successful, combat ends without retaliation.
-    If failed, the monster counter-attacks the fleeing player.
-    """
-    if rng.random() < flee_chance:
-        return FleeResult(
-            success=True,
-            damage_taken=0,
-            new_player_hp=player_hp,
-            player_died=False,
+    builder = ResultBuilder(actor_id=actor.id)
+    monster = snapshot.monster(actor.combat_target_id) if actor.combat_target_id else None
+    if monster is None or not monster.alive:
+        # Stale combat state (e.g. the monster is gone): just end the fight.
+        if actor.combat_target_id is not None:
+            remove_from_combat(builder, snapshot, actor, actor.combat_target_id)
+        _leave_combat(builder, actor)
+        builder.to_actor("combat.ended", "Du bist nicht mehr im Kampf.")
+        return builder.build()
+
+    template = content.get_monster(monster.monster_id)
+    if rng.random() < rules.combat.flee_chance:
+        remove_from_combat(builder, snapshot, actor, monster.id)
+        _leave_combat(builder, actor)
+        builder.to_actor("combat.fled", f"Du entkommst {template.name}.")
+        builder.event(
+            "combat.fled",
+            RoomAudience(room_id=monster.room_id),
+            f"{actor.name} flieht vor {template.name}.",
+            exclude=[actor.id],
         )
+        return builder.build()
 
-    # Monster free counter-attack on failed flee
-    damage = calculate_damage(monster_attack, player_defense, rng)
-    new_hp = max(0, player_hp - damage)
-    return FleeResult(
-        success=False,
-        damage_taken=damage,
-        new_player_hp=new_hp,
-        player_died=new_hp <= 0,
+    _touch_monster(builder, monster, template, now)
+    builder.to_actor("combat.flee_failed", "Die Flucht misslingt!")
+    _monster_strikes(builder, snapshot, actor, template, content, rules, rng)
+    return builder.build()
+
+
+def _touch_monster(
+    builder: ResultBuilder, monster: MonsterSnapshot, template: MonsterTemplate, now: datetime
+) -> None:
+    """Combat contact: apply lazy regeneration, then reset the regeneration clock."""
+    monster.hp = calculate_current_monster_hp(template, monster.hp, monster.last_combat_at, now)
+    monster.last_combat_at = now
+    builder.update_monster(monster.id, hp=monster.hp, last_combat_at=now)
+
+
+def _leave_combat(builder: ResultBuilder, player: PlayerSnapshot) -> None:
+    player.state = "exploring"
+    player.combat_target_id = None
+    builder.update_player(player.id, state="exploring", combat_target_id=None)
+
+
+def _monster_strikes(
+    builder: ResultBuilder,
+    snapshot: ActionSnapshot,
+    player: PlayerSnapshot,
+    template: MonsterTemplate,
+    content: ContentRegistry,
+    rules: Rules,
+    rng: random.Random,
+) -> None:
+    damage = calculate_damage(
+        template.attack, stats_of(player, content.items).defense, rules.combat, rng
     )
+    player.hp = max(0, player.hp - damage)
+    builder.update_player(player.id, hp=player.hp)
+    builder.to_player(
+        player.id,
+        "combat.hit_taken",
+        f"{template.name} trifft dich für {damage} Schaden.",
+        damage=damage,
+        hp=player.hp,
+    )
+    builder.event(
+        "combat.hit_taken",
+        RoomAudience(room_id=player.current_room_id),
+        f"{template.name} trifft {player.name} für {damage} Schaden.",
+        exclude=[player.id],
+    )
+    if player.group_id is not None:
+        builder.event(
+            "group.member_hp",
+            GroupAudience(group_id=player.group_id),
+            f"{player.name}: {player.hp} HP",
+            exclude=[player.id],
+            player_id=str(player.id),
+            hp=player.hp,
+        )
+    if player.hp <= 0:
+        apply_player_death(builder, snapshot, player, content, rules, rng)

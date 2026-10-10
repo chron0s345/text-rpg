@@ -2,39 +2,7 @@ import random
 from uuid import uuid4
 
 from app.content.schemas import Ambush, MonsterTemplate, RoomTemplate
-from app.engine.combat import resolve_flee
 from app.engine.movement import resolve_movement
-
-
-def test_flee_success() -> None:
-    rng = random.Random(42)
-    # flee_chance 1.0 -> guarantees flee success without damage
-    res = resolve_flee(
-        player_hp=20,
-        player_defense=3,
-        monster_attack=10,
-        rng=rng,
-        flee_chance=1.0,
-    )
-    assert res.success is True
-    assert res.damage_taken == 0
-    assert res.new_player_hp == 20
-    assert res.player_died is False
-
-
-def test_flee_failure_counter_attack() -> None:
-    rng = random.Random(42)
-    # flee_chance 0.0 -> guarantees fail, monster strikes player
-    res = resolve_flee(
-        player_hp=20,
-        player_defense=2,
-        monster_attack=8,
-        rng=rng,
-        flee_chance=0.0,
-    )
-    assert res.success is False
-    assert res.damage_taken > 0
-    assert res.new_player_hp < 20
 
 
 def test_movement_valid_exit() -> None:
