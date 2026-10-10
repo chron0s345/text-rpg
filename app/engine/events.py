@@ -112,6 +112,17 @@ class FloorItemCreate(BaseModel):
     expires_at: datetime | None = None
 
 
+class FloorItemUpdate(BaseModel):
+    id: UUID
+    quantity: int = Field(ge=1)
+
+
+class ItemSpawnUpdate(BaseModel):
+    room_id: str
+    item_id: str
+    next_spawn_at: datetime | None
+
+
 class GroupUpdate(BaseModel):
     group_id: UUID
     loot_cursor: int
@@ -133,6 +144,9 @@ class StateChanges(BaseModel):
     inventory_upsert: list[InventoryUpsert] = Field(default_factory=list)
     inventory_delete: list[UUID] = Field(default_factory=list)
     floor_items_create: list[FloorItemCreate] = Field(default_factory=list)
+    floor_items_update: list[FloorItemUpdate] = Field(default_factory=list)
+    floor_items_delete: list[UUID] = Field(default_factory=list)
+    item_spawns: list[ItemSpawnUpdate] = Field(default_factory=list)
     groups: list[GroupUpdate] = Field(default_factory=list)
 
 
@@ -162,12 +176,12 @@ class ResultBuilder:
 
     def upsert_inventory(self, player_id: UUID, entries: list[InventoryItemState]) -> None:
         """Records new/changed stacks; a later upsert of the same entry replaces the earlier one."""
-        ids = {e.id for e in entries}
+        unique = {e.id: e for e in entries}
         self.changes.inventory_upsert = [
-            u for u in self.changes.inventory_upsert if u.item.id not in ids
+            u for u in self.changes.inventory_upsert if u.item.id not in unique
         ]
         self.changes.inventory_upsert.extend(
-            InventoryUpsert(player_id=player_id, item=e.model_copy()) for e in entries
+            InventoryUpsert(player_id=player_id, item=e.model_copy()) for e in unique.values()
         )
 
     def event(

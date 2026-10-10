@@ -73,6 +73,14 @@ def resolve_look(
         if p.current_room_id == room.id
     ]
     merchants = [{"id": m.id, "name": m.name} for m in content.merchants_in_room(room.id)]
+    floor_items = []
+    for floor in snapshot.floor_items:
+        if floor.room_id != room.id or not floor.visible_at(now):
+            continue
+        item = content.get_item(floor.item_id)
+        floor_items.append(
+            {"id": str(floor.id), "item_id": item.id, "name": item.name, "quantity": floor.quantity}
+        )
 
     lines = [room.name, room.description]
     if room.exits:
@@ -83,6 +91,14 @@ def resolve_look(
         lines.append("Hier sind: " + ", ".join(str(p["name"]) for p in players))
     if merchants:
         lines.append("Händler: " + ", ".join(m["name"] for m in merchants))
+    if floor_items:
+        lines.append(
+            "Am Boden: "
+            + ", ".join(
+                f"{f['quantity']}x {f['name']}" if f["quantity"] != 1 else str(f["name"])
+                for f in floor_items
+            )
+        )
 
     builder = ResultBuilder(actor_id=actor.id)
     builder.to_actor(
@@ -97,6 +113,7 @@ def resolve_look(
         monsters=monsters,
         players=players,
         merchants=merchants,
+        floor_items=floor_items,
     )
     return builder.build()
 
