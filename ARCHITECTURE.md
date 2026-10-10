@@ -616,6 +616,16 @@ Monster mit `ambush` können Spieler von sich aus angreifen:
 - Beim Ausloggen verlässt ein Charakter seine Gruppe automatisch.
 - Gruppenmitglieder sehen HP und Aufenthaltsort der anderen; dafür gibt es den Kanal `group:{id}`.
 
+Umsetzung (`engine/groups.py`, `Repository.load_group_snapshot`):
+
+- Gruppenaktionen arbeiten auf einem eigenen Snapshot (`GroupActionSnapshot`): Handelnder, der andere Beteiligte (Eingeladene, Einladende, Gekickte), alle Mitglieder ihrer Gruppen – egal in welchem Raum – und die offenen Einladungen von und an diese Spieler. Sperrreihenfolge: `Group` → `Player` (sortiert) → `GroupInvite`. Hat jemand inzwischen die Gruppe gewechselt, wird wie üblich wiederholt.
+- Einladen per Name (ohne Groß-/Kleinschreibung), nur Online-Spieler ohne Gruppe; mit Gruppe lädt nur die Gruppenleitung ein. Annehmen per `inviter_id` (die Einladung kann vor der Gruppe entstanden sein). Eine Einladung verfällt, wenn sich die Gruppe der Einladenden seitdem geändert hat. Nach dem Beitritt werden alle Einladungen von und an das neue Mitglied gelöscht. Einladungen können abgelehnt werden (`group_decline`).
+- Gruppengröße und Leitung werden am gesperrten Zustand geprüft: Zwei gleichzeitige Beitritte zum letzten freien Platz schaffen nicht beide.
+- Beitritt und Austritt ändern `group_id` und damit die Abos der Live-Verbindungen (`Relocation`, wie bei Raumwechseln).
+- Logout (auch nach abgelaufener Frist) verlässt die Gruppe direkt danach in einer eigenen Transaktion; was dabei schiefgeht, räumt der World-Ticker auf (Offline-Charaktere mit Gruppe).
+- Kill-Credit bleibt bei der markierenden Partei: Wird eine markierende Gruppe mitten im Kampf aufgelöst, zählen ihre ehemaligen Mitglieder, die gegen dieses Monster gekämpft haben (Kampfteilnahme mit diesem `party_key`), weiter als Partei. Wer eine bestehende Gruppe mitten im Kampf verlässt, bekommt von deren Beute nichts mehr (XP nach Schaden aber schon).
+- DB-Regel: Mitglieder haben ein `group_joined_at` (Migration `0002`: `group_id IS NULL OR group_joined_at IS NOT NULL`). Die frühere Regel „beide oder keins“ ließ das `ON DELETE SET NULL` beim Löschen einer Gruppe auf Datenbankebene scheitern.
+
 ### Tod & Checkpoint
 
 - Betritt ein Charakter einen Raum mit `checkpoint: true`, wird `checkpoint_room_id` automatisch gesetzt, mit einer Log-Meldung ("Du fühlst dich mit diesem Ort verbunden.").
@@ -652,7 +662,7 @@ Umsetzung: Engine `engine/presence.py` (`resolve_login`, `resolve_logout`), Kont
 - Charakterwechsel loggt den bisherigen Charakter zuerst in einer eigenen Transaktion aus (im Kampf nur mit `confirm_death`, sonst `409`), danach wird der neue eingeloggt. Ein gleichzeitiger zweiter Login scheitert am partiellen Unique-Index (ein Online-Charakter pro Account) und wird als `409` gemeldet.
 - Ein Login eines bereits eingeloggten Charakters (zweiter Tab, Reconnect) setzt nur `disconnected_at = null`, ohne den Raum erneut zu benachrichtigen.
 - Abgelaufene Fristen arbeitet der World-Ticker ab (`connection_expired`, `resolve_connection_lost` = Logout mit `confirm_death`). Ob die Frist abgelaufen ist, wird am gesperrten Datensatz geprüft; ein Reconnect kurz davor gewinnt.
-- Gruppe verlassen und laufenden Handel abbrechen beim Logout folgen mit `groups.py` und `trade.py`.
+- Beim Logout wird die Gruppe verlassen (siehe *Gruppen*); laufenden Handel abbrechen folgt mit `trade.py`.
 
 ### Respawn & Aufräumen
 
@@ -681,6 +691,7 @@ Umsetzung (`app/services/world_ticker.py`, Engine: `engine/respawn.py`, `engine/
 - Spawn-Items: Sperre auf die Floor-Items des Raums, dann auf die `ItemSpawnState`-Zeilen (dieselbe Reihenfolge wie beim Aufheben). Liegt das Spawn-Item noch, wird es nicht verdoppelt; Regeln, die aus dem Content entfernt wurden, werden nur zurückgesetzt. Ein neues Spawn-Item erzeugt ein Raum-Event.
 - Abgelaufene Floor-Items verschwinden ohne Event (sie werden ohnehin schon ausgeblendet).
 - Gelöscht werden abgelaufene Gruppeneinladungen und nur Handelsanfragen im Status `requested`.
+- Schritt 7: Offline-Charaktere, die noch in einer Gruppe sind, verlassen sie (Sicherheitsnetz für den Logout).
 - Leader-Wahl: Der Lock hängt an einer eigenen, dauerhaft gehaltenen Verbindung; jeder Tick prüft, ob sie noch lebt. Beim Freigeben wird der Lock explizit zurückgegeben (eine nur in den Pool zurückgegebene Verbindung hielte ihn sonst weiter). Bricht die Verbindung ab, übernimmt ein anderer Prozess beim nächsten Tick.
 - Abschaltbar mit `WORLD_TICKER=0` (z. B. für API-Tests); getestet wird mit fester Zeit und einem `tick()` pro Test.
 
@@ -716,7 +727,7 @@ Umsetzung: `ActionService.execute` (`app/services/action_service.py`).
 - Ist der Charakter offline, gelöscht oder unbekannt (auch wenn das erst während des Wartens auf die Sperre passiert), gibt es `NotPlayingError` (HTTP 401).
 - Zufall: `random.SystemRandom` (Würfe sind nicht aus früheren Ergebnissen vorhersagbar); Tests injizieren einen festen Seed und eine feste Uhr.
 - Login (`ActionService.login`) läuft über denselben Ablauf (Sperren, Engine `resolve_login`, Log, Publizieren nach Commit); es ist die einzige Operation für einen Offline-Charakter und unterliegt keinem Rate Limit. `logout` ist ebenfalls vom Rate Limit ausgenommen (nur eine gleichzeitig laufende Aktion wird abgewiesen), damit niemand in der Welt festhängt. `online` und `disconnected_at` werden wie jede Änderung über `PlayerUpdate` geschrieben.
-- Aktionen späterer Schritte (Gruppen, Handel, Bank, Händler) werden vorerst mit „Diese Aktion ist noch nicht verfügbar.“ abgelehnt.
+- Aktionen späterer Schritte (Handel, Bank, Händler) werden vorerst mit „Diese Aktion ist noch nicht verfügbar.“ abgelehnt.
 
 ### Locking
 
@@ -825,6 +836,11 @@ class GroupInviteAction(BaseModel):
     player_name: str
 
 
+class GroupAcceptAction(BaseModel):  # ebenso GroupDeclineAction ("group_decline")
+    type: Literal["group_accept"]
+    inviter_id: UUID
+
+
 class LogoutAction(BaseModel):
     type: Literal["logout"]
     confirm_death: bool = False  # im Kampf erforderlich
@@ -855,7 +871,7 @@ class DropAction(BaseModel):
     quantity: PositiveInt | None = None  # None = ganzer Stapel
 
 
-# ... flee, use_item, equip, unequip, inventory, group_accept,
+# ... flee, use_item, equip, unequip, inventory,
 #     group_leave, group_kick, respawn, look,
 #     trade_request, trade_accept, trade_offer_gold, trade_remove_item, trade_cancel,
 #     bank_deposit, bank_withdraw, buy, sell
@@ -897,7 +913,8 @@ Umsetzung (`app/api/views.py`, `app/web/`, `app/services/view_service.py`):
 - Die Panels liest `ViewService` ungesperrt und ohne Log-Einträge; abgeleitete Werte (effektive Werte, regenerierte Monster-HP, Kapazität) kommen aus denselben Engine-Funktionen wie bei den Aktionen. Buttons zeigen nur, was im aktuellen Zustand sinnvoll ist; entschieden wird trotzdem ausschließlich in der Engine.
 - Nach einem SSE-Reconnect lädt die Seite Log und Panels neu. Buttons sind während ihres Requests deaktiviert.
 - htmx 2.0.4 und htmx-ext-sse 2.2.2 liegen unverändert unter `static/vendor/` (0BSD); kein CDN, kein Build-Schritt.
-- Gruppenpanel, Handelsfenster, Bank- und Händleransicht folgen mit den jeweiligen Engine-Modulen.
+- Gruppenpanel: Mitglieder mit HP-Balken, Aufenthaltsort und Leitung, offene Einladungen (Annehmen/Ablehnen), Einladen per Name, Verlassen, Entfernen (nur Leitung, nicht im Kampf).
+- Handelsfenster, Bank- und Händleransicht folgen mit den jeweiligen Engine-Modulen.
 
 ## Coding Standards
 

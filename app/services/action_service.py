@@ -18,9 +18,10 @@ from __future__ import annotations
 
 import logging
 import random
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from typing import Final, TypeVar
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -34,6 +35,11 @@ from app.api.schemas import (
     EquipAction,
     FleeAction,
     GameAction,
+    GroupAcceptAction,
+    GroupDeclineAction,
+    GroupInviteAction,
+    GroupKickAction,
+    GroupLeaveAction,
     InventoryAction,
     LogoutAction,
     LookAction,
@@ -51,6 +57,13 @@ from app.engine.actions import resolve_look, resolve_respawn, resolve_say
 from app.engine.ambush import resolve_idle_ambush
 from app.engine.combat import resolve_attack, resolve_flee
 from app.engine.events import ActionResult, ActorAudience, GameEvent, rejected
+from app.engine.groups import (
+    resolve_group_accept,
+    resolve_group_decline,
+    resolve_group_invite,
+    resolve_group_kick,
+    resolve_group_leave,
+)
 from app.engine.inventory_actions import (
     resolve_drop,
     resolve_equip,
@@ -61,13 +74,14 @@ from app.engine.inventory_actions import (
 )
 from app.engine.movement import resolve_move
 from app.engine.presence import (
+    LOGGED_OUT,
     connection_expired,
     resolve_connection_lost,
     resolve_login,
     resolve_logout,
 )
 from app.engine.respawn import respawn_due_monsters
-from app.engine.state import ActionSnapshot
+from app.engine.state import ActionSnapshot, GroupActionSnapshot
 from app.services.events import EventPublisher, Relocation
 from app.services.log import write_log
 
@@ -77,6 +91,13 @@ MAX_ATTEMPTS = 3
 RETRYABLE_SQLSTATES = {"40001", "40P01"}  # serialization failure, deadlock detected
 TOO_FAST = "Nicht so schnell."
 NOT_AVAILABLE = "Diese Aktion ist noch nicht verfügbar."
+GROUP_ACTIONS: Final = (
+    GroupInviteAction,
+    GroupAcceptAction,
+    GroupDeclineAction,
+    GroupLeaveAction,
+    GroupKickAction,
+)
 
 
 class NotPlayingError(Exception):
@@ -95,8 +116,12 @@ class PreRead:
     last_action_at: datetime | None
 
 
+# A room action works on an ActionSnapshot, a group action on a GroupActionSnapshot.
+S = TypeVar("S", ActionSnapshot, GroupActionSnapshot)
+# locks & loads the snapshot for one attempt
+Loader = Callable[[Repository, UUID, PreRead], Awaitable[S]]
 # engine call for one attempt: (locked snapshot, locked actor row, now, rng) -> result
-Resolver = Callable[[ActionSnapshot, Player, datetime, random.Random], ActionResult]
+Resolver = Callable[[S, Player, datetime, random.Random], ActionResult]
 
 
 @dataclass(frozen=True)
@@ -115,6 +140,8 @@ LOGOUT = Mode(require_online=True, rate_limited=False, player_action=True, lazy_
 LOGIN = Mode(require_online=False, rate_limited=False, player_action=False, lazy_respawn=True)
 # world ticker; its respawn step brings monsters back, and nobody is "acting" to be told
 SYSTEM = Mode(require_online=True, rate_limited=False, player_action=False, lazy_respawn=False)
+# world ticker / after logout: housekeeping for characters that may already be offline
+CLEANUP = Mode(require_online=False, rate_limited=False, player_action=False, lazy_respawn=False)
 
 
 @dataclass(frozen=True)
@@ -152,17 +179,25 @@ class ActionService:
         self.rng_factory = rng_factory
 
     async def execute(self, player_id: UUID, action: GameAction) -> ActionOutcome:
+        if isinstance(action, GROUP_ACTIONS):
+            return await self._group_action(player_id, action)
+
         def resolve(
             snapshot: ActionSnapshot, _actor: Player, now: datetime, rng: random.Random
         ) -> ActionResult:
             return self._dispatch(action, snapshot, now, rng)
 
-        return await self._run(
+        outcome = await self._run(
             player_id,
+            self._room_loader(
+                lambda pre: self._target_room(action, pre.room_id, pre.checkpoint_room_id)
+            ),
             resolve,
-            lambda pre: self._target_room(action, pre.room_id, pre.checkpoint_room_id),
             LOGOUT if isinstance(action, LogoutAction) else PLAYER_ACTION,
         )
+        if isinstance(action, LogoutAction) and any(e.kind == LOGGED_OUT for e in outcome.events):
+            await self._leave_group_quietly(player_id)
+        return outcome
 
     async def login(self, player_id: UUID) -> ActionOutcome:
         """Puts a character online (ownership is checked by the caller). Raises
@@ -180,7 +215,7 @@ class ActionService:
                 already_online=actor.online,
             )
 
-        return await self._run(player_id, resolve, lambda pre: pre.room_id, LOGIN)
+        return await self._run(player_id, self._room_loader(), resolve, LOGIN)
 
     async def expire_connection(self, player_id: UUID) -> ActionOutcome:
         """World ticker: logs the character out if its disconnect grace period is over (checked
@@ -194,7 +229,10 @@ class ActionService:
                 return ActionResult()
             return resolve_connection_lost(snapshot, self.content, rules, now, rng)
 
-        return await self._run(player_id, resolve, lambda pre: pre.room_id, SYSTEM)
+        outcome = await self._run(player_id, self._room_loader(), resolve, SYSTEM)
+        if outcome.changed:
+            await self._leave_group_quietly(player_id)
+        return outcome
 
     async def idle_ambush(self, player_id: UUID) -> ActionOutcome:
         """World ticker: ``chance_per_tick`` ambush roll for a character idling in its room."""
@@ -204,19 +242,93 @@ class ActionService:
         ) -> ActionResult:
             return resolve_idle_ambush(snapshot, self.content, self.content.rules, now, rng)
 
-        return await self._run(player_id, resolve, lambda pre: pre.room_id, SYSTEM)
+        return await self._run(player_id, self._room_loader(), resolve, SYSTEM)
+
+    async def leave_group(self, player_id: UUID) -> ActionOutcome:
+        """Takes a character out of its group, also when it is already offline (after a logout,
+        world ticker). Without a group nothing happens."""
+
+        def resolve(
+            snapshot: GroupActionSnapshot, _actor: Player, now: datetime, rng: random.Random
+        ) -> ActionResult:
+            if snapshot.actor.group_id is None:
+                return ActionResult()
+            return resolve_group_leave(snapshot, self.content, self.content.rules, now, rng)
+
+        return await self._run(player_id, self._group_loader(), resolve, CLEANUP)
+
+    async def _leave_group_quietly(self, player_id: UUID) -> None:
+        """Best effort after a logout; the world ticker removes offline members it missed."""
+        try:
+            await self.leave_group(player_id)
+        except Exception:
+            logger.exception("leaving the group of %s after logout failed", player_id)
+
+    async def _group_action(self, player_id: UUID, action: GameAction) -> ActionOutcome:
+        other_id: UUID | None = None
+        other_name: str | None = None
+        if isinstance(action, GroupInviteAction):
+            other_name = action.player_name
+        elif isinstance(action, GroupAcceptAction | GroupDeclineAction):
+            other_id = action.inviter_id
+        elif isinstance(action, GroupKickAction):
+            other_id = action.player_id
+
+        def resolve(
+            snapshot: GroupActionSnapshot, _actor: Player, now: datetime, rng: random.Random
+        ) -> ActionResult:
+            args = (snapshot, self.content, self.content.rules, now, rng)
+            match action:
+                case GroupInviteAction():
+                    return resolve_group_invite(*args, action.player_name)
+                case GroupAcceptAction():
+                    return resolve_group_accept(*args, action.inviter_id)
+                case GroupDeclineAction():
+                    return resolve_group_decline(*args, action.inviter_id)
+                case GroupKickAction():
+                    return resolve_group_kick(*args, action.player_id)
+                case _:
+                    return resolve_group_leave(*args)
+
+        return await self._run(
+            player_id, self._group_loader(other_id, other_name), resolve, PLAYER_ACTION
+        )
+
+    # --- snapshot loaders -----------------------------------------------------------------------
+
+    @staticmethod
+    def _room_loader(
+        target_room: Callable[[PreRead], str] = lambda pre: pre.room_id,
+    ) -> Loader[ActionSnapshot]:
+        """The room the action ends in (move: destination, respawn: checkpoint)."""
+
+        async def load(repo: Repository, player_id: UUID, pre: PreRead) -> ActionSnapshot:
+            return await repo.load_action_snapshot(player_id, target_room(pre))
+
+        return load
+
+    @staticmethod
+    def _group_loader(
+        other_id: UUID | None = None, other_name: str | None = None
+    ) -> Loader[GroupActionSnapshot]:
+        async def load(repo: Repository, player_id: UUID, pre: PreRead) -> GroupActionSnapshot:
+            return await repo.load_group_snapshot(
+                player_id, other_id=other_id, other_name=other_name
+            )
+
+        return load
 
     async def _run(
         self,
         player_id: UUID,
-        resolve: Resolver,
-        target_room: Callable[[PreRead], str],
+        load: Loader[S],
+        resolve: Resolver[S],
         mode: Mode,
     ) -> ActionOutcome:
         for _ in range(MAX_ATTEMPTS):
             try:
                 outcome, to_publish, relocations = await self._attempt(
-                    player_id, resolve, target_room, mode
+                    player_id, load, resolve, mode
                 )
             except SnapshotChangedError:
                 continue
@@ -239,8 +351,8 @@ class ActionService:
     async def _attempt(
         self,
         player_id: UUID,
-        resolve: Resolver,
-        target_room: Callable[[PreRead], str],
+        load: Loader[S],
+        resolve: Resolver[S],
         mode: Mode,
     ) -> tuple[ActionOutcome, list[GameEvent], list[Relocation]]:
         now = self.clock()
@@ -256,10 +368,9 @@ class ActionService:
             if too_fast or not await self._claim(session, player_id):
                 return ActionOutcome(events=rejected(TOO_FAST).events), [], []
 
-            room = target_room(pre)
             repo = Repository(session)
             try:
-                snapshot = await repo.load_action_snapshot(player_id, room)
+                snapshot = await load(repo, player_id, pre)
             except UnknownPlayerError as exc:  # deleted in the meantime
                 raise NotPlayingError(player_id) from exc
             actor = await session.get(Player, player_id)  # refreshed under the lock
@@ -277,13 +388,13 @@ class ActionService:
 
             if mode.player_action:
                 actor.last_action_at = now
-            respawns = (
+            respawns: ActionResult = (
                 respawn_due_monsters(snapshot, self.content, now)
-                if mode.lazy_respawn
+                if mode.lazy_respawn and isinstance(snapshot, ActionSnapshot)
                 else ActionResult()
             )
             await repo.apply_changes(respawns.changes)
-            result = resolve(snapshot, actor, now, rng)
+            result: ActionResult = resolve(snapshot, actor, now, rng)
             await repo.apply_changes(result.changes)
             events = [*respawns.events, *result.events]
             relocations = self._relocations(snapshot, result)
@@ -294,11 +405,14 @@ class ActionService:
         return ActionOutcome(events=actor_events, changed=bool(events)), others, relocations
 
     @staticmethod
-    def _relocations(snapshot: ActionSnapshot, result: ActionResult) -> list[Relocation]:
-        """Players whose room changed (move, respawn): live connections must follow them."""
+    def _relocations(
+        snapshot: ActionSnapshot | GroupActionSnapshot, result: ActionResult
+    ) -> list[Relocation]:
+        """Players whose room or group changed (move, respawn, joining or leaving a group):
+        their live connections must follow them."""
         relocations = []
         for update in result.changes.players:
-            if "current_room_id" not in update.model_fields_set:
+            if not {"current_room_id", "group_id"} & update.model_fields_set:
                 continue
             player = snapshot.player(update.player_id)
             if player is not None:

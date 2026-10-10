@@ -28,6 +28,7 @@ ALLOWED_STATES: Final[dict[str, frozenset[str]]] = {
     "say": _ALIVE,
     "group_invite": _ALIVE,
     "group_accept": _ALIVE,
+    "group_decline": _ALL,
     "group_leave": _ALL,
     "group_kick": _EXPLORING,
     "trade_request": _EXPLORING,

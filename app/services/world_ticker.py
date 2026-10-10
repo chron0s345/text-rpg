@@ -7,6 +7,7 @@
 4. expired disconnect grace periods (logout; death in combat)
 5. ambush rolls for players idling in a room
 6. expired group invites and trade requests
+7. offline characters still in a group leave it (normally done right after the logout)
 
 The decisions ("is due", "gets ambushed") are made by the engine; the ticker only finds
 candidates (unlocked reads), locks, applies and publishes after the commit. Steps 4 and 5 go
@@ -72,6 +73,7 @@ class TickReport:
     ambushes: int = 0
     invites_removed: int = 0
     trade_requests_removed: int = 0
+    offline_members_removed: int = 0
 
 
 class WorldTicker:
@@ -170,6 +172,7 @@ class WorldTicker:
             self._expire_connections,
             self._roll_idle_ambushes,
             self._remove_expired_requests,
+            self._remove_offline_members,
         )
         for step in steps:
             try:
@@ -333,6 +336,21 @@ class WorldTicker:
                 .returning(col(Trade.id))
             )
             report.trade_requests_removed = len(trades.all())
+
+    # 7. offline group members
+
+    async def _remove_offline_members(self, now: datetime, report: TickReport) -> None:
+        async with self.sessions() as session:
+            player_ids = (
+                await session.scalars(
+                    select(col(Player.id)).where(
+                        col(Player.online).is_(False), col(Player.group_id).is_not(None)
+                    )
+                )
+            ).all()
+        for player_id in player_ids:
+            if await self._for_player(self.actions.leave_group, player_id):
+                report.offline_members_removed += 1
 
     # --- helpers ----------------------------------------------------------------------------
 

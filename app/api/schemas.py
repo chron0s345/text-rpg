@@ -59,12 +59,17 @@ class SayAction(BaseModel):
 
 class GroupInviteAction(BaseModel):
     type: Literal["group_invite"] = "group_invite"
-    player_name: str
+    player_name: str = Field(min_length=1, max_length=20)
 
 
 class GroupAcceptAction(BaseModel):
     type: Literal["group_accept"] = "group_accept"
-    group_id: UUID
+    inviter_id: UUID  # the invitation may predate the group (created on accept)
+
+
+class GroupDeclineAction(BaseModel):
+    type: Literal["group_decline"] = "group_decline"
+    inviter_id: UUID
 
 
 class GroupLeaveAction(BaseModel):
@@ -171,6 +176,7 @@ GameAction = Annotated[
     | SayAction
     | GroupInviteAction
     | GroupAcceptAction
+    | GroupDeclineAction
     | GroupLeaveAction
     | GroupKickAction
     | TradeRequestAction

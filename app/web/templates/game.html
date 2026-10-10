@@ -21,7 +21,10 @@
       <button type="submit">Sagen</button>
     </form>
   </main>
-  {% include "partials/inventory.html" %}
+  <div class="right">
+    {% include "partials/group.html" %}
+    {% include "partials/inventory.html" %}
+  </div>
   <div id="refresher" hidden hx-get="/ui/panels" hx-trigger="sse:update delay:250ms, refresh" hx-swap="none"></div>
 </div>
 {% endblock %}

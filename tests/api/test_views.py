@@ -81,7 +81,8 @@ async def test_ui_action_returns_log_lines_and_oob_panels(api: Api) -> None:
         response = await client.post("/ui/actions", data={"type": "say", "text": "<i>hi</i>"})
         assert response.status_code == 200
         assert '<li class="log-chat-say">Du sagst: &lt;i&gt;hi&lt;/i&gt;</li>' in response.text
-        assert response.text.count('hx-swap-oob="true"') == 4  # status, room, actions, inventory
+        # status, room, actions, group, inventory
+        assert response.text.count('hx-swap-oob="true"') == 5
 
         api.clock.advance(seconds=1)
         moved = await client.post("/ui/actions", data={"type": "move", "direction": "south"})

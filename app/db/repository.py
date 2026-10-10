@@ -2,8 +2,8 @@
 
 Lock order (ARCHITECTURE.md, "Locking") — every code path takes row locks in this order to avoid
 deadlocks: Group -> Trade -> Player (sorted by id) -> InventoryItem -> BankItem ->
-MonsterInstance -> FloorItem -> ItemSpawnState. Within a table rows are locked sorted by primary
-key.
+MonsterInstance -> FloorItem -> ItemSpawnState; group actions: Group -> Player -> GroupInvite.
+Within a table rows are locked sorted by primary key.
 
 Two rules make the locks meaningful:
 
@@ -26,13 +26,14 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import Select, select
+from sqlalchemy import Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col
 
 from app.db.mappers import (
     floor_item_snapshot,
     group_snapshot,
+    invite_snapshot,
     monster_snapshot,
     participation_snapshot,
     player_snapshot,
@@ -41,6 +42,7 @@ from app.db.models import (
     CombatParticipation,
     FloorItem,
     Group,
+    GroupInvite,
     InventoryItem,
     ItemSpawnState,
     LogEntry,
@@ -50,7 +52,7 @@ from app.db.models import (
     TradeOffer,
 )
 from app.engine.events import StateChanges
-from app.engine.state import ActionSnapshot, PlayerSnapshot
+from app.engine.state import ActionSnapshot, GroupActionSnapshot, PlayerSnapshot
 
 ACTIVE_TRADE_STATUSES = ("requested", "open")
 
@@ -86,6 +88,7 @@ class Locks:
     participations: set[tuple[UUID, UUID]] = field(default_factory=set)
     floor_items: set[UUID] = field(default_factory=set)
     rooms: set[str] = field(default_factory=set)  # rooms whose monsters/floor items are locked
+    invites: set[tuple[UUID, UUID]] = field(default_factory=set)  # (inviter_id, player_id)
 
 
 def _locked(stmt: Select[Any]) -> Select[Any]:
@@ -196,6 +199,93 @@ class Repository:
         spawn_states = await self._lock_rows(stmt)
         self.locks.rooms.add(room_id)
         return floor_items, spawn_states
+
+    async def lock_invites(self, player_ids: Iterable[UUID]) -> list[GroupInvite]:
+        """Open invitations from or to these players (taken after the players)."""
+        ids = sorted(set(player_ids))
+        if not ids:
+            return []
+        stmt = (
+            select(GroupInvite)
+            .where((col(GroupInvite.inviter_id).in_(ids)) | (col(GroupInvite.player_id).in_(ids)))
+            .order_by(col(GroupInvite.inviter_id), col(GroupInvite.player_id))
+        )
+        rows = await self._lock_rows(stmt)
+        self.locks.invites.update((r.inviter_id, r.player_id) for r in rows)
+        return rows
+
+    async def load_group_snapshot(
+        self,
+        actor_id: UUID,
+        *,
+        other_id: UUID | None = None,
+        other_name: str | None = None,
+    ) -> GroupActionSnapshot:
+        """Locks what a group action may touch, wherever the players are: the groups of the
+        actor and of the other player (by id or case-insensitive name), all their members, the
+        two players, and their open invitations. Order: groups -> players -> invites."""
+        pre_actor = (
+            await self.session.execute(
+                select(col(Player.group_id)).where(
+                    col(Player.id) == actor_id, col(Player.deleted_at).is_(None)
+                )
+            )
+        ).first()
+        if pre_actor is None:
+            raise UnknownPlayerError(actor_id)
+        other_filter = None
+        if other_id is not None:
+            other_filter = col(Player.id) == other_id
+        elif other_name is not None:
+            other_filter = func.lower(col(Player.name)) == other_name.strip().lower()
+        pre_other = None
+        if other_filter is not None:
+            pre_other = (
+                await self.session.execute(
+                    select(col(Player.id), col(Player.group_id)).where(
+                        other_filter, col(Player.deleted_at).is_(None)
+                    )
+                )
+            ).first()
+        group_ids = {g for g in (pre_actor.group_id, pre_other[1] if pre_other else None) if g}
+
+        groups = await self.lock_groups(group_ids)
+        members = (
+            (
+                await self.session.scalars(
+                    select(col(Player.id)).where(
+                        col(Player.group_id).in_([g.id for g in groups]),
+                        col(Player.deleted_at).is_(None),
+                    )
+                )
+            ).all()
+            if groups
+            else []
+        )
+        wanted = {actor_id, *members, *([pre_other[0]] if pre_other else [])}
+        players = await self.lock_players(wanted)
+        actor = next((p for p in players if p.id == actor_id), None)
+        if actor is None or actor.deleted_at is not None:
+            raise UnknownPlayerError(actor_id)
+        for player in players:
+            if player.group_id is not None and player.group_id not in self.locks.groups:
+                raise SnapshotChangedError(f"group {player.group_id} of {player.id} is not locked")
+        invites = await self.lock_invites(p.id for p in players)
+
+        def by_join(row: Player) -> tuple[datetime, UUID]:
+            assert row.group_joined_at is not None
+            return row.group_joined_at, row.id
+
+        snapshots = []
+        for group in groups:
+            in_group = sorted((p for p in players if p.group_id == group.id), key=by_join)
+            snapshots.append(group_snapshot(group, [p.id for p in in_group]))
+        return GroupActionSnapshot(
+            actor=player_snapshot(actor, []),
+            players=[player_snapshot(p, []) for p in players if p.id != actor_id],
+            groups=snapshots,
+            invites=[invite_snapshot(i) for i in invites],
+        )
 
     # --- snapshot ----------------------------------------------------------------------------
 
@@ -312,6 +402,13 @@ class Repository:
         self._bind_transaction()
         session, locks = self.session, self.locks
 
+        for group_create in changes.groups_create:
+            self._require(group_create.leader_id in locks.players, "group leader")
+            session.add(Group(**group_create.model_dump()))
+            locks.groups.add(group_create.id)
+        if changes.groups_create:
+            await session.flush()  # members reference the new group
+
         for player_update in changes.players:
             self._require(player_update.player_id in locks.players, "player")
             player = await session.get(Player, player_update.player_id)
@@ -417,7 +514,40 @@ class Repository:
             self._require(group_update.group_id in locks.groups, "group")
             group = await session.get(Group, group_update.group_id)
             assert group is not None
-            group.loot_cursor = group_update.loot_cursor
+            for key, value in group_update.model_dump(
+                exclude_unset=True, exclude={"group_id"}
+            ).items():
+                setattr(group, key, value)
+
+        for invite_delete in changes.invites_delete:
+            invite_key = (invite_delete.inviter_id, invite_delete.player_id)
+            self._require(invite_key in locks.invites, "group invite")
+            invite = await session.get(GroupInvite, invite_key)
+            if invite is not None:
+                await session.delete(invite)
+            locks.invites.discard(invite_key)
+        for invite_upsert in changes.invites_upsert:
+            invite_key = (invite_upsert.inviter_id, invite_upsert.player_id)
+            self._require(
+                invite_upsert.inviter_id in locks.players
+                and invite_upsert.player_id in locks.players,
+                "group invite players",
+            )
+            invite = await session.get(GroupInvite, invite_key)
+            if invite is None:
+                session.add(GroupInvite(**invite_upsert.model_dump()))
+                locks.invites.add(invite_key)
+            else:
+                invite.group_id = invite_upsert.group_id
+                invite.expires_at = invite_upsert.expires_at
+
+        await session.flush()  # members leave before their group is deleted
+        for group_id in changes.groups_delete:
+            self._require(group_id in locks.groups, "group")
+            group = await session.get(Group, group_id)
+            if group is not None:
+                await session.delete(group)  # its open invitations cascade
+            locks.groups.discard(group_id)
 
         await session.flush()
 

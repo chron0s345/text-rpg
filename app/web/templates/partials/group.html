@@ -1,0 +1,45 @@
+{% set g = view.group %}{% set p = view.player %}
+<section id="group" class="panel group" aria-labelledby="group-title"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <h2 id="group-title">Gruppe{% if g.members %} <span class="muted">{{ g.members | length }} Mitglieder</span>{% endif %}</h2>
+  {% if g.members %}
+  <ul class="list members">
+    {% for m in g.members %}
+    <li>
+      <span class="member">
+        <span>{{ m.name }}{% if m.leader %} <span class="tag">Leitung</span>{% endif %}{% if not m.online %} <span class="muted">(offline)</span>{% endif %}</span>
+        <span class="muted small">{{ m.room_name }}{% if m.state != 'exploring' %} · {{ state_label(m.state) }}{% endif %}</span>
+        <meter min="0" max="{{ m.max_hp }}" low="{{ (m.max_hp * 0.3) | round(0, 'ceil') | int }}" high="{{ (m.max_hp * 0.6) | int }}" optimum="{{ m.max_hp }}" value="{{ m.hp }}" title="{{ m.hp }}/{{ m.max_hp }} HP" aria-label="HP von {{ m.name }}: {{ m.hp }} von {{ m.max_hp }}"></meter>
+      </span>
+      {% if g.i_lead and not m.me and p.state == 'exploring' %}
+      <button class="subtle" hx-post="/ui/actions" hx-vals='{{ {"type": "group_kick", "player_id": m.id | string} | tojson }}'
+              hx-confirm="{{ m.name }} aus der Gruppe entfernen?">Entfernen</button>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  <button class="subtle" hx-post="/ui/actions" hx-vals='{"type": "group_leave"}'>Gruppe verlassen</button>
+  {% endif %}
+
+  {% for i in g.invites %}
+  <div class="invite">
+    <span><strong>{{ i.inviter_name }}</strong> lädt dich ein.</span>
+    <span class="buttons">
+      {% if not g.members and p.state != 'dead' %}
+      <button class="primary" hx-post="/ui/actions" hx-vals='{{ {"type": "group_accept", "inviter_id": i.inviter_id | string} | tojson }}'>Annehmen</button>
+      {% endif %}
+      <button class="subtle" hx-post="/ui/actions" hx-vals='{{ {"type": "group_decline", "inviter_id": i.inviter_id | string} | tojson }}'>Ablehnen</button>
+    </span>
+  </div>
+  {% endfor %}
+
+  {% if g.can_invite and p.state != 'dead' %}
+  <form class="invite-form" hx-post="/ui/actions" hx-on::after-request="if (event.detail.successful) this.reset()">
+    <input type="hidden" name="type" value="group_invite">
+    <label class="visually-hidden" for="invite-name">Name</label>
+    <input id="invite-name" name="player_name" maxlength="20" autocomplete="off" placeholder="Name einladen …" required>
+    <button type="submit">Einladen</button>
+  </form>
+  {% elif not g.members and not g.invites %}
+  <p class="muted">Du bist allein unterwegs.</p>
+  {% endif %}
+</section>

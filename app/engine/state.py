@@ -48,6 +48,7 @@ class PlayerSnapshot(BaseModel):
     state: PlayerState
     combat_target_id: UUID | None = None
     group_id: UUID | None = None
+    online: bool = True
     inventory: list[InventoryItemState] = Field(default_factory=list)
     # inventory entries offered in an open trade: cannot be dropped, used, equipped, sold, banked
     locked_item_ids: list[UUID] = Field(default_factory=list)
@@ -97,6 +98,41 @@ class GroupSnapshot(BaseModel):
     leader_id: UUID
     loot_cursor: int = 0
     member_ids: list[UUID]  # ordered by join time (oldest first)
+
+
+class InviteSnapshot(BaseModel):
+    inviter_id: UUID
+    player_id: UUID
+    group_id: UUID | None  # None while the inviter has no group yet
+    expires_at: datetime
+
+    def valid_at(self, now: datetime) -> bool:
+        return self.expires_at > now
+
+
+class GroupActionSnapshot(BaseModel):
+    """Everything a group action may touch (wherever the players are): the actor, the other
+    player involved (invitee, inviter, kicked member), all members of their groups, and the
+    open invitations from or to these players. Member order = join order (oldest first)."""
+
+    actor: PlayerSnapshot
+    players: list[PlayerSnapshot] = Field(default_factory=list)  # everyone else involved
+    groups: list[GroupSnapshot] = Field(default_factory=list)
+    invites: list[InviteSnapshot] = Field(default_factory=list)
+
+    def player(self, player_id: UUID) -> PlayerSnapshot | None:
+        if player_id == self.actor.id:
+            return self.actor
+        return next((p for p in self.players if p.id == player_id), None)
+
+    def group(self, group_id: UUID) -> GroupSnapshot | None:
+        return next((g for g in self.groups if g.id == group_id), None)
+
+    def invite(self, inviter_id: UUID, player_id: UUID) -> InviteSnapshot | None:
+        return next(
+            (i for i in self.invites if i.inviter_id == inviter_id and i.player_id == player_id),
+            None,
+        )
 
 
 class ActionSnapshot(BaseModel):

@@ -19,7 +19,15 @@ from sqlmodel import col
 from app.content.registry import ContentRegistry
 from app.content.schemas import Direction, Heal
 from app.db.mappers import player_snapshot
-from app.db.models import FloorItem, InventoryItem, LogEntry, MonsterInstance, Player
+from app.db.models import (
+    FloorItem,
+    Group,
+    GroupInvite,
+    InventoryItem,
+    LogEntry,
+    MonsterInstance,
+    Player,
+)
 from app.engine.inventory import calculate_inventory_capacity, get_occupied_slots
 from app.engine.movement import DIRECTION_NAMES
 from app.engine.regeneration import calculate_current_monster_hp
@@ -107,6 +115,33 @@ class InventoryView:
 
 
 @dataclass(frozen=True)
+class MemberView:
+    id: UUID
+    name: str
+    hp: int
+    max_hp: int
+    state: str
+    room_name: str
+    online: bool
+    leader: bool
+    me: bool
+
+
+@dataclass(frozen=True)
+class InviteView:
+    inviter_id: UUID
+    inviter_name: str
+
+
+@dataclass(frozen=True)
+class GroupView:
+    members: list[MemberView]  # join order; empty without a group
+    i_lead: bool
+    can_invite: bool
+    invites: list[InviteView]  # open invitations to me
+
+
+@dataclass(frozen=True)
 class LogLine:
     id: int
     kind: str
@@ -118,6 +153,7 @@ class GameView:
     player: PlayerView
     room: RoomView
     inventory: InventoryView
+    group: GroupView
 
 
 class ViewService:
@@ -244,7 +280,81 @@ class ViewService:
             carried=[i for i in items if i.equipped_slot is None],
             equipped=[i for i in items if i.equipped_slot is not None],
         )
-        return GameView(player=player, room=room_view, inventory=inventory_view)
+        group_view = await self._group(row, now)
+        return GameView(player=player, room=room_view, inventory=inventory_view, group=group_view)
+
+    async def _group(self, row: Player, now: datetime) -> GroupView:
+        rules = self.content.rules
+        async with self.sessions() as session:
+            members: list[Player] = []
+            leader_id = None
+            if row.group_id is not None:
+                group = await session.get(Group, row.group_id)
+                leader_id = group.leader_id if group is not None else None
+                members = list(
+                    (
+                        await session.scalars(
+                            select(Player)
+                            .where(
+                                col(Player.group_id) == row.group_id,
+                                col(Player.deleted_at).is_(None),
+                            )
+                            .order_by(col(Player.group_joined_at), col(Player.id))
+                        )
+                    ).all()
+                )
+            items = (
+                list(
+                    (
+                        await session.scalars(
+                            select(InventoryItem).where(
+                                col(InventoryItem.player_id).in_([m.id for m in members]),
+                                col(InventoryItem.equipped_slot).is_not(None),
+                            )
+                        )
+                    ).all()
+                )
+                if members
+                else []
+            )
+            invites = (
+                await session.execute(
+                    select(col(GroupInvite.inviter_id), col(Player.name))
+                    .join(Player, col(Player.id) == col(GroupInvite.inviter_id))
+                    .where(
+                        col(GroupInvite.player_id) == row.id,
+                        col(GroupInvite.expires_at) > now,
+                        col(Player.online),
+                    )
+                    .order_by(col(GroupInvite.expires_at))
+                )
+            ).all()
+
+        member_views = []
+        for member in members:
+            equipped = [i for i in items if i.player_id == member.id]
+            stats = stats_of(player_snapshot(member, equipped), self.content.items)
+            member_views.append(
+                MemberView(
+                    id=member.id,
+                    name=member.name,
+                    hp=member.hp,
+                    max_hp=stats.max_hp,
+                    state=member.state,
+                    room_name=self.content.get_room(member.current_room_id).name,
+                    online=member.online,
+                    leader=member.id == leader_id,
+                    me=member.id == row.id,
+                )
+            )
+        i_lead = row.group_id is not None and leader_id == row.id
+        return GroupView(
+            members=member_views,
+            i_lead=i_lead,
+            can_invite=(row.group_id is None or i_lead)
+            and len(member_views) < rules.max_group_size,
+            invites=[InviteView(inviter_id, name) for inviter_id, name in invites],
+        )
 
     def _item(self, entry: InventoryItemState) -> ItemView:
         item = self.content.get_item(entry.item_id)

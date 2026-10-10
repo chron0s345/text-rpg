@@ -57,7 +57,7 @@ label input { margin-top: .2rem; color: var(--text); }
   display: grid; height: 100vh; gap: .75rem; padding: .75rem;
   grid-template-columns: minmax(16rem, 22rem) 1fr minmax(16rem, 22rem);
   grid-template-rows: auto 1fr;
-  grid-template-areas: "status status status" "left center inventory";
+  grid-template-areas: "status status status" "left center right";
 }
 .status { grid-area: status; display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; align-items: center;
   background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: .5rem .9rem; }
@@ -69,7 +69,7 @@ label input { margin-top: .2rem; color: var(--text); }
 .state-dead { color: var(--muted); font-weight: 600; }
 .left { grid-area: left; display: flex; flex-direction: column; gap: .75rem; min-height: 0; overflow: auto; }
 .center { grid-area: center; display: flex; flex-direction: column; min-height: 0; }
-.inventory { grid-area: inventory; overflow: auto; }
+.right { grid-area: right; display: flex; flex-direction: column; gap: .75rem; min-height: 0; overflow: auto; }
 .panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: .8rem; }
 .description { color: var(--muted); margin-top: 0; }
 .tag { font-size: .7rem; border: 1px solid var(--border); border-radius: 999px; padding: 0 .4rem; color: var(--muted); vertical-align: middle; }
@@ -89,9 +89,15 @@ label input { margin-top: .2rem; color: var(--text); }
 .log .log-ambush, .log .log-player-died, .log .log-session-confirm_death { color: var(--danger); font-weight: 600; }
 .log .log-monster-killed, .log .log-player-level_up { color: var(--good); font-weight: 600; }
 .log .log-room-look::before { content: ""; display: block; border-top: 1px solid var(--border); margin: .3rem 0; }
-.chat { display: flex; gap: .5rem; margin-top: .5rem; }
+.chat, .invite-form { display: flex; gap: .5rem; margin-top: .5rem; }
+.members .member { display: flex; flex-direction: column; gap: .1rem; flex: 1; }
+.members meter { width: 100%; height: .5rem; }
+.small { font-size: .8rem; }
+.invite { display: flex; justify-content: space-between; align-items: center; gap: .5rem;
+  margin: .5rem 0; padding: .4rem .5rem; border: 1px solid var(--accent); border-radius: var(--radius); }
+.group > button { margin-top: .5rem; }
 
 @media (max-width: 60rem) {
-  .game { height: auto; grid-template-columns: 1fr; grid-template-areas: "status" "center" "left" "inventory"; }
+  .game { height: auto; grid-template-columns: 1fr; grid-template-areas: "status" "center" "left" "right"; }
   .log { min-height: 50vh; max-height: 60vh; }
 }

@@ -76,6 +76,8 @@ class PlayerUpdate(BaseModel):
     combat_target_id: UUID | None = None
     online: bool | None = None  # login/logout (engine/presence.py)
     disconnected_at: datetime | None = None
+    group_id: UUID | None = None  # engine/groups.py
+    group_joined_at: datetime | None = None
 
 
 class MonsterUpdate(BaseModel):
@@ -126,8 +128,29 @@ class ItemSpawnUpdate(BaseModel):
 
 
 class GroupUpdate(BaseModel):
+    """Only explicitly set fields are applied (like ``PlayerUpdate``)."""
+
     group_id: UUID
-    loot_cursor: int
+    loot_cursor: int | None = None
+    leader_id: UUID | None = None
+
+
+class GroupCreate(BaseModel):
+    id: UUID
+    leader_id: UUID
+    created_at: datetime
+
+
+class InviteUpsert(BaseModel):
+    inviter_id: UUID
+    player_id: UUID
+    group_id: UUID | None
+    expires_at: datetime
+
+
+class InviteDelete(BaseModel):
+    inviter_id: UUID
+    player_id: UUID
 
 
 class StateChanges(BaseModel):
@@ -151,6 +174,10 @@ class StateChanges(BaseModel):
     floor_items_delete: list[UUID] = Field(default_factory=list)
     item_spawns: list[ItemSpawnUpdate] = Field(default_factory=list)
     groups: list[GroupUpdate] = Field(default_factory=list)
+    groups_create: list[GroupCreate] = Field(default_factory=list)
+    groups_delete: list[UUID] = Field(default_factory=list)
+    invites_upsert: list[InviteUpsert] = Field(default_factory=list)
+    invites_delete: list[InviteDelete] = Field(default_factory=list)
 
 
 class ActionResult(BaseModel):
@@ -258,6 +285,12 @@ class ResultBuilder:
         ]
         changes.participations_delete = [
             d for d in changes.participations_delete if d.monster_instance_id not in cleared
+        ]
+        deleted_groups = set(changes.groups_delete)
+        changes.groups = [g for g in changes.groups if g.group_id not in deleted_groups]
+        deleted_invites = {(d.inviter_id, d.player_id) for d in changes.invites_delete}
+        changes.invites_upsert = [
+            u for u in changes.invites_upsert if (u.inviter_id, u.player_id) not in deleted_invites
         ]
 
 

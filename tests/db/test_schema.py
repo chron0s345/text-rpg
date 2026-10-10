@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from sqlmodel import SQLModel
 
 from app.db.models import (
+    Account,
     BankItem,
     CombatParticipation,
     FloorItem,
@@ -137,7 +138,10 @@ async def test_more_check_constraints(session: AsyncSession) -> None:
         with pytest.raises(IntegrityError):
             async with session.begin_nested():
                 session.add(row)
-    for field_values in ({"xp": -1}, {"group_joined_at": NOW}):
+    group = Group(leader_id=a.id)
+    session.add(group)
+    await session.flush()
+    for field_values in ({"xp": -1}, {"group_id": group.id}):  # a member needs a join time
         with pytest.raises(IntegrityError):
             async with session.begin_nested():
                 await add_player(session, **field_values)
@@ -220,3 +224,21 @@ async def test_constraint_and_index_definitions_match_models(
     actual = await definitions(engine)
     assert actual["constraints"] == expected["constraints"]
     assert actual["indexes"] == expected["indexes"]
+
+
+async def test_deleting_the_leaders_account_dissolves_the_group(session: AsyncSession) -> None:
+    leader = await add_player(session)
+    member = await add_player(session)
+    group = Group(leader_id=leader.id)
+    session.add(group)
+    await session.flush()
+    for row in (leader, member):
+        row.group_id, row.group_joined_at = group.id, NOW
+    await session.flush()
+
+    account = await session.get(Account, leader.account_id)
+    await session.delete(account)
+    await session.flush()  # cascades: leader -> group -> member.group_id SET NULL
+
+    await session.refresh(member)
+    assert member.group_id is None

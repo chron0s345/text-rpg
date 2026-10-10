@@ -11,6 +11,7 @@ from app.db.models import (
     CombatParticipation,
     FloorItem,
     Group,
+    GroupInvite,
     InventoryItem,
     MonsterInstance,
     Player,
@@ -19,6 +20,7 @@ from app.engine.state import (
     FloorItemSnapshot,
     GroupSnapshot,
     InventoryItemState,
+    InviteSnapshot,
     MonsterSnapshot,
     ParticipationSnapshot,
     PlayerSnapshot,
@@ -53,6 +55,7 @@ def player_snapshot(
         state=cast(PlayerState, row.state),
         combat_target_id=row.combat_target_id,
         group_id=row.group_id,
+        online=row.online,
         inventory=[inventory_item_state(i) for i in inventory],
         locked_item_ids=list(locked_item_ids),
     )
@@ -97,4 +100,13 @@ def floor_item_snapshot(row: FloorItem) -> FloorItemSnapshot:
 def group_snapshot(row: Group, member_ids: list[UUID]) -> GroupSnapshot:
     return GroupSnapshot(
         id=row.id, leader_id=row.leader_id, loot_cursor=row.loot_cursor, member_ids=member_ids
+    )
+
+
+def invite_snapshot(row: GroupInvite) -> InviteSnapshot:
+    return InviteSnapshot(
+        inviter_id=row.inviter_id,
+        player_id=row.player_id,
+        group_id=row.group_id,
+        expires_at=row.expires_at,
     )
