@@ -494,7 +494,8 @@ Die erste **Partei**, die einem Monster Schaden zufügt, "markiert" es (`tagged_
 
 Stirbt das Monster:
 
-- **XP** bekommt jeder Teilnehmer anteilig nach `damage_dealt`. Gruppenmitglieder im selben Raum, die nicht zugeschlagen haben, bekommen einen Grundanteil (in `rules.yaml` konfigurierbar).
+- **XP** bekommt jeder Teilnehmer anteilig nach `damage_dealt`. Gruppenmitglieder im selben Raum, die nicht zugeschlagen haben, bekommen einen Grundanteil (`xp.group_idle_share` × Durchschnittsschaden der Angreifer als Gewicht), auch wenn ein Gruppenfremder den letzten Schlag setzt. Die Aufteilung verliert keine Punkte durch Rundung (Largest-Remainder-Verfahren).
+- **Level-Up** setzt die Basiswerte aus `levels` und heilt den Charakter vollständig (effektive Max-HP inkl. Ausrüstung).
 - **Gold** geht an die markierende Partei und wird gleichmäßig unter den Mitgliedern im Raum aufgeteilt. Rest-Münzen bekommt der Reihe nach das nächste Mitglied.
 - **Items** werden für die markierende Partei gewürfelt:
   - Solo: direkt ins Inventar.

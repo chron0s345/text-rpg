@@ -66,7 +66,7 @@ def resolve_kill(
     )
     builder.to_actor("monster.killed", f"Du hast {template.name} besiegt.")
 
-    _grant_xp(builder, snapshot, monster, template, rules)
+    _grant_xp(builder, snapshot, monster, template, content, rules)
 
     tag = monster.tagged_by_party or killer.party_key
     recipients, group = party_members_in_room(snapshot, tag)
@@ -108,10 +108,11 @@ def _grant_xp(
     snapshot: ActionSnapshot,
     monster: MonsterSnapshot,
     template: MonsterTemplate,
+    content: ContentRegistry,
     rules: Rules,
 ) -> None:
     """Share by damage dealt; idle group members in the room get ``group_idle_share`` of the
-    average attacker damage as weight."""
+    average attacker damage as weight, also when a non-member landed the killing blow."""
     weights: dict[UUID, float] = {}
     for participation in snapshot.participations_for(monster.id):
         player = snapshot.player(participation.player_id)
@@ -138,7 +139,7 @@ def _grant_xp(
     for player_id, amount in distribute_xp(template.xp_reward, weights).items():
         player = snapshot.player(player_id)
         if player is not None:
-            apply_xp(builder, player, amount, rules)
+            apply_xp(builder, player, amount, rules, content.items)
 
 
 def _grant_gold(

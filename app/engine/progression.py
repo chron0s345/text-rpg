@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from app.content.schemas import LevelRule, Rules
+from app.content.schemas import ItemTemplate, LevelRule, Rules
 from app.engine.events import ResultBuilder
 from app.engine.state import PlayerSnapshot
+from app.engine.stats import stats_of
 
 
 @dataclass(frozen=True)
@@ -50,8 +51,17 @@ def calculate_level_progression(
     )
 
 
-def apply_xp(builder: ResultBuilder, player: PlayerSnapshot, amount: int, rules: Rules) -> None:
-    """Grants XP (mutates ``player``), applies level-ups and reports both to the player."""
+def apply_xp(
+    builder: ResultBuilder,
+    player: PlayerSnapshot,
+    amount: int,
+    rules: Rules,
+    item_templates: dict[str, ItemTemplate],
+) -> None:
+    """Grants XP (mutates ``player``), applies level-ups and reports both to the player.
+
+    A level-up fully heals the player to the new effective max HP (incl. equipment).
+    """
     if amount <= 0:
         return
     player.xp += amount
@@ -72,8 +82,10 @@ def apply_xp(builder: ResultBuilder, player: PlayerSnapshot, amount: int, rules:
     player.base_max_hp = progression.new_base_max_hp
     player.base_attack = progression.new_base_attack
     player.base_defense = progression.new_base_defense
+    player.hp = stats_of(player, item_templates).max_hp
     builder.update_player(
         player.id,
+        hp=player.hp,
         level=player.level,
         base_max_hp=player.base_max_hp,
         base_attack=player.base_attack,

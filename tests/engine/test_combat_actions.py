@@ -10,10 +10,12 @@ from app.content.loader import load_content
 from app.content.registry import ContentRegistry
 from app.content.schemas import (
     CombatRules,
+    ItemTemplate,
     LootEntry,
     MonsterTemplate,
     Regeneration,
     Rules,
+    StatModifier,
 )
 from app.engine.combat import calculate_damage, resolve_attack, resolve_flee
 from app.engine.events import ActionResult, PlayersAudience
@@ -55,7 +57,19 @@ def content() -> ContentRegistry:
             "regen": Regeneration(delay_seconds=10, hp_per_second=1.0),
         }
     )
-    return dataclasses.replace(real, monsters={**real.monsters, "dummy": dummy, "troll": troll})
+    amulet = ItemTemplate(
+        id="amulet",
+        name="Amulett",
+        description="",
+        kind="armor",
+        slot="head",
+        effects=[StatModifier(stat="max_hp", amount=5)],
+    )
+    return dataclasses.replace(
+        real,
+        monsters={**real.monsters, "dummy": dummy, "troll": troll},
+        items={**real.items, "amulet": amulet},
+    )
 
 
 @pytest.fixture
@@ -275,6 +289,16 @@ def test_kill_triggers_level_up(content: ContentRegistry, rules: Rules) -> None:
         level_2.attack,
     )
     assert "Du hast Stufe 2 erreicht!" in actor_texts(result)
+
+
+def test_level_up_fully_heals_including_equipment(content: ContentRegistry, rules: Rules) -> None:
+    actor = make_player(xp=90, hp=4)
+    actor.inventory = [
+        InventoryItemState(id=uuid4(), item_id="amulet", quantity=1, equipped_slot="head")
+    ]
+    monster = make_monster(hp=5)
+    result = attack(ActionSnapshot(actor=actor, monsters=[monster]), content, rules, monster)
+    assert player_update(result, actor.id)["hp"] == rules.level_rule(2).max_hp + 5
 
 
 def _group_snapshot(
