@@ -41,12 +41,14 @@ Bei mehreren Server-Prozessen muss ein Event aus Prozess A auch die SSE-Verbindu
 
 ```
 app/
-├── main.py              # FastAPI-App, Lifespan: Content laden, Event-Bus & World-Ticker starten
+├── main.py              # FastAPI-App (create_app), Lifespan: Content laden, Event-Bus & World-Ticker starten
+├── settings.py          # Konfiguration aus Umgebungsvariablen
 ├── api/                 # HTTP-Routen, nur dünne Schicht
+│   ├── deps.py          # Services aus dem App-State, Session-Cookie (Account, aktiver Charakter)
 │   ├── auth.py          # Registrierung, Login, Logout
 │   ├── characters.py    # Charaktere anlegen, auswählen, löschen
 │   ├── actions.py       # POST /actions
-│   ├── stream.py        # GET /stream (SSE)
+│   ├── stream.py        # GET /stream (SSE), GET /log
 │   └── views.py         # Seiten & Partials
 ├── engine/              # Reine Spiellogik, kein HTTP, kein DB-Zugriff
 │   ├── state.py         # Snapshots (ActionSnapshot, PlayerSnapshot, ...) als Engine-Eingabe
@@ -88,6 +90,8 @@ app/
 ├── services/            # Orchestrierung: sperrt & lädt Zustand, ruft Engine, speichert, publiziert
 │   ├── events.py            # EventPublisher-Interface (Umsetzung im Realtime-Layer)
 │   ├── action_service.py
+│   ├── log.py               # Log-Einträge pro Empfänger eines Events
+│   ├── account_service.py   # Registrierung, Passwortprüfung (argon2), Charaktere anlegen/löschen
 │   ├── session_service.py   # Login/Logout eines Charakters, Disconnect-Handling
 │   └── world_ticker.py      # Respawns, Aufräumen, Disconnect-Fristen
 └── web/
@@ -640,6 +644,13 @@ Die Frist (`disconnect_grace_seconds`) schützt vor dem Verlust eines Charakters
 
 Server-Neustart: Beim Start werden alle Charaktere mit `online = true` und ohne aktive Verbindung als disconnected markiert, sodass dieselbe Frist greift.
 
+Umsetzung: Engine `engine/presence.py` (`resolve_login`, `resolve_logout`), Kontoregeln in `services/session_service.py`.
+
+- Logout außerhalb des Kampfes setzt nach `town_room_id`; tote Charaktere bleiben liegen und erwachen nach dem nächsten Login am Checkpoint.
+- Charakterwechsel loggt den bisherigen Charakter zuerst in einer eigenen Transaktion aus (im Kampf nur mit `confirm_death`, sonst `409`), danach wird der neue eingeloggt. Ein gleichzeitiger zweiter Login scheitert am partiellen Unique-Index (ein Online-Charakter pro Account) und wird als `409` gemeldet.
+- Ein Login eines bereits eingeloggten Charakters (zweiter Tab, Reconnect) setzt nur `disconnected_at = null`, ohne den Raum erneut zu benachrichtigen.
+- Gruppe verlassen und laufenden Handel abbrechen beim Logout sowie das Abarbeiten abgelaufener Fristen folgen mit `groups.py`, `trade.py` und dem World-Ticker.
+
 ### Respawn & Aufräumen
 
 - **Monster:** Fällige `MonsterInstance` (`alive = false`, `respawn_at <= now`) werden mit vollen HP zurückgesetzt. Zusätzlich gibt es einen Lazy Check beim Betreten eines Raums.
@@ -690,12 +701,13 @@ Umsetzung: `ActionService.execute` (`app/services/action_service.py`).
 - Wiederholt wird bei `SnapshotChangedError`, Deadlock (`40P01`) und Serialisierungsfehler (`40001`), höchstens dreimal; danach `RetryLimitExceededError`.
 - Ist der Charakter offline, gelöscht oder unbekannt (auch wenn das erst während des Wartens auf die Sperre passiert), gibt es `NotPlayingError` (HTTP 401).
 - Zufall: `random.SystemRandom` (Würfe sind nicht aus früheren Ergebnissen vorhersagbar); Tests injizieren einen festen Seed und eine feste Uhr.
-- Aktionen späterer Schritte (Gruppen, Handel, Bank, Händler, Logout) werden vorerst mit „Diese Aktion ist noch nicht verfügbar.“ abgelehnt.
+- Login (`ActionService.login`) läuft über denselben Ablauf (Sperren, Engine `resolve_login`, Log, Publizieren nach Commit); es ist die einzige Operation für einen Offline-Charakter und unterliegt keinem Rate Limit. `logout` ist ebenfalls vom Rate Limit ausgenommen (nur eine gleichzeitig laufende Aktion wird abgewiesen), damit niemand in der Welt festhängt. `online` und `disconnected_at` werden wie jede Änderung über `PlayerUpdate` geschrieben.
+- Aktionen späterer Schritte (Gruppen, Handel, Bank, Händler) werden vorerst mit „Diese Aktion ist noch nicht verfügbar.“ abgelehnt.
 
 ### Locking
 
 - `SELECT ... FOR UPDATE` auf betroffene Zeilen.
-- **Feste Sperrreihenfolge**, um Deadlocks zu vermeiden: `Group` → `Trade` → `Player` (sortiert nach ID) → `InventoryItem` → `BankItem` → `MonsterInstance` → `FloorItem`.
+- **Feste Sperrreihenfolge**, um Deadlocks zu vermeiden: (`Account`, nur beim Anlegen von Charakteren für das Charakterlimit) → `Group` → `Trade` → `Player` (sortiert nach ID) → `InventoryItem` → `BankItem` → `MonsterInstance` → `FloorItem`.
 - Die Handelsausführung sperrt den `Trade`, beide Spieler und alle beteiligten Inventar-Einträge. Damit kann ein Item nicht gleichzeitig gehandelt und fallengelassen werden.
 - Beutevergabe in Gruppen sperrt die Gruppe und alle Empfänger, damit Round-Robin und Inventar konsistent bleiben.
 - Überfälle aus dem Ticker sperren Monster und Opfer in derselben Reihenfolge wie Spieleraktionen.
@@ -746,6 +758,12 @@ Umsetzung (`app/realtime/`):
 - Ein Heartbeat alle 15 s erkennt tote Verbindungen.
 - Beim Reconnect lädt der Client Raum, Status und Gruppe neu; verpasste Log-Einträge holt er über `GET /log?after={last_id}`.
 
+Umsetzung (`app/api/stream.py`, `SessionService`):
+
+- Der Heartbeat prüft zugleich, ob der Charakter noch online ist (sonst `event: ended`, Stream endet – etwa nach Logout oder Charakterwechsel in einem anderen Tab), und löscht ein `disconnected_at`, das während einer offenen Verbindung gesetzt wurde (z. B. Neustart eines anderen Workers). Geschrieben wird nur dann.
+- Erst wenn die **letzte** Verbindung eines Charakters in diesem Prozess endet, wird `disconnected_at = now` gesetzt (als Task, da der Stream gerade abgebrochen wird).
+- Vorerst sendet der Stream JSON statt HTMX-Partials: `event: log` (`kind`, `text`, `data`), `event: reload` (Warteschlange übergelaufen) und `event: ended`. Die benannten Partial-Events (`room`, `status`, `group`) folgen mit dem Frontend.
+
 ## API
 
 | Methode | Pfad | Zweck |
@@ -760,6 +778,15 @@ Umsetzung (`app/realtime/`):
 | `POST` | `/actions` | Aktion ausführen |
 | `GET` | `/stream` | SSE-Verbindung |
 | `GET` | `/log?before={id}` / `?after={id}` | Log nachladen |
+
+Umsetzung (`app/api/`, Stand: JSON-API, die HTML-Seiten folgen mit dem Frontend):
+
+- Session: signiertes Cookie (`SessionMiddleware`, Secret aus `SESSION_SECRET`, `SameSite=Lax`, mit `SESSION_HTTPS_ONLY=1` nur über HTTPS) mit `account_id` und dem gewählten `player_id`. Ob der Charakter wirklich in der Welt ist, entscheidet immer `Player.online` in der Datenbank.
+- `POST /register` legt den Account an und meldet ihn an. Benutzernamen: 3–32 Zeichen `[A-Za-z0-9_.-]`, eindeutig ohne Groß-/Kleinschreibung; Passwort 8–128 Zeichen, argon2-Hash (im Worker-Thread; bei unbekanntem Benutzernamen wird gegen einen Dummy-Hash geprüft, damit die Antwortzeit nichts verrät).
+- Charakternamen: 3–20 Buchstaben (inkl. Umlaute). Neue Charaktere starten mit den Werten von Level 1 in `start_room_id` (zugleich Checkpoint). Das Limit `max_characters_per_account` hält auch bei gleichzeitigen Anfragen (Sperre auf die Account-Zeile).
+- `POST /characters/{id}/play` und `POST /logout` nehmen optional `{"confirm_death": true}`; ohne Bestätigung antworten sie im Kampf mit `409`. `POST /actions` mit `logout` liefert stattdessen das Event `session.confirm_death`.
+- `POST /actions`: Antwort `{"events": [{kind, text, data}]}` mit den Events für den Handelnden. `401`, wenn der Charakter nicht (mehr) in der Welt ist; `503`, wenn Sperrkonflikte alle Wiederholungen überdauern.
+- `GET /log`: höchstens 50 Einträge, älteste zuerst.
 
 ### Aktionen
 

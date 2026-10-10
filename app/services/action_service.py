@@ -1,5 +1,7 @@
 """ActionService: runs one player action end to end (ARCHITECTURE.md, "Ablauf einer Aktion").
 
+Login (``login``) uses the same path; it is the only operation for an offline character.
+
 Per attempt, in one transaction:
 1. decide which room the action ends in (unlocked pre-read; verified after locking),
 2. lock & load the snapshot with a fresh ``Repository``,
@@ -15,7 +17,7 @@ from __future__ import annotations
 
 import logging
 import random
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
@@ -32,6 +34,7 @@ from app.api.schemas import (
     FleeAction,
     GameAction,
     InventoryAction,
+    LogoutAction,
     LookAction,
     MoveAction,
     PickUpAction,
@@ -41,19 +44,11 @@ from app.api.schemas import (
     UseItemAction,
 )
 from app.content.registry import ContentRegistry
-from app.db.models import LogEntry, Player
+from app.db.models import Player
 from app.db.repository import Repository, SnapshotChangedError, UnknownPlayerError
 from app.engine.actions import resolve_look, resolve_respawn, resolve_say
 from app.engine.combat import resolve_attack, resolve_flee
-from app.engine.events import (
-    ActionResult,
-    ActorAudience,
-    GameEvent,
-    GroupAudience,
-    PlayersAudience,
-    RoomAudience,
-    rejected,
-)
+from app.engine.events import ActionResult, ActorAudience, GameEvent, rejected
 from app.engine.inventory_actions import (
     resolve_drop,
     resolve_equip,
@@ -63,9 +58,11 @@ from app.engine.inventory_actions import (
     resolve_use_item,
 )
 from app.engine.movement import resolve_move
+from app.engine.presence import resolve_login, resolve_logout
 from app.engine.respawn import respawn_due_monsters
 from app.engine.state import ActionSnapshot
 from app.services.events import EventPublisher, Relocation
+from app.services.log import write_log
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +86,10 @@ class PreRead:
     checkpoint_room_id: str
     online: bool
     last_action_at: datetime | None
+
+
+# engine call for one attempt: (locked snapshot, locked actor row, now, rng) -> result
+Resolver = Callable[[ActionSnapshot, Player, datetime, random.Random], ActionResult]
 
 
 @dataclass(frozen=True)
@@ -125,9 +126,54 @@ class ActionService:
         self.rng_factory = rng_factory
 
     async def execute(self, player_id: UUID, action: GameAction) -> ActionOutcome:
+        def resolve(
+            snapshot: ActionSnapshot, _actor: Player, now: datetime, rng: random.Random
+        ) -> ActionResult:
+            return self._dispatch(action, snapshot, now, rng)
+
+        return await self._run(
+            player_id,
+            resolve,
+            lambda pre: self._target_room(action, pre.room_id, pre.checkpoint_room_id),
+            login=False,
+            # logout always goes through: a player must never be stuck in the world
+            rate_limited=not isinstance(action, LogoutAction),
+        )
+
+    async def login(self, player_id: UUID) -> ActionOutcome:
+        """Puts a character online (ownership is checked by the caller). Raises
+        ``NotPlayingError`` if the character is deleted or unknown."""
+
+        def resolve(
+            snapshot: ActionSnapshot, actor: Player, now: datetime, rng: random.Random
+        ) -> ActionResult:
+            return resolve_login(
+                snapshot,
+                self.content,
+                self.content.rules,
+                now,
+                rng,
+                already_online=actor.online,
+            )
+
+        return await self._run(
+            player_id, resolve, lambda pre: pre.room_id, login=True, rate_limited=False
+        )
+
+    async def _run(
+        self,
+        player_id: UUID,
+        resolve: Resolver,
+        target_room: Callable[[PreRead], str],
+        *,
+        login: bool,
+        rate_limited: bool,
+    ) -> ActionOutcome:
         for _ in range(MAX_ATTEMPTS):
             try:
-                outcome, to_publish, relocations = await self._attempt(player_id, action)
+                outcome, to_publish, relocations = await self._attempt(
+                    player_id, resolve, target_room, login=login, rate_limited=rate_limited
+                )
             except SnapshotChangedError:
                 continue
             except DBAPIError as exc:
@@ -147,7 +193,13 @@ class ActionService:
     # --- one attempt = one transaction ----------------------------------------------------------
 
     async def _attempt(
-        self, player_id: UUID, action: GameAction
+        self,
+        player_id: UUID,
+        resolve: Resolver,
+        target_room: Callable[[PreRead], str],
+        *,
+        login: bool,
+        rate_limited: bool,
     ) -> tuple[ActionOutcome, list[GameEvent], list[Relocation]]:
         now = self.clock()
         rng = self.rng_factory()
@@ -156,36 +208,38 @@ class ActionService:
             # Cheap rejections before any row lock, so spamming requests cannot tie up
             # connections or block other players in the room. The checks below on the
             # locked row stay authoritative.
-            if not pre.online:
+            if not pre.online and not login:
                 raise NotPlayingError(player_id)
-            if self._too_fast(pre.last_action_at, now) or not await self._claim(session, player_id):
+            too_fast = rate_limited and self._too_fast(pre.last_action_at, now)
+            if too_fast or not await self._claim(session, player_id):
                 return ActionOutcome(events=rejected(TOO_FAST).events), [], []
 
-            room = self._target_room(action, pre.room_id, pre.checkpoint_room_id)
+            room = target_room(pre)
             repo = Repository(session)
             try:
                 snapshot = await repo.load_action_snapshot(player_id, room)
             except UnknownPlayerError as exc:  # deleted in the meantime
                 raise NotPlayingError(player_id) from exc
             actor = await session.get(Player, player_id)  # refreshed under the lock
-            if actor is None or not actor.online or actor.deleted_at is not None:
+            if actor is None or actor.deleted_at is not None or not (actor.online or login):
                 raise NotPlayingError(player_id)
             if (actor.current_room_id, actor.checkpoint_room_id) != (
                 pre.room_id,
                 pre.checkpoint_room_id,
             ):
                 raise SnapshotChangedError(f"{player_id} moved during the snapshot load")
-            if self._too_fast(actor.last_action_at, now):
+            if rate_limited and self._too_fast(actor.last_action_at, now):
                 return ActionOutcome(events=rejected(TOO_FAST).events), [], []
 
-            actor.last_action_at = now
+            if not login:
+                actor.last_action_at = now
             respawns = respawn_due_monsters(snapshot, self.content, now)
             await repo.apply_changes(respawns.changes)
-            result = self._dispatch(action, snapshot, now, rng)
+            result = resolve(snapshot, actor, now, rng)
             await repo.apply_changes(result.changes)
             events = [*respawns.events, *result.events]
             relocations = self._relocations(snapshot, result)
-            await self._write_log(session, player_id, events, now)
+            await write_log(session, player_id, events, now)
 
         actor_events = [e for e in events if isinstance(e.audience, ActorAudience)]
         others = [e for e in events if not isinstance(e.audience, ActorAudience)]
@@ -272,59 +326,8 @@ class ActionService:
                 return resolve_pick_up(*args, action.floor_item_id, action.quantity)
             case DropAction():
                 return resolve_drop(*args, action.inventory_item_id, action.quantity)
+            case LogoutAction():
+                return resolve_logout(*args, action.confirm_death)
             case _:
-                # groups, trade, bank, merchants, logout: later steps
+                # groups, trade, bank, merchants: later steps
                 return rejected(NOT_AVAILABLE)
-
-    # --- log ----------------------------------------------------------------------------------
-
-    async def _write_log(
-        self,
-        session: AsyncSession,
-        actor_id: UUID,
-        events: Sequence[GameEvent],
-        now: datetime,
-    ) -> None:
-        """Every recipient gets a log entry, so a reconnecting client can catch up via
-        ``GET /log?after=``. Global announcements are not logged per player."""
-        for event in events:
-            session.add_all(
-                LogEntry(player_id=pid, kind=event.kind, text=event.text, created_at=now)
-                for pid in await self._recipients(session, actor_id, event)
-            )
-
-    async def _recipients(
-        self, session: AsyncSession, actor_id: UUID, event: GameEvent
-    ) -> list[UUID]:
-        audience = event.audience
-        excluded = set(event.exclude_player_ids)
-        if isinstance(audience, ActorAudience):
-            return [actor_id]
-        if isinstance(audience, PlayersAudience):
-            candidates = list(audience.player_ids)
-        elif isinstance(audience, RoomAudience):
-            candidates = list(
-                (
-                    await session.scalars(
-                        select(col(Player.id)).where(
-                            col(Player.online),
-                            col(Player.deleted_at).is_(None),
-                            col(Player.current_room_id) == audience.room_id,
-                        )
-                    )
-                ).all()
-            )
-        elif isinstance(audience, GroupAudience):
-            candidates = list(
-                (
-                    await session.scalars(
-                        select(col(Player.id)).where(
-                            col(Player.group_id) == audience.group_id,
-                            col(Player.deleted_at).is_(None),
-                        )
-                    )
-                ).all()
-            )
-        else:
-            return []
-        return [pid for pid in candidates if pid not in excluded]

@@ -74,6 +74,8 @@ class PlayerUpdate(BaseModel):
     checkpoint_room_id: str | None = None
     state: PlayerState | None = None
     combat_target_id: UUID | None = None
+    online: bool | None = None  # login/logout (engine/presence.py)
+    disconnected_at: datetime | None = None
 
 
 class MonsterUpdate(BaseModel):
