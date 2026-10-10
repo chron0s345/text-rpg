@@ -352,7 +352,7 @@ async def test_failing_publisher_does_not_fail_a_saved_action(
     gate, forest = h.scratch_path()
     actor = await player(h, gate)
 
-    async def broken(events: object) -> None:
+    async def broken(events: object, relocations: object = ()) -> None:
         raise ConnectionError("bus down")
 
     monkeypatch.setattr(h.publisher, "publish", broken)
@@ -370,7 +370,7 @@ async def test_publisher_sees_committed_state(
     actor = await player(h, gate)
     seen: list[str] = []
 
-    async def checking(events: object) -> None:
+    async def checking(events: object, relocations: object = ()) -> None:
         # a different connection: only committed data is visible here
         seen.append((await load(h, PlayerRow, actor.id)).current_room_id)
 

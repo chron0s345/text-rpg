@@ -65,7 +65,7 @@ from app.engine.inventory_actions import (
 from app.engine.movement import resolve_move
 from app.engine.respawn import respawn_due_monsters
 from app.engine.state import ActionSnapshot
-from app.services.events import EventPublisher
+from app.services.events import EventPublisher, Relocation
 
 logger = logging.getLogger(__name__)
 
@@ -127,7 +127,7 @@ class ActionService:
     async def execute(self, player_id: UUID, action: GameAction) -> ActionOutcome:
         for _ in range(MAX_ATTEMPTS):
             try:
-                outcome, to_publish = await self._attempt(player_id, action)
+                outcome, to_publish, relocations = await self._attempt(player_id, action)
             except SnapshotChangedError:
                 continue
             except DBAPIError as exc:
@@ -136,7 +136,7 @@ class ActionService:
                 raise
             # committed: now (and only now) other players learn about it
             try:
-                await self.publisher.publish(to_publish)
+                await self.publisher.publish(to_publish, relocations)
             except Exception:
                 # The action is saved; failing the request would make the client resend it.
                 # Recipients catch up through their log entries (GET /log?after=...).
@@ -148,7 +148,7 @@ class ActionService:
 
     async def _attempt(
         self, player_id: UUID, action: GameAction
-    ) -> tuple[ActionOutcome, list[GameEvent]]:
+    ) -> tuple[ActionOutcome, list[GameEvent], list[Relocation]]:
         now = self.clock()
         rng = self.rng_factory()
         async with self.sessions() as session, session.begin():
@@ -159,7 +159,7 @@ class ActionService:
             if not pre.online:
                 raise NotPlayingError(player_id)
             if self._too_fast(pre.last_action_at, now) or not await self._claim(session, player_id):
-                return ActionOutcome(events=rejected(TOO_FAST).events), []
+                return ActionOutcome(events=rejected(TOO_FAST).events), [], []
 
             room = self._target_room(action, pre.room_id, pre.checkpoint_room_id)
             repo = Repository(session)
@@ -176,7 +176,7 @@ class ActionService:
             ):
                 raise SnapshotChangedError(f"{player_id} moved during the snapshot load")
             if self._too_fast(actor.last_action_at, now):
-                return ActionOutcome(events=rejected(TOO_FAST).events), []
+                return ActionOutcome(events=rejected(TOO_FAST).events), [], []
 
             actor.last_action_at = now
             respawns = respawn_due_monsters(snapshot, self.content, now)
@@ -184,11 +184,24 @@ class ActionService:
             result = self._dispatch(action, snapshot, now, rng)
             await repo.apply_changes(result.changes)
             events = [*respawns.events, *result.events]
+            relocations = self._relocations(snapshot, result)
             await self._write_log(session, player_id, events, now)
 
         actor_events = [e for e in events if isinstance(e.audience, ActorAudience)]
         others = [e for e in events if not isinstance(e.audience, ActorAudience)]
-        return ActionOutcome(events=actor_events), others
+        return ActionOutcome(events=actor_events), others, relocations
+
+    @staticmethod
+    def _relocations(snapshot: ActionSnapshot, result: ActionResult) -> list[Relocation]:
+        """Players whose room changed (move, respawn): live connections must follow them."""
+        relocations = []
+        for update in result.changes.players:
+            if "current_room_id" not in update.model_fields_set:
+                continue
+            player = snapshot.player(update.player_id)
+            if player is not None:
+                relocations.append(Relocation(player.id, player.current_room_id, player.group_id))
+        return relocations
 
     def _too_fast(self, last_action_at: datetime | None, now: datetime) -> bool:
         if last_action_at is None:
