@@ -8,6 +8,8 @@ from datetime import datetime
 from app.content.registry import ContentRegistry
 from app.content.schemas import Rules
 from app.engine.events import ActionResult, ResultBuilder, RoomAudience, rejected
+from app.engine.group_status import report_hp, report_location
+from app.engine.movement import DIRECTION_NAMES
 from app.engine.permissions import check_state
 from app.engine.regeneration import calculate_current_monster_hp
 from app.engine.state import ActionSnapshot
@@ -74,7 +76,7 @@ def resolve_look(
 
     lines = [room.name, room.description]
     if room.exits:
-        lines.append("Ausgänge: " + ", ".join(room.exits))
+        lines.append("Ausgänge: " + ", ".join(DIRECTION_NAMES[d] for d in room.exits))
     if monsters:
         lines.append("Gegner: " + ", ".join(f"{m['name']} ({m['hp']} HP)" for m in monsters))
     if players:
@@ -116,6 +118,7 @@ def resolve_respawn(
     checkpoint = content.get_room(actor.checkpoint_room_id)
 
     builder = ResultBuilder(actor_id=actor.id)
+    death_room_id = actor.current_room_id
     actor.hp = stats_of(actor, content.items).max_hp
     actor.state = "exploring"
     actor.combat_target_id = None
@@ -137,4 +140,14 @@ def resolve_respawn(
         exclude=[actor.id],
         player_id=str(actor.id),
     )
+    if death_room_id != checkpoint.id:
+        builder.event(
+            "player.left",
+            RoomAudience(room_id=death_room_id),
+            f"Der leblose Körper von {actor.name} verblasst.",
+            exclude=[actor.id],
+            player_id=str(actor.id),
+        )
+    report_hp(builder, actor)
+    report_location(builder, actor, checkpoint.name)
     return builder.build()

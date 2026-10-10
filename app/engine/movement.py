@@ -14,6 +14,7 @@ from app.content.registry import ContentRegistry
 from app.content.schemas import Direction, Rules
 from app.engine.ambush import ambush_candidates, apply_ambush, roll_ambush
 from app.engine.events import ActionResult, ResultBuilder, RoomAudience, rejected
+from app.engine.group_status import report_location
 from app.engine.permissions import check_state
 from app.engine.state import ActionSnapshot
 
@@ -66,6 +67,8 @@ def resolve_move(
         f"Du gehst nach {DIRECTION_NAMES[direction]}: {destination.name}.",
         room_id=destination.id,
     )
+
+    report_location(builder, actor, destination.name)
 
     if destination.checkpoint and actor.checkpoint_room_id != destination.id:
         actor.checkpoint_room_id = destination.id

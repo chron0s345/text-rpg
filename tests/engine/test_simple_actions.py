@@ -7,10 +7,12 @@ import pytest
 from app.content.registry import ContentRegistry
 from app.content.schemas import PlayerState, Rules
 from app.engine.actions import resolve_look, resolve_respawn, resolve_say
+from app.engine.events import GroupAudience, RoomAudience
 from app.engine.permissions import ALLOWED_STATES, check_state, is_allowed
 from app.engine.state import ActionSnapshot, InventoryItemState
 from tests.engine.factories import (
     NOW,
+    ROOM,
     actor_texts,
     fight,
     make_monster,
@@ -43,6 +45,18 @@ RNG = random.Random(1)
         ("respawn", {"dead"}),
         ("logout", {"exploring", "in_combat", "dead"}),
         ("look", {"exploring", "in_combat", "dead"}),
+        ("unequip", {"exploring"}),
+        ("drop", {"exploring"}),
+        ("group_accept", {"exploring", "in_combat"}),
+        ("trade_accept", {"exploring"}),
+        ("trade_offer_item", {"exploring"}),
+        ("trade_offer_gold", {"exploring"}),
+        ("trade_remove_item", {"exploring"}),
+        ("trade_confirm", {"exploring"}),
+        ("trade_cancel", {"exploring"}),
+        ("bank_withdraw", {"exploring"}),
+        ("sell", {"exploring"}),
+        ("inventory", {"exploring", "in_combat", "dead"}),
     ],
 )
 def test_state_table_matches_architecture(action: str, allowed: set[str]) -> None:
@@ -52,6 +66,7 @@ def test_state_table_matches_architecture(action: str, allowed: set[str]) -> Non
 
 
 def test_every_action_type_has_an_entry() -> None:
+    # every row of the table above is checked in test_state_table_matches_architecture
     assert len(ALLOWED_STATES) == 28
 
 
@@ -149,8 +164,11 @@ def test_respawn_at_checkpoint_with_full_hp(content: ContentRegistry, rules: Rul
         "current_room_id": "town_square",
     }
     assert actor_texts(result) == ["Du erwachst in Marktplatz von Oakhaven."]
-    [room] = [e for e in result.events if e.audience.kind == "room"]
-    assert room.audience.room_id == "town_square"  # type: ignore[union-attr]
+    rooms = {
+        (e.kind, e.audience.room_id) for e in result.events if isinstance(e.audience, RoomAudience)
+    }
+    # the checkpoint room sees her wake up, the room she died in sees her vanish
+    assert rooms == {("player.respawned", "town_square"), ("player.left", ROOM)}
 
 
 def test_respawn_only_when_dead(content: ContentRegistry, rules: Rules) -> None:
@@ -160,3 +178,33 @@ def test_respawn_only_when_dead(content: ContentRegistry, rules: Rules) -> None:
         result = resolve_respawn(ActionSnapshot(actor=player), content, rules, NOW, RNG)
         assert actor_texts(result) == ["Du lebst noch."]
         assert result.changes.players == []
+
+
+def test_look_never_shows_other_rooms(content: ContentRegistry, rules: Rules) -> None:
+    actor = make_player()
+    elsewhere = make_player("Ben", room="goblin_camp")
+    far_monster = make_monster()
+    far_monster.room_id = "goblin_camp"
+    [event] = resolve_look(
+        ActionSnapshot(actor=actor, room_players=[elsewhere], monsters=[far_monster]),
+        content,
+        rules,
+        NOW,
+        RNG,
+    ).events
+    assert event.data["players"] == []
+    assert event.data["monsters"] == []
+
+
+def test_look_names_exits_in_german(content: ContentRegistry, rules: Rules) -> None:
+    [event] = resolve_look(ActionSnapshot(actor=make_player()), content, rules, NOW, RNG).events
+    assert "Ausgänge: Norden, Osten" in event.text
+
+
+def test_respawn_updates_group_panel(content: ContentRegistry, rules: Rules) -> None:
+    actor = make_player(hp=0, group_id=uuid4())
+    actor.state = "dead"
+    result = resolve_respawn(ActionSnapshot(actor=actor), content, rules, NOW, RNG)
+    group = {e.kind: e.data for e in result.events if isinstance(e.audience, GroupAudience)}
+    assert group["group.member_hp"]["hp"] == 20
+    assert group["group.member_moved"]["room_id"] == "town_square"

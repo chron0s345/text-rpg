@@ -8,7 +8,8 @@ from datetime import datetime
 from app.content.registry import ContentRegistry
 from app.content.schemas import CombatRules, MonsterTemplate, Rules
 from app.engine.death import apply_player_death
-from app.engine.events import GroupAudience, ResultBuilder, RoomAudience
+from app.engine.events import ResultBuilder, RoomAudience
+from app.engine.group_status import report_hp
 from app.engine.regeneration import calculate_current_monster_hp
 from app.engine.state import ActionSnapshot, MonsterSnapshot, PlayerSnapshot
 from app.engine.stats import stats_of
@@ -69,14 +70,6 @@ def monster_strikes(
         f"{template.name} trifft {player.name} für {damage} Schaden.",
         exclude=[player.id],
     )
-    if player.group_id is not None:
-        builder.event(
-            "group.member_hp",
-            GroupAudience(group_id=player.group_id),
-            f"{player.name}: {player.hp} HP",
-            exclude=[player.id],
-            player_id=str(player.id),
-            hp=player.hp,
-        )
+    report_hp(builder, player)
     if player.hp <= 0:
         apply_player_death(builder, snapshot, player, content, rules, rng)

@@ -214,3 +214,35 @@ def test_idle_ambush_skips_fighting_or_dead_victims(content: ContentRegistry, ru
         )
         assert result.changes.players == []
         assert result.events == []
+
+
+def test_move_updates_group_panel(content: ContentRegistry, rules: Rules) -> None:
+    actor = make_player(room="forest_gate", group_id=uuid4())
+    result = move(ActionSnapshot(actor=actor), content, rules, "south")
+    [moved] = [e for e in result.events if e.kind == "group.member_moved"]
+    assert moved.data["room_id"] == "dark_forest"
+    assert moved.exclude_player_ids == [actor.id]
+
+
+def test_only_first_successful_candidate_ambushes(content: ContentRegistry, rules: Rules) -> None:
+    actor = make_player(room="forest_gate")
+    first, second = ambusher(), ambusher()
+
+    result = move(ActionSnapshot(actor=actor, monsters=[first, second]), content, rules, "south")
+
+    assert player_update(result, actor.id)["combat_target_id"] == first.id
+    assert {m.monster_instance_id for m in result.changes.monsters} == {first.id}
+
+
+def test_lethal_idle_ambush_has_no_actor_events(content: ContentRegistry, rules: Rules) -> None:
+    victim = make_player(hp=1, gold=40, group_id=uuid4())
+    monster = ambusher()
+
+    result = resolve_idle_ambush(
+        ActionSnapshot(actor=victim, monsters=[monster]), content, rules, NOW, random.Random(1)
+    )
+
+    assert player_update(result, victim.id)["state"] == "dead"
+    assert not any(e.audience.kind == "actor" for e in result.events)
+    died = [e for e in result.events if e.kind == "player.died"]
+    assert {e.audience.kind for e in died} == {"players", "room"}
