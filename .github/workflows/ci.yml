@@ -10,7 +10,8 @@ permissions:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # only superseded PR runs are cancelled; every commit on main keeps its result
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   lint:
@@ -47,7 +48,8 @@ jobs:
           cache-dependency-path: requirements.txt
       - run: pip install -r requirements.txt
       # Database tests start PostgreSQL via Testcontainers (Docker is available on the runner).
-      # They skip themselves without Docker, so fail here if any test was skipped.
+      # They skip themselves without Docker, so fail here if any test was skipped
+      # (expected failures, pytest.xfail, are reported as skipped in JUnit and are allowed).
       - run: pytest tests/ -v -rs --junitxml=report.xml
       - name: Fail on skipped tests
         run: |
@@ -55,9 +57,14 @@ jobs:
           import sys
           import xml.etree.ElementTree as ET
 
-          skipped = sum(int(s.get("skipped", 0)) for s in ET.parse("report.xml").iter("testsuite"))
+          skipped = [
+              case.get("name")
+              for case in ET.parse("report.xml").iter("testcase")
+              for skip in case.findall("skipped")
+              if skip.get("type") != "pytest.xfail"
+          ]
           if skipped:
-              sys.exit(f"{skipped} test(s) were skipped in CI")
+              sys.exit(f"{len(skipped)} test(s) were skipped in CI: {skipped}")
           EOF
       - uses: actions/upload-artifact@v4
         if: always()
