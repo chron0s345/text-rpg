@@ -8,6 +8,8 @@ from __future__ import annotations
 import asyncio
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
+from typing import Any, cast
+from uuid import uuid4
 
 import httpx
 import pytest
@@ -15,7 +17,9 @@ import uvicorn
 from sqlalchemy import update
 from sqlmodel import col
 
+from app.api.stream import event_stream, sse_message
 from app.db.models import Player
+from app.realtime.connections import ConnectionManager
 from tests.api.conftest import Api
 
 TIMEOUT = 5.0
@@ -29,7 +33,16 @@ class Server:
 @pytest.fixture
 async def server(api: Api) -> AsyncIterator[Server]:
     # the api fixture already runs the lifespan; uvicorn must not start it a second time
-    config = uvicorn.Config(api.app, host="127.0.0.1", port=0, lifespan="off", log_level="warning")
+    config = uvicorn.Config(
+        api.app,
+        host="127.0.0.1",
+        port=0,
+        lifespan="off",
+        log_level="warning",
+        # on Windows (proactor loop) asyncio.Server.wait_closed() can miss a closed keep-alive
+        # connection and wait forever; the streams themselves have ended by then
+        timeout_graceful_shutdown=2,
+    )
     instance = uvicorn.Server(config)
     task = asyncio.create_task(instance.serve())
     while not instance.started:
@@ -145,3 +158,19 @@ async def test_closing_the_last_stream_starts_the_grace_period(api: Api, server:
                 assert row is not None and row.disconnected_at is None
     finally:
         await client.aclose()
+
+
+# --- reload (no server needed) ---
+
+
+async def test_stream_asks_for_reload_when_events_may_be_missing() -> None:
+    """Slow client, bus reconnect or failed publish: the client reloads and reconnects."""
+    manager = ConnectionManager()
+    subscription = manager.subscribe(uuid4(), "forest")
+    manager.mark_all_for_reload()
+    services = cast(Any, object())  # not touched: the stream ends before any heartbeat
+
+    messages = [m async for m in event_stream(services, subscription, heartbeat_seconds=60)]
+
+    assert messages[-1] == sse_message("reload", "{}")
+    assert len(messages) == 2  # retry hint, then reload

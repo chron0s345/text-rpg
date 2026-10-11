@@ -51,12 +51,13 @@ def encode_game_event(event: GameEvent) -> str:
 async def event_stream(
     services: Services, subscription: Subscription, heartbeat_seconds: float
 ) -> AsyncIterator[str]:
-    """Yields SSE messages until the character leaves the world, the client is too slow or the
+    """Yields SSE messages until the character leaves the world, events may be missing (client
+    too slow, event bus reconnected; the client reloads and reconnects) or the
     client disconnects (then the generator is cancelled)."""
     player_id = subscription.player_id
     yield f"retry: {RETRY_MILLISECONDS}\n\n"
     while True:
-        if subscription.overflowed:
+        if subscription.needs_reload:
             yield sse_message("reload", "{}")
             return
         try:

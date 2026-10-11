@@ -785,9 +785,10 @@ Umsetzung (`app/realtime/`):
 
 - Es gibt **einen** PostgreSQL-Kanal (`game_events`). Jeder Prozess lauscht einmal und verteilt lokal an seine Verbindungen (`ConnectionManager`); die „Kanäle“ Raum/Gruppe/Spieler/global sind Filter auf den Subscriptions, keine eigenen `LISTEN`s.
 - Nachrichten: `event` (ein `GameEvent`) und `relocate` (Raum/Gruppe eines Spielers hat sich geändert). Relocations werden vor den Events derselben Aktion gesendet, damit ein Spieler Events im neuen Raum schon bekommt.
-- Passt ein Event nicht in 8000 Byte, entfallen seine `data`, und vom Text bleibt der längste passende Anfang (UTF-8-genau). Der Client kann den Zustand jederzeit über die API neu laden.
-- Langsame Clients blockieren nichts: Ist die Warteschlange einer Verbindung voll, wird verworfen und die Verbindung als `overflowed` markiert (der Client muss neu laden).
-- Bricht die `LISTEN`-Verbindung ab, verbindet sich der Bus neu; in der Zwischenzeit verpasste Events holen Clients über `GET /log?after=` nach.
+- Passt ein Event nicht in 8000 Byte, entfallen seine `data`, und vom Text bleibt der längste passende Anfang (UTF-8-genau). Passt es selbst ohne Text nicht (z. B. riesige `exclude_player_ids`), wird es übersprungen und geloggt. Der Client kann den Zustand jederzeit über die API neu laden.
+- Langsame Clients blockieren nichts: Ist die Warteschlange einer Verbindung voll, wird verworfen und die Verbindung als `needs_reload` markiert (der Client muss neu laden).
+- Bricht die `LISTEN`-Verbindung ab, werden sofort alle lokalen Verbindungen als `needs_reload` markiert, und der Bus verbindet sich mit exponentiellem Backoff (bis 30 s) neu; verpasste Events holen Clients über `GET /log?after=` nach.
+- Senden: eine Verbindung mit Timeouts (5 s), bei einem Verbindungsfehler genau ein Retry auf frischer Verbindung. Jede Nachricht trägt eine zufällige `id`; Empfänger verwerfen bereits gesehene ids, damit ein Retry nichts doppelt zustellt. Scheitert das Senden endgültig, werden die lokalen Verbindungen als `needs_reload` markiert; andere Prozesse mit intakter `LISTEN`-Verbindung erfahren von einem halb gesendeten Batch nichts und holen über das Log nach.
 - Der SSE-Handler rendert Events zu HTMX-Partials und sendet sie als benannte SSE-Events (`log`, `room`, `status`, `group`).
 - Der Handelnde bekommt seine Ergebnisse über die HTTP-Antwort, nicht zusätzlich über SSE.
 
