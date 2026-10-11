@@ -72,6 +72,7 @@ logger = logging.getLogger(__name__)
 MAX_ATTEMPTS = 3
 RETRYABLE_SQLSTATES = {"40001", "40P01"}  # serialization failure, deadlock detected
 TOO_FAST = "Nicht so schnell."
+BUSY = "Deine vorige Aktion läuft noch."
 NOT_AVAILABLE = "Diese Aktion ist noch nicht verfügbar."
 
 
@@ -158,8 +159,10 @@ class ActionService:
             # locked row stay authoritative.
             if not pre.online:
                 raise NotPlayingError(player_id)
-            if self._too_fast(pre.last_action_at, now) or not await self._claim(session, player_id):
+            if self._too_fast(pre.last_action_at, now):
                 return ActionOutcome(events=rejected(TOO_FAST).events), [], []
+            if not await self._claim(session, player_id):
+                return ActionOutcome(events=rejected(BUSY).events), [], []
 
             room = self._target_room(action, pre.room_id, pre.checkpoint_room_id)
             repo = Repository(session)
@@ -199,8 +202,10 @@ class ActionService:
             if "current_room_id" not in update.model_fields_set:
                 continue
             player = snapshot.player(update.player_id)
-            if player is not None:
-                relocations.append(Relocation(player.id, player.current_room_id, player.group_id))
+            if player is not None and update.current_room_id is not None:
+                # the room comes from the state change itself (authoritative), the group from
+                # the locked snapshot (actions never change groups yet)
+                relocations.append(Relocation(player.id, update.current_room_id, player.group_id))
         return relocations
 
     def _too_fast(self, last_action_at: datetime | None, now: datetime) -> bool:

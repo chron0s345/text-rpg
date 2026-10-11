@@ -36,8 +36,9 @@ class Subscription:
     queue: asyncio.Queue[GameEvent] = field(
         default_factory=lambda: asyncio.Queue(maxsize=QUEUE_SIZE)
     )
-    # set when events had to be dropped (client too slow); the client must reload its view
-    overflowed: bool = False
+    # set when events may be missing (client too slow, bus reconnected, publishing failed):
+    # the client must reload its view, the SSE handler re-subscribes from the database
+    needs_reload: bool = False
 
     def wants(self, event: GameEvent) -> bool:
         if self.player_id in event.exclude_player_ids:
@@ -55,7 +56,7 @@ class Subscription:
         try:
             self.queue.put_nowait(event)
         except asyncio.QueueFull:
-            self.overflowed = True
+            self.needs_reload = True
 
 
 class ConnectionManager:
@@ -81,6 +82,10 @@ class ConnectionManager:
         for subscription in list(self._subscriptions):
             if subscription.wants(event):
                 subscription.offer(event)
+
+    def mark_all_for_reload(self) -> None:
+        for subscription in self._subscriptions:
+            subscription.needs_reload = True
 
     def relocate(self, player_id: UUID, room_id: str, group_id: UUID | None) -> None:
         """Room or group of a player changed: switch what its connections listen to."""

@@ -77,4 +77,4 @@ def test_slow_client_overflow_is_flagged_not_blocking() -> None:
     for _ in range(QUEUE_SIZE + 5):
         manager.deliver(event(RoomAudience(room_id="forest")))
     assert sub.queue.qsize() == QUEUE_SIZE
-    assert sub.overflowed
+    assert sub.needs_reload

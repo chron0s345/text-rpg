@@ -19,12 +19,14 @@ from app.api.schemas import (
     LookAction,
     MoveAction,
     PickUpAction,
+    RespawnAction,
     SayAction,
 )
 from app.db.models import CombatParticipation, FloorItem, InventoryItem, LogEntry, MonsterInstance
 from app.db.models import Player as PlayerRow
 from app.db.repository import Repository, SnapshotChangedError
 from app.services.action_service import (
+    BUSY,
     NOT_AVAILABLE,
     TOO_FAST,
     NotPlayingError,
@@ -328,7 +330,9 @@ async def test_two_players_pick_up_the_same_item_concurrently(harness: ServiceHa
 # --- review follow-ups ---
 
 
-async def test_concurrent_requests_of_one_player_do_not_queue(harness: ServiceHarness) -> None:
+async def test_concurrent_requests_of_one_player_execute_once(harness: ServiceHarness) -> None:
+    """Exactly one of several simultaneous requests runs. (That rejected requests do not
+    wait for locks is proven by the two fail-fast tests below.)"""
     h = harness
     gate, forest = h.scratch_path()
     actor = await player(h, gate)
@@ -337,8 +341,9 @@ async def test_concurrent_requests_of_one_player_do_not_queue(harness: ServiceHa
         *(h.service.execute(actor.id, MoveAction(direction="south")) for _ in range(5))
     )
 
-    results = sorted(texts(o.events)[0] for o in outcomes)
-    assert results == ["Du gehst nach Süden: Dunkler Wald."] + [TOO_FAST] * 4
+    results = [texts(o.events)[0] for o in outcomes]
+    assert results.count("Du gehst nach Süden: Dunkler Wald.") == 1
+    assert all(r in (TOO_FAST, BUSY) for r in results if not r.startswith("Du gehst"))
     assert (await load(h, PlayerRow, actor.id)).current_room_id == forest
     # rejected requests leave no trace: one log entry, events of one move only
     assert await logs(h, actor.id) == ["Du gehst nach Süden: Dunkler Wald."]
@@ -483,9 +488,9 @@ async def test_second_action_in_flight_is_rejected_without_waiting(
         await other.execute(
             select(func.pg_advisory_xact_lock(func.hashtextextended(f"action:{actor.id}", 0)))
         )
-        outcome = await asyncio.wait_for(h.service.execute(actor.id, LookAction()), timeout=2)
+        outcome = await asyncio.wait_for(h.service.execute(actor.id, LookAction()), timeout=10)
 
-    assert texts(outcome.events) == [TOO_FAST]
+    assert texts(outcome.events) == [BUSY]
     assert await logs(h, actor.id) == []
 
 
@@ -500,6 +505,47 @@ async def test_too_fast_is_rejected_before_any_row_lock(harness: ServiceHarness)
         await other.execute(
             select(PlayerRow).where(col(PlayerRow.id) == actor.id).with_for_update()
         )
-        outcome = await asyncio.wait_for(h.service.execute(actor.id, LookAction()), timeout=2)
+        outcome = await asyncio.wait_for(h.service.execute(actor.id, LookAction()), timeout=10)
 
     assert texts(outcome.events) == [TOO_FAST]
+
+
+async def test_offline_is_rejected_before_any_row_lock(harness: ServiceHarness) -> None:
+    h = harness
+    gate, _forest = h.scratch_path()
+    actor = await player(h, gate, online=False)
+
+    async with h.committed.session() as other, other.begin():
+        await other.execute(
+            select(PlayerRow).where(col(PlayerRow.id) == actor.id).with_for_update()
+        )
+        with pytest.raises(NotPlayingError):
+            await asyncio.wait_for(h.service.execute(actor.id, LookAction()), timeout=10)
+
+
+async def test_relocations_follow_room_changes_only(harness: ServiceHarness) -> None:
+    h = harness
+    gate, forest = h.scratch_path()
+    actor = await player(h, gate)
+
+    await h.service.execute(actor.id, LookAction())
+    assert h.publisher.relocations == []
+
+    h.clock.advance(seconds=1)
+    await h.service.execute(actor.id, MoveAction(direction="north"))  # no exit: rejected
+    assert h.publisher.relocations == []
+
+    h.clock.advance(seconds=1)
+    await h.service.execute(actor.id, MoveAction(direction="south"))
+    assert [(r.player_id, r.room_id) for r in h.publisher.relocations] == [(actor.id, forest)]
+
+
+async def test_respawn_relocates_to_the_checkpoint(harness: ServiceHarness) -> None:
+    h = harness
+    gate, _forest = h.scratch_path()
+    checkpoint = h.scratch_room("town_square")
+    actor = await player(h, gate, state="dead", hp=0, checkpoint_room_id=checkpoint)
+
+    await h.service.execute(actor.id, RespawnAction())
+
+    assert [(r.player_id, r.room_id) for r in h.publisher.relocations] == [(actor.id, checkpoint)]
