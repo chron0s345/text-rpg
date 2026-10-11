@@ -107,6 +107,18 @@ class GroupSnapshot(BaseModel):
     member_ids: list[UUID]  # ordered by join time (oldest first)
 
 
+class TradeSnapshot(BaseModel):
+    """An active trade ("requested" or "open") of a player in the snapshot."""
+
+    id: UUID
+    initiator_id: UUID
+    partner_id: UUID
+    status: Literal["requested", "open"]
+
+    def other(self, player_id: UUID) -> UUID:
+        return self.partner_id if player_id == self.initiator_id else self.initiator_id
+
+
 class ActionSnapshot(BaseModel):
     """Relevant slice of the world for one action.
 
@@ -117,6 +129,8 @@ class ActionSnapshot(BaseModel):
     - ``floor_items``: items lying in that room.
     - ``groups``: groups of the actor and of all ``room_players`` (needed for kill credit and
       round-robin loot of a tagging party that is not the actor's).
+    - ``trades``: the actor's active trades, only loaded when the action may cancel them
+      (logout, disconnect); empty otherwise.
     """
 
     actor: PlayerSnapshot
@@ -125,6 +139,7 @@ class ActionSnapshot(BaseModel):
     participations: list[ParticipationSnapshot] = Field(default_factory=list)
     groups: list[GroupSnapshot] = Field(default_factory=list)
     floor_items: list[FloorItemSnapshot] = Field(default_factory=list)
+    trades: list[TradeSnapshot] = Field(default_factory=list)
 
     @property
     def players_in_room(self) -> list[PlayerSnapshot]:

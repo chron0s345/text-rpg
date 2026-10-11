@@ -14,6 +14,7 @@ from app.db.models import (
     InventoryItem,
     MonsterInstance,
     Player,
+    Trade,
 )
 from app.engine.state import (
     FloorItemSnapshot,
@@ -22,6 +23,7 @@ from app.engine.state import (
     MonsterSnapshot,
     ParticipationSnapshot,
     PlayerSnapshot,
+    TradeSnapshot,
 )
 
 
@@ -97,4 +99,15 @@ def floor_item_snapshot(row: FloorItem) -> FloorItemSnapshot:
 def group_snapshot(row: Group, member_ids: list[UUID]) -> GroupSnapshot:
     return GroupSnapshot(
         id=row.id, leader_id=row.leader_id, loot_cursor=row.loot_cursor, member_ids=member_ids
+    )
+
+
+def trade_snapshot(row: Trade) -> TradeSnapshot:
+    return TradeSnapshot.model_validate(
+        {
+            "id": row.id,
+            "initiator_id": row.initiator_id,
+            "partner_id": row.partner_id,
+            "status": row.status,
+        }
     )

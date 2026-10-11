@@ -74,6 +74,11 @@ class PlayerUpdate(BaseModel):
     checkpoint_room_id: str | None = None
     state: PlayerState | None = None
     combat_target_id: UUID | None = None
+    # group membership: both are always set together (database check constraint)
+    group_id: UUID | None = None
+    group_joined_at: datetime | None = None
+    online: bool | None = None
+    disconnected_at: datetime | None = None
 
 
 class MonsterUpdate(BaseModel):
@@ -124,15 +129,19 @@ class ItemSpawnUpdate(BaseModel):
 
 
 class GroupUpdate(BaseModel):
+    """Only explicitly set fields are applied (``model_fields_set``)."""
+
     group_id: UUID
-    loot_cursor: int
+    loot_cursor: int | None = None
+    leader_id: UUID | None = None
 
 
 class StateChanges(BaseModel):
     """Final state changes of one engine call.
 
     The lists never contradict each other: whatever is deleted (inventory entries, floor items,
-    participations, incl. ``participations_clear_monster_ids``) never also appears as a write.
+    participations, incl. ``participations_clear_monster_ids``, groups) never also appears as a
+    write.
     Deletions win (see ``ResultBuilder._deletions_win``). The service may therefore apply the
     lists in any order.
     """
@@ -149,6 +158,8 @@ class StateChanges(BaseModel):
     floor_items_delete: list[UUID] = Field(default_factory=list)
     item_spawns: list[ItemSpawnUpdate] = Field(default_factory=list)
     groups: list[GroupUpdate] = Field(default_factory=list)
+    groups_delete: list[UUID] = Field(default_factory=list)  # dissolved (members already left)
+    trades_cancel: list[UUID] = Field(default_factory=list)  # active trades -> "cancelled"
 
 
 class ActionResult(BaseModel):
@@ -246,6 +257,8 @@ class ResultBuilder:
         changes.floor_items_create = [
             c for c in changes.floor_items_create if c.id not in deleted_floor
         ]
+        deleted_groups = set(changes.groups_delete)
+        changes.groups = [g for g in changes.groups if g.group_id not in deleted_groups]
         cleared = set(changes.participations_clear_monster_ids)
         ended = {(d.monster_instance_id, d.player_id) for d in changes.participations_delete}
         changes.participations_upsert = [

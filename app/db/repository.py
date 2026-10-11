@@ -28,6 +28,7 @@ from typing import Any
 from uuid import UUID
 
 from sqlalchemy import Select, select
+from sqlalchemy import delete as sql_delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col
 
@@ -37,6 +38,7 @@ from app.db.mappers import (
     monster_snapshot,
     participation_snapshot,
     player_snapshot,
+    trade_snapshot,
 )
 from app.db.models import (
     CombatParticipation,
@@ -81,6 +83,7 @@ class Locks:
     """Rows locked in the current transaction; ``apply_changes`` may only write these."""
 
     groups: set[UUID] = field(default_factory=set)
+    trades: set[UUID] = field(default_factory=set)
     players: set[UUID] = field(default_factory=set)
     inventory: dict[UUID, UUID] = field(default_factory=dict)  # item id -> owner id
     monsters: set[UUID] = field(default_factory=set)
@@ -130,6 +133,20 @@ class Repository:
         stmt = select(Group).where(col(Group.id).in_(ids)).order_by(col(Group.id))
         rows = await self._lock_rows(stmt)
         self.locks.groups.update(r.id for r in rows)
+        return rows
+
+    async def lock_active_trades(self, player_id: UUID) -> list[Trade]:
+        """The player's trades in status "requested" or "open"."""
+        stmt = (
+            select(Trade)
+            .where(
+                (col(Trade.initiator_id) == player_id) | (col(Trade.partner_id) == player_id),
+                col(Trade.status).in_(ACTIVE_TRADE_STATUSES),
+            )
+            .order_by(col(Trade.id))
+        )
+        rows = await self._lock_rows(stmt)
+        self.locks.trades.update(r.id for r in rows)
         return rows
 
     async def lock_players(self, player_ids: Iterable[UUID]) -> list[Player]:
@@ -238,13 +255,23 @@ class Repository:
     # --- snapshot ----------------------------------------------------------------------------
 
     async def load_action_snapshot(
-        self, actor_id: UUID, room_id: str | None = None
+        self,
+        actor_id: UUID,
+        room_id: str | None = None,
+        *,
+        lock_trades: bool = False,
+        lock_group_members: bool = False,
     ) -> ActionSnapshot:
         """Locks and loads everything an action in ``room_id`` may touch.
 
         ``room_id`` defaults to the actor's current room; ``move`` passes the destination and
         ``respawn`` the checkpoint (the snapshot describes the room where the action ends).
         All player data in the result was read under the lock.
+
+        ``lock_trades``: also lock the actor's active trades (``snapshot.trades``), so the action
+        may cancel them. ``lock_group_members``: also lock the rows of all members of the actor's
+        group, wherever they are, so the action may change their membership (leaving, dissolving).
+        Members are read after the group lock, which every membership change takes first.
         """
         # unlocked, column-only pre-read (never puts rows into the identity map)
         pre_actor = (
@@ -272,7 +299,11 @@ class Repository:
             group_ids.add(pre_actor.group_id)
 
         groups = await self.lock_groups(group_ids)
-        players = await self.lock_players([actor_id, *(pid for pid, _ in others)])
+        members: list[UUID] = []
+        if lock_group_members and pre_actor.group_id is not None:
+            members = await self._member_ids(pre_actor.group_id)
+        trades = await self.lock_active_trades(actor_id) if lock_trades else []
+        players = await self.lock_players([actor_id, *(pid for pid, _ in others), *members])
 
         actor = next((p for p in players if p.id == actor_id), None)
         if actor is None or actor.deleted_at is not None:
@@ -312,6 +343,7 @@ class Repository:
             participations=[participation_snapshot(p) for p in participations],
             groups=[group_snapshot(g, await self._member_ids(g.id)) for g in groups],
             floor_items=[floor_item_snapshot(f) for f in floor_items],
+            trades=[trade_snapshot(t) for t in trades],
         )
 
     async def _member_ids(self, group_id: UUID) -> list[UUID]:
@@ -349,6 +381,17 @@ class Repository:
             raise InconsistentChangesError("nothing is locked by this repository")
         self._bind_transaction()
         session, locks = self.session, self.locks
+
+        # first: offers must be gone before offered inventory entries can be deleted
+        for trade_id in changes.trades_cancel:
+            self._require(trade_id in locks.trades, "trade")
+            trade = await session.get(Trade, trade_id)
+            assert trade is not None
+            await session.execute(
+                sql_delete(TradeOffer).where(col(TradeOffer.trade_id) == trade_id)
+            )
+            trade.status = "cancelled"
+            trade.initiator_confirmed = trade.partner_confirmed = False
 
         for player_update in changes.players:
             self._require(player_update.player_id in locks.players, "player")
@@ -466,9 +509,24 @@ class Repository:
             self._require(group_update.group_id in locks.groups, "group")
             group = await session.get(Group, group_update.group_id)
             assert group is not None
-            group.loot_cursor = group_update.loot_cursor
+            for key, value in group_update.model_dump(
+                exclude_unset=True, exclude={"group_id"}
+            ).items():
+                setattr(group, key, value)
 
         await session.flush()
+        if changes.groups_delete:
+            for group_id in changes.groups_delete:
+                self._require(group_id in locks.groups, "group")
+                if await session.scalar(
+                    select(col(Player.id)).where(col(Player.group_id) == group_id).limit(1)
+                ):
+                    raise InconsistentChangesError(f"group {group_id} still has members")
+                group = await session.get(Group, group_id)
+                if group is not None:
+                    await session.delete(group)
+                locks.groups.discard(group_id)
+            await session.flush()
 
     async def add_log_entry(
         self, player_id: UUID, kind: str, text: str, created_at: datetime

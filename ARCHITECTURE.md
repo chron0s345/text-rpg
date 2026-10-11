@@ -642,6 +642,17 @@ Die Frist (`disconnect_grace_seconds`) schützt vor dem Verlust eines Charakters
 
 Server-Neustart: Beim Start werden alle Charaktere mit `online = true` und ohne aktive Verbindung als disconnected markiert, sodass dieselbe Frist greift.
 
+Umsetzung: `SessionService` (`app/services/session_service.py`), Engine in `engine/presence.py` (`resolve_login`, `resolve_logout`, `resolve_disconnect`) und `engine/groups.py` (`leave_group`).
+
+- `play(account_id, player_id, confirm_death)`: Ist ein anderer Charakter des Accounts online, wird er zuerst ausgeloggt (im Kampf nur mit `confirm_death`, sonst Antwort `confirm_death` ohne Änderung). Logins eines Accounts laufen unter einem Advisory-Lock pro Account nacheinander; der partielle Unique-Index bleibt die Absicherung in der Datenbank. Fremde, gelöschte oder unbekannte Charaktere → `UnknownCharacterError` (HTTP 404). Ist der Charakter noch online (zweiter Tab, Rückkehr in der Frist), wird nur die Frist beendet, ohne erneute Raummeldung.
+- `logout(player_id, confirm_death)`: Ziel der Route für `LogoutAction` (der `ActionService` führt Logout nicht aus). Reihenfolge: Handel abbrechen → im Kampf Tod mit Verlustwürfen (der Charakter bleibt im Raum, `respawn` führt zum Checkpoint), sonst lebend in die Stadt → Gruppe verlassen → offline. Tote Charaktere bleiben, wo sie sind. Ein bereits ausgeloggter Charakter bleibt unverändert.
+- `connect` / `disconnect`: Der SSE-Handler meldet, wenn der Stream eines Charakters öffnet bzw. der letzte Stream schließt. `disconnect` setzt `disconnected_at` (eine laufende Frist wird nicht verlängert) und bricht laufende Handel ab; `connect` beendet die Frist und liefert `False`, wenn der Charakter nicht mehr online ist (Stream schließen).
+- `mark_all_disconnected()`: einmal pro Deployment-Start, bevor Streams angenommen werden – es würde auch Charaktere markieren, deren Stream ein bereits laufender Prozess hält.
+- Gruppe verlassen: Verlässt der Leader die Gruppe, führt das am längsten dabeiseiende verbleibende Mitglied. Bleibt nur ein Mitglied übrig, verlässt es die Gruppe ebenfalls und die Gruppe wird gelöscht. Dafür sperrt `load_action_snapshot(..., lock_group_members=True)` alle Mitglieder, auch die in anderen Räumen; die Mitglieder werden erst nach der Gruppensperre gelesen.
+- Handelsabbruch: `load_action_snapshot(..., lock_trades=True)` sperrt die aktiven Handel des Charakters (`ActionSnapshot.trades`, Sperrreihenfolge `Group` → `Trade` → `Player`). `apply_changes` löscht die Angebote eines abgebrochenen Handels vor allen Inventaränderungen, sodass ein angebotenes Item im selben Schritt durch den Tod verloren gehen kann.
+- Live-Verbindungen folgen Raum- und Gruppenwechseln über Relocations, auch für Mitglieder in anderen Räumen (z. B. wenn ihre Gruppe aufgelöst wird).
+- Bekannte Schwäche im Schema: Wird der Account eines Gruppenleiters hart gelöscht, löscht die Kaskade die Gruppe, und `player.group_id → SET NULL` verletzt bei den übrigen Mitgliedern `ck_player_group_joined`. Accounts werden im Spiel nicht hart gelöscht; vor einer Account-Löschung müssen die Charaktere ihre Gruppen verlassen.
+
 ### Respawn & Aufräumen
 
 - **Monster:** Fällige `MonsterInstance` (`alive = false`, `respawn_at <= now`) werden mit vollen HP zurückgesetzt. Zusätzlich gibt es einen Lazy Check beim Betreten eines Raums.
@@ -671,7 +682,8 @@ Umsetzung: `WorldTicker` (`app/services/world_ticker.py`), Engine-Bausteine in `
 - Überfall-Kandidaten werden ungesperrt vorgelesen (online, `exploring`, unsicherer Raum mit lebendem Monster mit `chance_per_tick > 0`); jedes Opfer bekommt eine eigene Transaktion, die Engine prüft alles erneut unter der Sperre. Ein bereits kämpfendes Monster überfällt niemanden, daher pro Monster und Tick höchstens ein Überfall. Charaktere in der Disconnect-Frist sind noch online und können überfallen werden.
 - Abgelaufene Gruppeneinladungen und Handelsanfragen (`status = "requested"`) werden gelöscht; offene Handel bleiben unberührt.
 - Führung: Der Leader hält das Advisory Lock auf einer eigenen Verbindung (`TickerLeadership`) und prüft vor jedem Tick, ob es noch dieselbe Datenbank-Session (Backend-PID) ist – SQLAlchemy verbindet eine abgebrochene Verbindung sonst stillschweigend neu, ohne Lock. Beim Beenden wird das Lock freigegeben.
-- Noch offen: Schritt 4 (Disconnect-Fristen) folgt mit dem `SessionService`; das Starten des Tickers im Lifespan von `app/main.py` mit dem App-Zusammenbau (Datenbank, Event-Bus, Routen).
+- Schritt 4 (Disconnect-Fristen) ruft je abgelaufenem Charakter `SessionService.expire_disconnect` in einer eigenen Transaktion auf; die Frist wird dort unter der Sperre erneut geprüft (ein Reconnect dazwischen gewinnt).
+- Noch offen: das Starten des Tickers im Lifespan von `app/main.py` mit dem App-Zusammenbau (Datenbank, Event-Bus, Routen).
 
 ### Zufall & Zeit
 
@@ -704,7 +716,7 @@ Umsetzung: `ActionService.execute` (`app/services/action_service.py`).
 - Wiederholt wird bei `SnapshotChangedError`, Deadlock (`40P01`) und Serialisierungsfehler (`40001`), höchstens dreimal; danach `RetryLimitExceededError`.
 - Ist der Charakter offline, gelöscht oder unbekannt (auch wenn das erst während des Wartens auf die Sperre passiert), gibt es `NotPlayingError` (HTTP 401).
 - Zufall: `random.SystemRandom` (Würfe sind nicht aus früheren Ergebnissen vorhersagbar); Tests injizieren einen festen Seed und eine feste Uhr.
-- Aktionen späterer Schritte (Gruppen, Handel, Bank, Händler, Logout) werden vorerst mit „Diese Aktion ist noch nicht verfügbar.“ abgelehnt.
+- Aktionen späterer Schritte (Gruppen, Handel, Bank, Händler) werden vorerst mit „Diese Aktion ist noch nicht verfügbar.“ abgelehnt. Logout läuft über den `SessionService`.
 
 ### Locking
 

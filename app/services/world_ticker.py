@@ -6,10 +6,9 @@ Every ``ticker_interval_seconds`` one tick runs these steps, each in its own sho
 1. monster respawns
 2. item respawns
 3. expired floor items
-4. idle ambushes (one transaction per candidate)
-5. expired group invites and trade requests
-
-Expired disconnect grace periods follow with the session service (login/logout/disconnect).
+4. expired disconnect grace periods (``SessionService.expire_disconnect``, one transaction each)
+5. idle ambushes (one transaction per candidate)
+6. expired group invites and trade requests
 
 The decisions ("is due", "is ambushed") are made by the engine; the ticker only locks, applies,
 logs, commits and then publishes, exactly like ``ActionService``. A failing step is logged and
@@ -31,14 +30,13 @@ from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import delete, exists, func, select
-from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, AsyncSession, async_sessionmaker
 from sqlmodel import col
 
 from app.content.registry import ContentRegistry
 from app.db.mappers import floor_item_snapshot, monster_snapshot
 from app.db.models import GroupInvite, MonsterInstance, Player, Trade, TradeOffer
-from app.db.repository import Repository, SnapshotChangedError, UnknownPlayerError
+from app.db.repository import Repository, UnknownPlayerError
 from app.engine.ambush import resolve_idle_ambush
 from app.engine.cleanup import expire_floor_items
 from app.engine.events import ActionResult, GameEvent
@@ -46,7 +44,8 @@ from app.engine.respawn import respawn_due_items, respawn_monsters
 from app.engine.state import ItemSpawnSnapshot
 from app.services.events import EventPublisher
 from app.services.logbook import write_log
-from app.services.transactions import MAX_ATTEMPTS, RetryLimitExceededError, is_retryable
+from app.services.session_service import SessionService
+from app.services.transactions import in_transaction
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +63,7 @@ class TickReport:
     monsters_respawned: int = 0
     items_respawned: int = 0
     floor_items_expired: int = 0
+    disconnects_expired: int = 0
     ambushes: int = 0
     invites_expired: int = 0
     trade_requests_expired: int = 0
@@ -152,6 +152,7 @@ class WorldTicker:
         clock: Callable[[], datetime] = utc_now,
         rng_factory: Callable[[], random.Random] = random.SystemRandom,
         interval_seconds: float | None = None,
+        session_service: SessionService | None = None,
     ) -> None:
         self.sessions = sessions
         self.content = content
@@ -165,6 +166,9 @@ class WorldTicker:
             else content.rules.timings.ticker_interval_seconds
         )
         self.leadership = TickerLeadership(engine)
+        self.session_service = session_service or SessionService(
+            sessions, content, publisher, clock=clock, rng_factory=rng_factory
+        )
 
     # --- background loop ------------------------------------------------------------------------
 
@@ -191,6 +195,7 @@ class WorldTicker:
             ("monster_respawns", self._respawn_monsters),
             ("item_respawns", self._respawn_items),
             ("floor_cleanup", self._expire_floor_items),
+            ("disconnect_deadlines", self._expire_disconnects),
             ("idle_ambushes", self._idle_ambushes),
             ("expired_requests", self._expire_requests),
         ]
@@ -242,6 +247,15 @@ class WorldTicker:
             return result
 
         await self._run(attempt, now)
+
+    async def _expire_disconnects(self, now: datetime, report: TickReport) -> None:
+        for player_id in await self.session_service.expired_disconnects(now):
+            try:
+                if await self.session_service.expire_disconnect(player_id, now):
+                    report.disconnects_expired += 1
+            except Exception:
+                # one player's conflict must not keep everybody else online
+                logger.exception("expiring the disconnect of %s failed", player_id)
 
     async def _idle_ambushes(self, now: datetime, report: TickReport) -> None:
         for victim_id in await self._ambush_candidates():
@@ -324,20 +338,15 @@ class WorldTicker:
     ) -> ActionResult:
         """One transaction per attempt (fresh ``Repository`` inside ``attempt``); log entries in
         the same transaction; events only after the commit. Lock conflicts are retried."""
-        for _ in range(MAX_ATTEMPTS):
-            try:
-                async with self.sessions() as session, session.begin():
-                    result = await attempt(session)
-                    await write_log(session, result.events, now)
-            except SnapshotChangedError:
-                continue
-            except DBAPIError as exc:
-                if is_retryable(exc):
-                    continue
-                raise
-            await self._publish(result.events)
+
+        async def logged(session: AsyncSession) -> ActionResult:
+            result = await attempt(session)
+            await write_log(session, result.events, now)
             return result
-        raise RetryLimitExceededError("world ticker transaction kept conflicting")
+
+        result = await in_transaction(self.sessions, logged)
+        await self._publish(result.events)
+        return result
 
     async def _publish(self, events: Sequence[GameEvent]) -> None:
         if not events:

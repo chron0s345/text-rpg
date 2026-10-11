@@ -257,5 +257,5 @@ class ActionService:
             case DropAction():
                 return resolve_drop(*args, action.inventory_item_id, action.quantity)
             case _:
-                # groups, trade, bank, merchants, logout: later steps
+                # groups, trade, bank, merchants: later steps; logout: SessionService.logout
                 return rejected(NOT_AVAILABLE)

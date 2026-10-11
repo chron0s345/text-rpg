@@ -104,6 +104,16 @@ class Committed:
                 await db.execute(
                     text("DELETE FROM monster_instance WHERE room_id = :r"), {"r": room}
                 )
+            # leave groups first: deleting a leader's account cascades to the group, and the
+            # resulting SET NULL on the other members would violate ck_player_group_joined
+            for account_id in self.accounts:
+                await db.execute(
+                    text(
+                        "UPDATE player SET group_id = NULL, group_joined_at = NULL "
+                        "WHERE account_id = :id"
+                    ),
+                    {"id": account_id},
+                )
             for account_id in self.accounts:
                 await db.execute(text("DELETE FROM account WHERE id = :id"), {"id": account_id})
 
