@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Oakhaven – Charakterauswahl{% endblock %}
+{% block body_class %}page-narrow{% endblock %}
+{% block body %}
+<main>
+  <header class="row">
+    <h1>Deine Charaktere</h1>
+    <form method="post" action="/select/logout"><button class="link" type="submit">Abmelden</button></form>
+  </header>
+  {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+  {% if confirm %}
+  <form method="post" action="/select/{{ confirm.id }}/play" class="card warning" role="alertdialog" aria-labelledby="confirm-title">
+    <h2 id="confirm-title">Achtung</h2>
+    <p>{{ confirm.message }} Wenn du jetzt wechselst, stirbt er und verliert Gold und Gegenstände.</p>
+    <input type="hidden" name="confirm_death" value="true">
+    <button type="submit" class="danger">Trotzdem wechseln</button>
+    <a href="/">Zurück ins Spiel</a>
+  </form>
+  {% endif %}
+  {% if characters %}
+  <ul class="characters">
+    {% for c in characters %}
+    <li class="card">
+      <div>
+        <strong>{{ c.name }}</strong>
+        <span class="muted">Level {{ c.level }} · {{ state_label(c.state) }}{% if c.online %} · eingeloggt{% endif %}</span>
+      </div>
+      <div class="buttons">
+        <form method="post" action="/select/{{ c.id }}/play"><button type="submit">Spielen</button></form>
+        {% if not c.online %}
+        <form method="post" action="/select/{{ c.id }}/delete" data-confirm="{{ c.name }} wirklich löschen? Das lässt sich nicht rückgängig machen.">
+          <button type="submit" class="danger subtle">Löschen</button>
+        </form>
+        {% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">Noch keine Charaktere.</p>
+  {% endif %}
+  {% if can_create %}
+  <form method="post" action="/select/new" class="card">
+    <h2>Neuer Charakter</h2>
+    <label>Name <input name="name" required minlength="3" maxlength="20" pattern="[A-Za-zÄÖÜäöüß]+" title="3–20 Buchstaben"></label>
+    <button type="submit">Erschaffen</button>
+  </form>
+  {% endif %}
+</main>
+{% endblock %}

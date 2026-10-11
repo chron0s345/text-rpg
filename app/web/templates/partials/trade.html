@@ -1,0 +1,53 @@
+{% set t = view.trade %}{% set p = view.player %}
+<section id="trade" class="panel trade" aria-labelledby="trade-title"{% if t is none %} hidden{% endif %}{% if oob %} hx-swap-oob="true"{% endif %}>
+  {% if t is not none %}
+  {% if t.status == 'requested' %}
+    <h2 id="trade-title">Handel mit {{ t.other_name }}</h2>
+    {% if t.i_initiated %}
+    <p class="muted">Warte, bis {{ t.other_name }} annimmt …</p>
+    <button class="subtle" hx-post="/ui/actions" hx-vals='{{ {"type": "trade_cancel", "trade_id": t.id | string} | tojson }}'>Zurückziehen</button>
+    {% else %}
+    <p><strong>{{ t.other_name }}</strong> möchte mit dir handeln.</p>
+    <span class="buttons">
+      <button class="primary" hx-post="/ui/actions" hx-vals='{{ {"type": "trade_accept", "trade_id": t.id | string} | tojson }}'>Annehmen</button>
+      <button class="subtle" hx-post="/ui/actions" hx-vals='{{ {"type": "trade_cancel", "trade_id": t.id | string} | tojson }}'>Ablehnen</button>
+    </span>
+    {% endif %}
+  {% else %}
+    <h2 id="trade-title">Handel mit {{ t.other_name }} <span class="muted">Stand {{ t.revision }}</span></h2>
+    <div class="offers">
+      <div class="offer{% if t.my_confirmed %} confirmed{% endif %}">
+        <h3>Dein Angebot {% if t.my_confirmed %}✓{% endif %}</h3>
+        <ul class="list">
+          {% for i in t.my_items %}
+          <li>
+            <span>{% if i.icon %}<img src="/static/icons/{{ i.icon }}.svg" alt="" class="icon">{% endif %}{% if i.quantity != 1 %}{{ i.quantity }}× {% endif %}{{ i.name }}</span>
+            <button class="subtle" hx-post="/ui/actions" hx-vals='{{ {"type": "trade_remove_item", "trade_id": t.id | string, "inventory_item_id": i.inventory_item_id | string} | tojson }}' aria-label="{{ i.name }} zurücknehmen">✕</button>
+          </li>
+          {% else %}<li class="muted">Keine Gegenstände</li>{% endfor %}
+        </ul>
+        <form class="gold-form" hx-post="/ui/actions">
+          <input type="hidden" name="type" value="trade_offer_gold">
+          <input type="hidden" name="trade_id" value="{{ t.id }}">
+          <label>Gold <input name="amount" type="number" min="0" max="{{ p.gold }}" value="{{ t.my_gold }}" required></label>
+          <button type="submit">Setzen</button>
+        </form>
+      </div>
+      <div class="offer{% if t.their_confirmed %} confirmed{% endif %}">
+        <h3>{{ t.other_name }} {% if t.their_confirmed %}✓ bestätigt{% endif %}</h3>
+        <ul class="list">
+          {% for i in t.their_items %}
+          <li><span>{% if i.icon %}<img src="/static/icons/{{ i.icon }}.svg" alt="" class="icon">{% endif %}{% if i.quantity != 1 %}{{ i.quantity }}× {% endif %}{{ i.name }}</span></li>
+          {% else %}<li class="muted">Keine Gegenstände</li>{% endfor %}
+        </ul>
+        <p>{{ t.their_gold }} Gold</p>
+      </div>
+    </div>
+    <span class="buttons">
+      <button class="primary" hx-post="/ui/actions" hx-vals='{{ {"type": "trade_confirm", "trade_id": t.id | string, "revision": t.revision | string} | tojson }}'
+              {% if t.my_confirmed %}disabled{% endif %}>{% if t.my_confirmed %}Bestätigt – warte auf {{ t.other_name }}{% else %}Handel bestätigen{% endif %}</button>
+      <button class="subtle" hx-post="/ui/actions" hx-vals='{{ {"type": "trade_cancel", "trade_id": t.id | string} | tojson }}'>Abbrechen</button>
+    </span>
+  {% endif %}
+  {% endif %}
+</section>

@@ -74,6 +74,10 @@ class PlayerUpdate(BaseModel):
     checkpoint_room_id: str | None = None
     state: PlayerState | None = None
     combat_target_id: UUID | None = None
+    online: bool | None = None  # login/logout (engine/presence.py)
+    disconnected_at: datetime | None = None
+    group_id: UUID | None = None  # engine/groups.py
+    group_joined_at: datetime | None = None
 
 
 class MonsterUpdate(BaseModel):
@@ -102,6 +106,11 @@ class InventoryUpsert(BaseModel):
     item: InventoryItemState
 
 
+class BankUpsert(BaseModel):
+    player_id: UUID
+    item: InventoryItemState  # equipped_slot is always None in the bank
+
+
 class FloorItemCreate(BaseModel):
     id: UUID
     room_id: str
@@ -124,8 +133,68 @@ class ItemSpawnUpdate(BaseModel):
 
 
 class GroupUpdate(BaseModel):
+    """Only explicitly set fields are applied (like ``PlayerUpdate``)."""
+
     group_id: UUID
-    loot_cursor: int
+    loot_cursor: int | None = None
+    leader_id: UUID | None = None
+
+
+class GroupCreate(BaseModel):
+    id: UUID
+    leader_id: UUID
+    created_at: datetime
+
+
+class TradeCreate(BaseModel):
+    id: UUID
+    initiator_id: UUID
+    partner_id: UUID
+    room_id: str
+    expires_at: datetime
+    created_at: datetime
+
+
+class TradeUpdate(BaseModel):
+    """Only explicitly set fields are applied."""
+
+    trade_id: UUID
+    status: Literal["requested", "open", "completed", "cancelled"] | None = None
+    initiator_gold: int | None = None
+    partner_gold: int | None = None
+    initiator_confirmed: bool | None = None
+    partner_confirmed: bool | None = None
+    revision: int | None = None
+
+
+class TradeOfferUpsert(BaseModel):
+    trade_id: UUID
+    player_id: UUID
+    inventory_item_id: UUID
+    quantity: int = Field(ge=1)
+
+
+class TradeOfferDelete(BaseModel):
+    trade_id: UUID
+    inventory_item_id: UUID
+
+
+class TradeLogCreate(BaseModel):
+    trade_id: UUID
+    completed_at: datetime
+    summary: dict[str, Any]
+
+
+class InviteUpsert(BaseModel):
+    inviter_id: UUID
+    player_id: UUID
+    group_id: UUID | None
+    expires_at: datetime
+
+
+class InviteDelete(BaseModel):
+    inviter_id: UUID
+    player_id: UUID
 
 
 class StateChanges(BaseModel):
@@ -144,11 +213,24 @@ class StateChanges(BaseModel):
     participations_clear_monster_ids: list[UUID] = Field(default_factory=list)
     inventory_upsert: list[InventoryUpsert] = Field(default_factory=list)
     inventory_delete: list[UUID] = Field(default_factory=list)
+    bank_upsert: list[BankUpsert] = Field(default_factory=list)
+    bank_delete: list[UUID] = Field(default_factory=list)
     floor_items_create: list[FloorItemCreate] = Field(default_factory=list)
     floor_items_update: list[FloorItemUpdate] = Field(default_factory=list)
     floor_items_delete: list[UUID] = Field(default_factory=list)
     item_spawns: list[ItemSpawnUpdate] = Field(default_factory=list)
     groups: list[GroupUpdate] = Field(default_factory=list)
+    groups_create: list[GroupCreate] = Field(default_factory=list)
+    groups_delete: list[UUID] = Field(default_factory=list)
+    invites_upsert: list[InviteUpsert] = Field(default_factory=list)
+    invites_delete: list[InviteDelete] = Field(default_factory=list)
+    # trades; offers are deleted before inventory changes are applied (offered items are
+    # protected against deletion in the database)
+    trades_create: list[TradeCreate] = Field(default_factory=list)
+    trades: list[TradeUpdate] = Field(default_factory=list)
+    trade_offers_upsert: list[TradeOfferUpsert] = Field(default_factory=list)
+    trade_offers_delete: list[TradeOfferDelete] = Field(default_factory=list)
+    trade_logs: list[TradeLogCreate] = Field(default_factory=list)
 
 
 class ActionResult(BaseModel):
@@ -183,6 +265,13 @@ class ResultBuilder:
         ]
         self.changes.inventory_upsert.extend(
             InventoryUpsert(player_id=player_id, item=e.model_copy()) for e in unique.values()
+        )
+
+    def upsert_bank(self, player_id: UUID, entries: list[InventoryItemState]) -> None:
+        unique = {e.id: e for e in entries}
+        self.changes.bank_upsert = [u for u in self.changes.bank_upsert if u.item.id not in unique]
+        self.changes.bank_upsert.extend(
+            BankUpsert(player_id=player_id, item=e.model_copy()) for e in unique.values()
         )
 
     def event(
@@ -239,6 +328,8 @@ class ResultBuilder:
         changes.inventory_upsert = [
             u for u in changes.inventory_upsert if u.item.id not in deleted_items
         ]
+        deleted_bank = set(changes.bank_delete)
+        changes.bank_upsert = [u for u in changes.bank_upsert if u.item.id not in deleted_bank]
         deleted_floor = set(changes.floor_items_delete)
         changes.floor_items_update = [
             u for u in changes.floor_items_update if u.id not in deleted_floor
@@ -256,6 +347,18 @@ class ResultBuilder:
         ]
         changes.participations_delete = [
             d for d in changes.participations_delete if d.monster_instance_id not in cleared
+        ]
+        deleted_groups = set(changes.groups_delete)
+        changes.groups = [g for g in changes.groups if g.group_id not in deleted_groups]
+        deleted_offers = {(d.trade_id, d.inventory_item_id) for d in changes.trade_offers_delete}
+        changes.trade_offers_upsert = [
+            u
+            for u in changes.trade_offers_upsert
+            if (u.trade_id, u.inventory_item_id) not in deleted_offers
+        ]
+        deleted_invites = {(d.inviter_id, d.player_id) for d in changes.invites_delete}
+        changes.invites_upsert = [
+            u for u in changes.invites_upsert if (u.inviter_id, u.player_id) not in deleted_invites
         ]
 
 

@@ -15,17 +15,16 @@ from sqlmodel import col
 
 from app.api.schemas import (
     AttackAction,
-    BuyAction,
     LookAction,
     MoveAction,
     PickUpAction,
     SayAction,
+    TradeRequestAction,
 )
 from app.db.models import CombatParticipation, FloorItem, InventoryItem, LogEntry, MonsterInstance
 from app.db.models import Player as PlayerRow
 from app.db.repository import Repository, SnapshotChangedError
 from app.services.action_service import (
-    NOT_AVAILABLE,
     TOO_FAST,
     NotPlayingError,
     PreRead,
@@ -134,11 +133,11 @@ async def test_offline_deleted_or_unknown_characters_cannot_act(harness: Service
     assert h.publisher.published == []
 
 
-async def test_actions_of_later_steps_are_rejected(harness: ServiceHarness) -> None:
+async def test_trade_request_to_nobody_is_rejected(harness: ServiceHarness) -> None:
     h = harness
     actor = await player(h, h.scratch_room("town_market"))
-    outcome = await h.service.execute(actor.id, BuyAction(merchant_id="alchemist", item_id="bread"))
-    assert texts(outcome.events) == [NOT_AVAILABLE]
+    outcome = await h.service.execute(actor.id, TradeRequestAction(target_player_id=uuid4()))
+    assert texts(outcome.events) == ["Diese Person ist nicht hier."]
 
 
 async def test_say_reaches_room_through_publisher(harness: ServiceHarness) -> None:

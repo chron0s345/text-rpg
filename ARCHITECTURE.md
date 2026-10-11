@@ -41,13 +41,15 @@ Bei mehreren Server-Prozessen muss ein Event aus Prozess A auch die SSE-Verbindu
 
 ```
 app/
-├── main.py              # FastAPI-App, Lifespan: Content laden, Event-Bus & World-Ticker starten
+├── main.py              # FastAPI-App (create_app), Lifespan: Content laden, Event-Bus & World-Ticker starten
+├── settings.py          # Konfiguration aus Umgebungsvariablen
 ├── api/                 # HTTP-Routen, nur dünne Schicht
+│   ├── deps.py          # Services aus dem App-State, Session-Cookie (Account, aktiver Charakter)
 │   ├── auth.py          # Registrierung, Login, Logout
 │   ├── characters.py    # Charaktere anlegen, auswählen, löschen
 │   ├── actions.py       # POST /actions
-│   ├── stream.py        # GET /stream (SSE)
-│   └── views.py         # Seiten & Partials
+│   ├── stream.py        # GET /stream (SSE), GET /log
+│   └── views.py         # Seiten & HTMX-Partials (/welcome, /select, /, /ui/*)
 ├── engine/              # Reine Spiellogik, kein HTTP, kein DB-Zugriff
 │   ├── state.py         # Snapshots (ActionSnapshot, PlayerSnapshot, ...) als Engine-Eingabe
 │   ├── permissions.py   # Erlaubte Aktionen je Charakterzustand
@@ -77,6 +79,7 @@ app/
 ├── content/
 │   ├── schemas.py
 │   ├── loader.py
+│   ├── prices.py        # Kauf-/Verkaufspreise (Engine & Validierung)
 │   └── registry.py
 ├── db/
 │   ├── models.py        # SQLModel-Tabellen (nur veränderlicher Zustand)
@@ -88,11 +91,15 @@ app/
 ├── services/            # Orchestrierung: sperrt & lädt Zustand, ruft Engine, speichert, publiziert
 │   ├── events.py            # EventPublisher-Interface (Umsetzung im Realtime-Layer)
 │   ├── action_service.py
+│   ├── log.py               # Log-Einträge pro Empfänger eines Events
+│   ├── account_service.py   # Registrierung, Passwortprüfung (argon2), Charaktere anlegen/löschen
 │   ├── session_service.py   # Login/Logout eines Charakters, Disconnect-Handling
+│   ├── view_service.py      # Lesende Spielansicht (Status, Raum, Inventar, Log) für die Seiten
 │   └── world_ticker.py      # Respawns, Aufräumen, Disconnect-Fristen
 └── web/
-    ├── templates/
-    └── static/
+    ├── render.py        # Jinja2-Umgebung (Autoescape), gemeinsam für Seiten und SSE
+    ├── templates/       # Seiten + partials/ (status, room, actions, inventory, log_line)
+    └── static/          # style.css, app.js, icons/, vendor/ (htmx, htmx-ext-sse, unverändert)
 data/
 ├── rooms.yaml
 ├── monsters.yaml
@@ -563,6 +570,14 @@ Regeln:
 - **Endet ein Handel (`completed` oder `cancelled`), werden seine `TradeOffer`-Zeilen in derselben Transaktion gelöscht.** Ein angebotenes Item ist in der Datenbank gegen Löschen geschützt (kein Cascade); bleiben Angebote stehen, kann das Item danach nie mehr verbraucht, fallengelassen oder übertragen werden. Bei der Ausführung werden die Angebote vor dem Umbuchen der Items gelöscht.
 - Rate Limit auf `trade_request`, damit niemand mit Anfragen zugespammt werden kann.
 
+Umsetzung (`engine/trade.py`, `Repository.load_trade_snapshot`):
+
+- Handelsaktionen arbeiten auf einem eigenen Snapshot (`TradeActionSnapshot`): Handelnder und Gegenüber mit Inventaren, alle aktiven Handel beider und der genannte Handel. Sperrreihenfolge: `Trade` → `Player` → `InventoryItem` → `TradeOffer`. Neue Handel entstehen nur unter der Sperre beider Spieler; die aktiven Handel werden nach dem Sperren der Spieler erneut gelesen, ein dazwischen entstandener führt zur Wiederholung. So hat niemand zwei Handel gleichzeitig (auch nicht bei zwei gleichzeitigen Anfragen an dieselbe Person).
+- Pro Charakter höchstens ein aktiver Handel (Anfrage oder offen). Das Rate Limit für Anfragen ist das allgemeine Aktions-Rate-Limit; eine unerwünschte Anfrage lässt sich ablehnen (`trade_cancel`) und läuft sonst ab.
+- Items wechseln den Besitzer als neue Inventarzeilen des Empfängers (eine Zeile wechselt nie den Besitzer); beim Geber wird der Stapel verringert bzw. gelöscht. Die Kapazitätsprüfung rechnet auf beiden Seiten mit dem Platz, den die eigenen abgegebenen Items freigeben.
+- `apply_changes` schreibt Handel und Angebote vor allen Inventaränderungen und führt dazwischen einen Flush aus, damit gelöschte Angebote die angebotenen Items freigeben.
+- Abbruch: Jede Operation, die Raum, Zustand, Online-Status oder Verbindung eines Spielers ändert (auch Überfall durch den Ticker, Tod, Logout, Verbindungsverlust), prüft danach dessen aktive Handel in einer eigenen Transaktion (`ActionService.check_trades`, `resolve_trade_check`) und bricht sie ab, wenn nicht mehr beide anwesend und frei sind. Der World-Ticker wiederholt die Prüfung (Schritt 8). Die Ausführung prüft alle Bedingungen ohnehin noch einmal.
+
 ### Bank
 
 - Zugang nur in Räumen mit `bank: true`, im Zustand `exploring`.
@@ -572,6 +587,8 @@ Regeln:
 - Gold wird nicht eingelagert. Es bleibt beim Charakter und unterliegt der Todesstrafe (siehe *Offene Entscheidungen*).
 - Bankinhalte sind vor Verlust beim Tod geschützt.
 
+Umsetzung (`engine/bank.py`): Für Bankaktionen lädt und sperrt `load_action_snapshot(..., with_bank=True)` zusätzlich das Bankfach des Handelnden (`ActionSnapshot.bank`, Sperre nach dem Inventar). Bankfach-Einträge nutzen dieselben Stapel- und Kapazitätsfunktionen wie das Inventar (`bank.slots`). Passt nicht alles, wird so viel wie möglich verschoben und der Rest gemeldet.
+
 ### Händler
 
 - Händler sind Content (`merchants.yaml`), keine Datenbankobjekte. Sie stehen in einem festen Raum und werden in der Raumansicht angezeigt.
@@ -580,6 +597,8 @@ Regeln:
 - Verkaufte Items verschwinden; Händler verkaufen sie nicht an andere Spieler weiter.
 - Kaufen und Verkaufen sind je eine Transaktion und landen im Log des Spielers.
 - Die Validierung beim Laden stellt sicher, dass sich kein Item günstiger kaufen als verkaufen lässt.
+
+Umsetzung (`engine/merchant.py`, Preise in `content/prices.py`, gemeinsam für Engine und Content-Validierung): Kaufen ist „alles oder nichts“ – die ganze Menge muss bezahlbar sein und ins Inventar passen. Ein berechneter Kaufpreis ist mindestens 1 Gold. Verkaufen geht stück- oder stapelweise; stehen mehrere Händler im Raum, zeigt die Oberfläche das beste Angebot.
 
 ### Schutz vor Item-Transfer zwischen eigenen Charakteren
 
@@ -609,6 +628,16 @@ Monster mit `ambush` können Spieler von sich aus angreifen:
 - `leave` jederzeit; `kick` nur durch den Leader und nicht im Kampf. Verlässt der Leader die Gruppe, wird das am längsten dabeiseiende Mitglied Leader. Bleibt ein Mitglied übrig, wird die Gruppe aufgelöst.
 - Beim Ausloggen verlässt ein Charakter seine Gruppe automatisch.
 - Gruppenmitglieder sehen HP und Aufenthaltsort der anderen; dafür gibt es den Kanal `group:{id}`.
+
+Umsetzung (`engine/groups.py`, `Repository.load_group_snapshot`):
+
+- Gruppenaktionen arbeiten auf einem eigenen Snapshot (`GroupActionSnapshot`): Handelnder, der andere Beteiligte (Eingeladene, Einladende, Gekickte), alle Mitglieder ihrer Gruppen – egal in welchem Raum – und die offenen Einladungen von und an diese Spieler. Sperrreihenfolge: `Group` → `Player` (sortiert) → `GroupInvite`. Hat jemand inzwischen die Gruppe gewechselt, wird wie üblich wiederholt.
+- Einladen per Name (ohne Groß-/Kleinschreibung), nur Online-Spieler ohne Gruppe; mit Gruppe lädt nur die Gruppenleitung ein. Annehmen per `inviter_id` (die Einladung kann vor der Gruppe entstanden sein). Eine Einladung verfällt, wenn sich die Gruppe der Einladenden seitdem geändert hat. Nach dem Beitritt werden alle Einladungen von und an das neue Mitglied gelöscht. Einladungen können abgelehnt werden (`group_decline`).
+- Gruppengröße und Leitung werden am gesperrten Zustand geprüft: Zwei gleichzeitige Beitritte zum letzten freien Platz schaffen nicht beide.
+- Beitritt und Austritt ändern `group_id` und damit die Abos der Live-Verbindungen (`Relocation`, wie bei Raumwechseln).
+- Logout (auch nach abgelaufener Frist) verlässt die Gruppe direkt danach in einer eigenen Transaktion; was dabei schiefgeht, räumt der World-Ticker auf (Offline-Charaktere mit Gruppe).
+- Kill-Credit bleibt bei der markierenden Partei: Wird eine markierende Gruppe mitten im Kampf aufgelöst, zählen ihre ehemaligen Mitglieder, die gegen dieses Monster gekämpft haben (Kampfteilnahme mit diesem `party_key`), weiter als Partei. Wer eine bestehende Gruppe mitten im Kampf verlässt, bekommt von deren Beute nichts mehr (XP nach Schaden aber schon).
+- DB-Regel: Mitglieder haben ein `group_joined_at` (Migration `0002`: `group_id IS NULL OR group_joined_at IS NOT NULL`). Die frühere Regel „beide oder keins“ ließ das `ON DELETE SET NULL` beim Löschen einer Gruppe auf Datenbankebene scheitern.
 
 ### Tod & Checkpoint
 
@@ -640,6 +669,14 @@ Die Frist (`disconnect_grace_seconds`) schützt vor dem Verlust eines Charakters
 
 Server-Neustart: Beim Start werden alle Charaktere mit `online = true` und ohne aktive Verbindung als disconnected markiert, sodass dieselbe Frist greift.
 
+Umsetzung: Engine `engine/presence.py` (`resolve_login`, `resolve_logout`), Kontoregeln in `services/session_service.py`.
+
+- Logout außerhalb des Kampfes setzt nach `town_room_id`; tote Charaktere bleiben liegen und erwachen nach dem nächsten Login am Checkpoint.
+- Charakterwechsel loggt den bisherigen Charakter zuerst in einer eigenen Transaktion aus (im Kampf nur mit `confirm_death`, sonst `409`), danach wird der neue eingeloggt. Ein gleichzeitiger zweiter Login scheitert am partiellen Unique-Index (ein Online-Charakter pro Account) und wird als `409` gemeldet.
+- Ein Login eines bereits eingeloggten Charakters (zweiter Tab, Reconnect) setzt nur `disconnected_at = null`, ohne den Raum erneut zu benachrichtigen.
+- Abgelaufene Fristen arbeitet der World-Ticker ab (`connection_expired`, `resolve_connection_lost` = Logout mit `confirm_death`). Ob die Frist abgelaufen ist, wird am gesperrten Datensatz geprüft; ein Reconnect kurz davor gewinnt.
+- Beim Logout wird die Gruppe verlassen (siehe *Gruppen*); laufenden Handel abbrechen folgt mit `trade.py`.
+
 ### Respawn & Aufräumen
 
 - **Monster:** Fällige `MonsterInstance` (`alive = false`, `respawn_at <= now`) werden mit vollen HP zurückgesetzt. Zusätzlich gibt es einen Lazy Check beim Betreten eines Raums.
@@ -658,6 +695,19 @@ Ein Hintergrund-Task läuft alle `ticker_interval_seconds` und erledigt in getre
 6. Abgelaufene Gruppeneinladungen und Handelsanfragen löschen
 
 Bei mehreren Server-Prozessen holt sich der Ticker vorher ein PostgreSQL Advisory Lock (`pg_try_advisory_lock`), sodass nur ein Prozess tickt. Die Entscheidungen ("ist fällig", "wird überfallen") liegen in der Engine; der Ticker orchestriert nur.
+
+Umsetzung (`app/services/world_ticker.py`, Engine: `engine/respawn.py`, `engine/cleanup.py`, `engine/presence.py`, `engine/ambush.py`):
+
+- Kandidaten werden ungesperrt gesucht (Räume mit fälligen Monstern/Items/abgelaufenen Floor-Items, Spieler mit abgelaufener Frist, verweilende Spieler); entschieden wird erst am gesperrten Zustand. Jeder Raum bzw. Spieler ist eine eigene kurze Transaktion; Events werden nach dem Commit publiziert, ein fehlschlagender Schritt hält die anderen nicht auf.
+- Schritte 4 (Fristen) und 5 (Überfälle) laufen über `ActionService` im Modus „System“: gleiche Sperren, Log-Einträge und Wiederholungen wie Spieleraktionen, aber kein Rate Limit, kein `last_action_at` und kein Lazy Respawn. Läuft gerade eine Aktion desselben Spielers, wird er bis zum nächsten Tick übersprungen.
+- Überfall-Kandidaten: online, `exploring`, in einem nicht sicheren Raum mit einem lebenden Monster mit `ambush`. Auch Charaktere mit laufender Frist (Verbindung weg) können überfallen werden.
+- Spawn-Items: Sperre auf die Floor-Items des Raums, dann auf die `ItemSpawnState`-Zeilen (dieselbe Reihenfolge wie beim Aufheben). Liegt das Spawn-Item noch, wird es nicht verdoppelt; Regeln, die aus dem Content entfernt wurden, werden nur zurückgesetzt. Ein neues Spawn-Item erzeugt ein Raum-Event.
+- Abgelaufene Floor-Items verschwinden ohne Event (sie werden ohnehin schon ausgeblendet).
+- Gelöscht werden abgelaufene Gruppeneinladungen und nur Handelsanfragen im Status `requested`.
+- Schritt 7: Offline-Charaktere, die noch in einer Gruppe sind, verlassen sie (Sicherheitsnetz für den Logout).
+- Schritt 8: Aktive Handel, deren Beteiligte nicht mehr beide anwesend und frei sind, werden abgebrochen (Sicherheitsnetz).
+- Leader-Wahl: Der Lock hängt an einer eigenen, dauerhaft gehaltenen Verbindung; jeder Tick prüft, ob sie noch lebt. Beim Freigeben wird der Lock explizit zurückgegeben (eine nur in den Pool zurückgegebene Verbindung hielte ihn sonst weiter). Bricht die Verbindung ab, übernimmt ein anderer Prozess beim nächsten Tick.
+- Abschaltbar mit `WORLD_TICKER=0` (z. B. für API-Tests); getestet wird mit fester Zeit und einem `tick()` pro Test.
 
 ### Zufall & Zeit
 
@@ -690,12 +740,13 @@ Umsetzung: `ActionService.execute` (`app/services/action_service.py`).
 - Wiederholt wird bei `SnapshotChangedError`, Deadlock (`40P01`) und Serialisierungsfehler (`40001`), höchstens dreimal; danach `RetryLimitExceededError`.
 - Ist der Charakter offline, gelöscht oder unbekannt (auch wenn das erst während des Wartens auf die Sperre passiert), gibt es `NotPlayingError` (HTTP 401).
 - Zufall: `random.SystemRandom` (Würfe sind nicht aus früheren Ergebnissen vorhersagbar); Tests injizieren einen festen Seed und eine feste Uhr.
-- Aktionen späterer Schritte (Gruppen, Handel, Bank, Händler, Logout) werden vorerst mit „Diese Aktion ist noch nicht verfügbar.“ abgelehnt.
+- Login (`ActionService.login`) läuft über denselben Ablauf (Sperren, Engine `resolve_login`, Log, Publizieren nach Commit); es ist die einzige Operation für einen Offline-Charakter und unterliegt keinem Rate Limit. `logout` ist ebenfalls vom Rate Limit ausgenommen (nur eine gleichzeitig laufende Aktion wird abgewiesen), damit niemand in der Welt festhängt. `online` und `disconnected_at` werden wie jede Änderung über `PlayerUpdate` geschrieben.
+- Alle Aktionen aus `GameAction` sind umgesetzt.
 
 ### Locking
 
 - `SELECT ... FOR UPDATE` auf betroffene Zeilen.
-- **Feste Sperrreihenfolge**, um Deadlocks zu vermeiden: `Group` → `Trade` → `Player` (sortiert nach ID) → `InventoryItem` → `BankItem` → `MonsterInstance` → `FloorItem`.
+- **Feste Sperrreihenfolge**, um Deadlocks zu vermeiden: (`Account`, nur beim Anlegen von Charakteren für das Charakterlimit) → `Group` → `Trade` → `Player` (sortiert nach ID) → `InventoryItem` → `BankItem` → `MonsterInstance` → `FloorItem` → `ItemSpawnState`.
 - Die Handelsausführung sperrt den `Trade`, beide Spieler und alle beteiligten Inventar-Einträge. Damit kann ein Item nicht gleichzeitig gehandelt und fallengelassen werden.
 - Beutevergabe in Gruppen sperrt die Gruppe und alle Empfänger, damit Round-Robin und Inventar konsistent bleiben.
 - Überfälle aus dem Ticker sperren Monster und Opfer in derselben Reihenfolge wie Spieleraktionen.
@@ -746,6 +797,12 @@ Umsetzung (`app/realtime/`):
 - Ein Heartbeat alle 15 s erkennt tote Verbindungen.
 - Beim Reconnect lädt der Client Raum, Status und Gruppe neu; verpasste Log-Einträge holt er über `GET /log?after={last_id}`.
 
+Umsetzung (`app/api/stream.py`, `SessionService`):
+
+- Der Heartbeat prüft zugleich, ob der Charakter noch online ist (sonst `event: ended`, Stream endet – etwa nach Logout oder Charakterwechsel in einem anderen Tab), und löscht ein `disconnected_at`, das während einer offenen Verbindung gesetzt wurde (z. B. Neustart eines anderen Workers). Geschrieben wird nur dann.
+- Erst wenn die **letzte** Verbindung eines Charakters in diesem Prozess endet, wird `disconnected_at = now` gesetzt (als Task, da der Stream gerade abgebrochen wird).
+- Benannte SSE-Events: `log` (fertig gerendertes, escaptes `<li class="log-<kind>">`, wird ans Log angehängt), `update` (die Welt um den Spieler hat sich geändert; die Seite lädt ihre Panels über `GET /ui/panels` nach, entprellt; nicht bei Chat), `reload` (Warteschlange übergelaufen) und `ended`. Statt je Event eigene Partials pro Verbindung zu rendern (DB-Lesen pro Event und Zuschauer), holt sich jeder Client den Zustand einmal selbst.
+
 ## API
 
 | Methode | Pfad | Zweck |
@@ -760,6 +817,15 @@ Umsetzung (`app/realtime/`):
 | `POST` | `/actions` | Aktion ausführen |
 | `GET` | `/stream` | SSE-Verbindung |
 | `GET` | `/log?before={id}` / `?after={id}` | Log nachladen |
+
+Umsetzung (`app/api/`; die JSON-Routen oben bleiben neben den HTML-Seiten bestehen, z. B. für Tests und andere Clients):
+
+- Session: signiertes Cookie (`SessionMiddleware`, Secret aus `SESSION_SECRET`, `SameSite=Lax`, mit `SESSION_HTTPS_ONLY=1` nur über HTTPS) mit `account_id` und dem gewählten `player_id`. Ob der Charakter wirklich in der Welt ist, entscheidet immer `Player.online` in der Datenbank.
+- `POST /register` legt den Account an und meldet ihn an. Benutzernamen: 3–32 Zeichen `[A-Za-z0-9_.-]`, eindeutig ohne Groß-/Kleinschreibung; Passwort 8–128 Zeichen, argon2-Hash (im Worker-Thread; bei unbekanntem Benutzernamen wird gegen einen Dummy-Hash geprüft, damit die Antwortzeit nichts verrät).
+- Charakternamen: 3–20 Buchstaben (inkl. Umlaute). Neue Charaktere starten mit den Werten von Level 1 in `start_room_id` (zugleich Checkpoint). Das Limit `max_characters_per_account` hält auch bei gleichzeitigen Anfragen (Sperre auf die Account-Zeile).
+- `POST /characters/{id}/play` und `POST /logout` nehmen optional `{"confirm_death": true}`; ohne Bestätigung antworten sie im Kampf mit `409`. `POST /actions` mit `logout` liefert stattdessen das Event `session.confirm_death`.
+- `POST /actions`: Antwort `{"events": [{kind, text, data}]}` mit den Events für den Handelnden. `401`, wenn der Charakter nicht (mehr) in der Welt ist; `503`, wenn Sperrkonflikte alle Wiederholungen überdauern.
+- `GET /log`: höchstens 50 Einträge, älteste zuerst.
 
 ### Aktionen
 
@@ -782,6 +848,11 @@ class SayAction(BaseModel):
 class GroupInviteAction(BaseModel):
     type: Literal["group_invite"]
     player_name: str
+
+
+class GroupAcceptAction(BaseModel):  # ebenso GroupDeclineAction ("group_decline")
+    type: Literal["group_accept"]
+    inviter_id: UUID
 
 
 class LogoutAction(BaseModel):
@@ -814,7 +885,7 @@ class DropAction(BaseModel):
     quantity: PositiveInt | None = None  # None = ganzer Stapel
 
 
-# ... flee, use_item, equip, unequip, inventory, group_accept,
+# ... flee, use_item, equip, unequip, inventory,
 #     group_leave, group_kick, respawn, look,
 #     trade_request, trade_accept, trade_offer_gold, trade_remove_item, trade_cancel,
 #     bank_deposit, bank_withdraw, buy, sell
@@ -847,6 +918,19 @@ Action = Annotated[
 - SSE über `hx-ext="sse"`; benannte Events tauschen gezielt die passenden Bereiche aus.
 - Buttons werden während laufender Requests deaktiviert (`hx-disabled-elt`).
 - `beforeunload`-Warnung, wenn der Tab im Kampf geschlossen wird.
+
+Umsetzung (`app/api/views.py`, `app/web/`, `app/services/view_service.py`):
+
+- Seiten: `/welcome` (Login & Registrierung), `/select` (Charakterauswahl, Anlegen, Löschen, Abmelden), `/` (Spielansicht). Normale Formulare mit Post-Redirect-Get; Fehler werden in der Seite angezeigt. Beim Wechsel aus einem Kampf zeigt `/select` eine Bestätigung („stirbt und verliert Gold und Gegenstände“).
+- Spielansicht: Status (inkl. `data-state` für die `beforeunload`-Warnung), Raum (Gegner mit HP, Spieler, Händler, Bodenitems, Ausgänge), Aktionsleiste (je nach Zustand: Angreifen/Fliehen, Erwachen, Umsehen, Ausloggen mit Bestätigung im Kampf), Inventar (Plätze, Taschen, Anlegen/Ablegen/Benutzen/Fallenlassen), Log (`aria-live`) und Chat.
+- Aktionen: `POST /ui/actions` (formularkodiert, dieselbe `GameAction`-Validierung). Antwort: die Log-Zeilen des Handelnden plus alle Panels als `hx-swap-oob`, damit die Ansicht immer dem gespeicherten Zustand entspricht. Logout bzw. nicht mehr im Spiel → `HX-Redirect` auf `/select`.
+- Die Panels liest `ViewService` ungesperrt und ohne Log-Einträge; abgeleitete Werte (effektive Werte, regenerierte Monster-HP, Kapazität) kommen aus denselben Engine-Funktionen wie bei den Aktionen. Buttons zeigen nur, was im aktuellen Zustand sinnvoll ist; entschieden wird trotzdem ausschließlich in der Engine.
+- Nach einem SSE-Reconnect lädt die Seite Log und Panels neu. Buttons sind während ihres Requests deaktiviert.
+- htmx 2.0.4 und htmx-ext-sse 2.2.2 liegen unverändert unter `static/vendor/` (0BSD); kein CDN, kein Build-Schritt.
+- Gruppenpanel: Mitglieder mit HP-Balken, Aufenthaltsort und Leitung, offene Einladungen (Annehmen/Ablehnen), Einladen per Name, Verlassen, Entfernen (nur Leitung, nicht im Kampf).
+- Händleransicht: Sortiment mit Preisen (nicht leistbar = ausgegraut), am Inventar „Verkaufen“ mit Erlös pro Stück und für den ganzen Stapel bzw. „Unverkäuflich“.
+- Bankansicht in Bank-Räumen: Bankfach mit Plätzen und „Abheben“, am Inventar „Einlagern“ (ganzer Stapel).
+- Handelsfenster: „Handeln“ an anwesenden Spielern, Anfrage annehmen/ablehnen, beide Angebote nebeneinander mit Bestätigungsstatus (bestätigte Seite grün) und Stand (`revision`), Gold setzen, Items per „Anbieten“ am Inventar hinzufügen und per ✕ zurücknehmen. Angebotene Items zeigen „im Angebot“ und keine anderen Aktionen. Jede Änderung setzt die Bestätigungen zurück und erscheint im Log beider Seiten.
 
 ## Coding Standards
 

@@ -1,0 +1,59 @@
+{% set r = view.room %}{% set p = view.player %}
+<section id="room" class="panel room" aria-labelledby="room-name"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <h2 id="room-name">{{ r.name }}{% if r.safe %} <span class="tag">sicher</span>{% endif %}{% if r.bank %} <span class="tag">Bank</span>{% endif %}</h2>
+  <p class="description">{{ r.description }}</p>
+
+  {% if r.monsters %}
+  <h3>Gegner</h3>
+  <ul class="list">
+    {% for m in r.monsters %}
+    <li class="{% if m.fighting_me %}fighting{% endif %}">
+      <span>{{ m.name }} <span class="muted">{{ m.hp }}/{{ m.max_hp }} HP</span></span>
+      {% if not r.safe and (p.state == 'exploring' or m.fighting_me) %}
+      <button hx-post="/ui/actions" hx-vals='{{ {"type": "attack", "target_id": m.id | string} | tojson }}'>Angreifen</button>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if r.players %}
+  <h3>Hier sind</h3>
+  <ul class="list">
+    {% for pid, name, state in r.players %}
+    <li>
+      <span>{{ name }}{% if state != 'exploring' %} <span class="muted">({{ state_label(state) }})</span>{% endif %}</span>
+      {% if p.state == 'exploring' and state == 'exploring' and view.trade is none %}
+      <button class="subtle" hx-post="/ui/actions" hx-vals='{{ {"type": "trade_request", "target_player_id": pid | string} | tojson }}'>Handeln</button>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if r.merchants %}
+  <h3>Händler</h3>
+  <ul class="list">{% for name in r.merchants %}<li><span>{{ name }}</span></li>{% endfor %}</ul>
+  {% endif %}
+
+  {% if r.floor_items %}
+  <h3>Am Boden</h3>
+  <ul class="list">
+    {% for f in r.floor_items %}
+    <li>
+      <span>{% if f.icon %}<img src="/static/icons/{{ f.icon }}.svg" alt="" class="icon">{% endif %}{% if f.quantity != 1 %}{{ f.quantity }}× {% endif %}{{ f.name }}</span>
+      {% if p.state == 'exploring' %}
+      <button hx-post="/ui/actions" hx-vals='{{ {"type": "pick_up", "floor_item_id": f.id | string} | tojson }}'>Aufheben</button>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  <h3>Ausgänge</h3>
+  <div class="exits">
+    {% for e in r.exits %}
+    <button hx-post="/ui/actions" hx-vals='{{ {"type": "move", "direction": e.direction} | tojson }}' {% if p.state != 'exploring' %}disabled{% endif %} title="{{ e.room_name }}">{{ e.label }}</button>
+    {% endfor %}
+  </div>
+</section>

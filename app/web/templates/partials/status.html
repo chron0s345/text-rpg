@@ -1,0 +1,13 @@
+{% set p = view.player %}
+<section id="status" class="status" data-state="{{ p.state }}" aria-label="Status"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <strong class="name">{{ p.name }}</strong>
+  <span>Level {{ p.level }}</span>
+  <span class="hp">
+    <label for="hp-bar">HP {{ p.hp }}/{{ p.max_hp }}</label>
+    <meter id="hp-bar" min="0" max="{{ p.max_hp }}" low="{{ (p.max_hp * 0.3) | round(0, 'ceil') | int }}" high="{{ (p.max_hp * 0.6) | int }}" optimum="{{ p.max_hp }}" value="{{ p.hp }}"></meter>
+  </span>
+  <span>XP {{ p.xp }}{% if p.xp_next %}/{{ p.xp_next }}{% endif %}</span>
+  <span>Angriff {{ p.attack }} · Verteidigung {{ p.defense }}</span>
+  <span>{{ p.gold }} Gold</span>
+  <span class="state state-{{ p.state }}">{{ state_label(p.state) }}</span>
+</section>

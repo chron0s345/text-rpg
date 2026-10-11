@@ -75,7 +75,8 @@ class Player(SQLModel, table=True):
         CheckConstraint("gold >= 0", name="gold"),
         CheckConstraint("xp >= 0", name="xp"),
         CheckConstraint("level >= 1", name="level"),
-        CheckConstraint("(group_id IS NULL) = (group_joined_at IS NULL)", name="group_joined"),
+        # members have a join time; ON DELETE SET NULL of group_id may leave a stale one behind
+        CheckConstraint("group_id IS NULL OR group_joined_at IS NOT NULL", name="group_joined"),
         # character names are unique (case-insensitive) among non-deleted characters
         Index(
             "uq_player_name_lower",

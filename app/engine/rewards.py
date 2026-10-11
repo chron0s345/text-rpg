@@ -28,9 +28,13 @@ from app.engine.state import (
 
 
 def party_members_in_room(
-    snapshot: ActionSnapshot, party_key: str
+    snapshot: ActionSnapshot, party_key: str, monster_id: UUID | None = None
 ) -> tuple[list[PlayerSnapshot], GroupSnapshot | None]:
-    """Living members of a party in the room, in round-robin order (group join order)."""
+    """Living members of a party in the room, in round-robin order (group join order).
+
+    If the tagging group was dissolved during the fight, its former members who fought this
+    monster (participation with that party key) still count as the party.
+    """
     alive = [p for p in snapshot.players_in_room if p.state != "dead"]
     if party_key.startswith("solo:"):
         player_id = UUID(party_key.removeprefix("solo:"))
@@ -40,6 +44,13 @@ def party_members_in_room(
     members = [p for p in alive if p.group_id == group_id]
     group = snapshot.group(group_id)
     if group is None:
+        if monster_id is not None:
+            fought = {
+                p.player_id
+                for p in snapshot.participations_for(monster_id)
+                if p.party_key == party_key
+            }
+            members += [p for p in alive if p.id in fought and p not in members]
         return sorted(members, key=lambda p: p.id), None
     order = {pid: index for index, pid in enumerate(group.member_ids)}
     return sorted(members, key=lambda p: (order.get(p.id, len(order)), p.id)), group
@@ -69,7 +80,7 @@ def resolve_kill(
     _grant_xp(builder, snapshot, monster, template, content, rules)
 
     tag = monster.tagged_by_party or killer.party_key
-    recipients, group = party_members_in_room(snapshot, tag)
+    recipients, group = party_members_in_room(snapshot, tag, monster.id)
     cursor = group.loot_cursor if group is not None else 0
     cursor = _grant_gold(builder, recipients, template, cursor, rng)
     cursor = _grant_items(builder, recipients, monster, template, content, rules, cursor, now, rng)

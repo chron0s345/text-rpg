@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from collections.abc import Sequence
+from datetime import datetime
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field, PositiveInt
 
 from app.content.schemas import Direction
+from app.engine.events import GameEvent
 
 
 class MoveAction(BaseModel):
@@ -56,12 +59,17 @@ class SayAction(BaseModel):
 
 class GroupInviteAction(BaseModel):
     type: Literal["group_invite"] = "group_invite"
-    player_name: str
+    player_name: str = Field(min_length=1, max_length=20)
 
 
 class GroupAcceptAction(BaseModel):
     type: Literal["group_accept"] = "group_accept"
-    group_id: UUID
+    inviter_id: UUID  # the invitation may predate the group (created on accept)
+
+
+class GroupDeclineAction(BaseModel):
+    type: Literal["group_decline"] = "group_decline"
+    inviter_id: UUID
 
 
 class GroupLeaveAction(BaseModel):
@@ -168,6 +176,7 @@ GameAction = Annotated[
     | SayAction
     | GroupInviteAction
     | GroupAcceptAction
+    | GroupDeclineAction
     | GroupLeaveAction
     | GroupKickAction
     | TradeRequestAction
@@ -187,3 +196,64 @@ GameAction = Annotated[
     | LogoutAction,
     Field(discriminator="type"),
 ]
+
+
+# --- requests & responses of the HTTP API (app/api/) ------------------------------------------
+
+
+class Credentials(BaseModel):
+    username: str = Field(max_length=32)
+    password: str = Field(max_length=128)
+
+
+class AccountOut(BaseModel):
+    id: UUID
+    username: str
+
+
+class CharacterCreate(BaseModel):
+    name: str = Field(max_length=20)
+
+
+class CharacterOut(BaseModel):
+    id: UUID
+    name: str
+    level: int
+    state: str
+    room_id: str
+    online: bool
+
+
+class PlayRequest(BaseModel):
+    confirm_death: bool = False  # another character of the account is in combat
+
+
+class LogoutRequest(BaseModel):
+    confirm_death: bool = False  # the active character is in combat
+
+
+class EventOut(BaseModel):
+    """A game event as the client sees it (audience/routing details stay on the server)."""
+
+    kind: str
+    text: str
+    data: dict[str, Any] = Field(default_factory=dict)
+
+
+class ActionResponse(BaseModel):
+    events: list[EventOut]
+
+    @classmethod
+    def of(cls, events: Sequence[GameEvent]) -> ActionResponse:
+        return cls(events=[EventOut(kind=e.kind, text=e.text, data=e.data) for e in events])
+
+
+class LogEntryOut(BaseModel):
+    id: int
+    kind: str
+    text: str
+    created_at: datetime
+
+
+class LogPage(BaseModel):
+    entries: list[LogEntryOut]  # oldest first
