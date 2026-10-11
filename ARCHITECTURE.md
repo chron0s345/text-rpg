@@ -79,6 +79,7 @@ app/
 ├── content/
 │   ├── schemas.py
 │   ├── loader.py
+│   ├── prices.py        # Kauf-/Verkaufspreise (Engine & Validierung)
 │   └── registry.py
 ├── db/
 │   ├── models.py        # SQLModel-Tabellen (nur veränderlicher Zustand)
@@ -578,6 +579,8 @@ Regeln:
 - Gold wird nicht eingelagert. Es bleibt beim Charakter und unterliegt der Todesstrafe (siehe *Offene Entscheidungen*).
 - Bankinhalte sind vor Verlust beim Tod geschützt.
 
+Umsetzung (`engine/bank.py`): Für Bankaktionen lädt und sperrt `load_action_snapshot(..., with_bank=True)` zusätzlich das Bankfach des Handelnden (`ActionSnapshot.bank`, Sperre nach dem Inventar). Bankfach-Einträge nutzen dieselben Stapel- und Kapazitätsfunktionen wie das Inventar (`bank.slots`). Passt nicht alles, wird so viel wie möglich verschoben und der Rest gemeldet.
+
 ### Händler
 
 - Händler sind Content (`merchants.yaml`), keine Datenbankobjekte. Sie stehen in einem festen Raum und werden in der Raumansicht angezeigt.
@@ -586,6 +589,8 @@ Regeln:
 - Verkaufte Items verschwinden; Händler verkaufen sie nicht an andere Spieler weiter.
 - Kaufen und Verkaufen sind je eine Transaktion und landen im Log des Spielers.
 - Die Validierung beim Laden stellt sicher, dass sich kein Item günstiger kaufen als verkaufen lässt.
+
+Umsetzung (`engine/merchant.py`, Preise in `content/prices.py`, gemeinsam für Engine und Content-Validierung): Kaufen ist „alles oder nichts“ – die ganze Menge muss bezahlbar sein und ins Inventar passen. Ein berechneter Kaufpreis ist mindestens 1 Gold. Verkaufen geht stück- oder stapelweise; stehen mehrere Händler im Raum, zeigt die Oberfläche das beste Angebot.
 
 ### Schutz vor Item-Transfer zwischen eigenen Charakteren
 
@@ -727,7 +732,7 @@ Umsetzung: `ActionService.execute` (`app/services/action_service.py`).
 - Ist der Charakter offline, gelöscht oder unbekannt (auch wenn das erst während des Wartens auf die Sperre passiert), gibt es `NotPlayingError` (HTTP 401).
 - Zufall: `random.SystemRandom` (Würfe sind nicht aus früheren Ergebnissen vorhersagbar); Tests injizieren einen festen Seed und eine feste Uhr.
 - Login (`ActionService.login`) läuft über denselben Ablauf (Sperren, Engine `resolve_login`, Log, Publizieren nach Commit); es ist die einzige Operation für einen Offline-Charakter und unterliegt keinem Rate Limit. `logout` ist ebenfalls vom Rate Limit ausgenommen (nur eine gleichzeitig laufende Aktion wird abgewiesen), damit niemand in der Welt festhängt. `online` und `disconnected_at` werden wie jede Änderung über `PlayerUpdate` geschrieben.
-- Aktionen späterer Schritte (Handel, Bank, Händler) werden vorerst mit „Diese Aktion ist noch nicht verfügbar.“ abgelehnt.
+- Aktionen späterer Schritte (Handel) werden vorerst mit „Diese Aktion ist noch nicht verfügbar.“ abgelehnt.
 
 ### Locking
 
@@ -914,7 +919,9 @@ Umsetzung (`app/api/views.py`, `app/web/`, `app/services/view_service.py`):
 - Nach einem SSE-Reconnect lädt die Seite Log und Panels neu. Buttons sind während ihres Requests deaktiviert.
 - htmx 2.0.4 und htmx-ext-sse 2.2.2 liegen unverändert unter `static/vendor/` (0BSD); kein CDN, kein Build-Schritt.
 - Gruppenpanel: Mitglieder mit HP-Balken, Aufenthaltsort und Leitung, offene Einladungen (Annehmen/Ablehnen), Einladen per Name, Verlassen, Entfernen (nur Leitung, nicht im Kampf).
-- Handelsfenster, Bank- und Händleransicht folgen mit den jeweiligen Engine-Modulen.
+- Händleransicht: Sortiment mit Preisen (nicht leistbar = ausgegraut), am Inventar „Verkaufen“ mit Erlös pro Stück und für den ganzen Stapel bzw. „Unverkäuflich“.
+- Bankansicht in Bank-Räumen: Bankfach mit Plätzen und „Abheben“, am Inventar „Einlagern“ (ganzer Stapel).
+- Das Handelsfenster folgt mit `engine/trade.py`.
 
 ## Coding Standards
 

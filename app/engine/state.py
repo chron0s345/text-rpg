@@ -153,6 +153,8 @@ class ActionSnapshot(BaseModel):
     participations: list[ParticipationSnapshot] = Field(default_factory=list)
     groups: list[GroupSnapshot] = Field(default_factory=list)
     floor_items: list[FloorItemSnapshot] = Field(default_factory=list)
+    # the actor's bank storage; only loaded (and locked) for bank actions
+    bank: list[InventoryItemState] = Field(default_factory=list)
 
     @property
     def players_in_room(self) -> list[PlayerSnapshot]:

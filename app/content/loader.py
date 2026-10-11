@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import math
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any, TypeVar
@@ -9,6 +8,7 @@ from typing import Any, TypeVar
 import yaml
 from pydantic import BaseModel, ValidationError
 
+from app.content.prices import buy_price, sell_price
 from app.content.registry import ContentRegistry
 from app.content.schemas import (
     ItemTemplate,
@@ -217,32 +217,14 @@ def validate_content(
     for merchant in merchants.values():
         for offer in merchant.sells:
             item = items[offer.item_id]
-            buy_price = (
-                offer.price
-                if offer.price is not None
-                else int(item.value * rules.merchant.buy_ratio)
-            )
-
-            if not item.sellable:
-                continue
-
+            price = buy_price(offer, item, rules)
             for other_merchant in merchants.values():
-                # Can other_merchant buy this item?
-                if other_merchant.buys == "listed" and item.kind not in other_merchant.buys_kinds:
-                    continue
-
-                sell_ratio = (
-                    other_merchant.sell_ratio
-                    if other_merchant.sell_ratio is not None
-                    else rules.merchant.sell_ratio
-                )
-                sell_revenue = math.floor(item.value * sell_ratio)
-
-                if buy_price < sell_revenue:
+                revenue = sell_price(item, other_merchant, rules)
+                if revenue is not None and price < revenue:
                     raise ContentValidationError(
                         f"Infinite money loop detected! Player can buy '{item.id}' "
-                        f"from '{merchant.id}' for {buy_price}g "
-                        f"and sell to '{other_merchant.id}' for {sell_revenue}g."
+                        f"from '{merchant.id}' for {price}g "
+                        f"and sell to '{other_merchant.id}' for {revenue}g."
                     )
 
     # Reachability warnings (non-fatal, logged)

@@ -7,7 +7,7 @@ the same engine functions the actions use, so the page and the rules cannot disa
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
@@ -16,10 +16,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlmodel import col
 
+from app.content.prices import buy_price, sell_price
 from app.content.registry import ContentRegistry
-from app.content.schemas import Direction, Heal
-from app.db.mappers import player_snapshot
+from app.content.schemas import Direction, Heal, MerchantOffer, MerchantTemplate
+from app.db.mappers import bank_item_state, player_snapshot
 from app.db.models import (
+    BankItem,
     FloorItem,
     Group,
     GroupInvite,
@@ -102,6 +104,33 @@ class ItemView:
     equipped_slot: str | None
     equippable: bool
     usable: bool
+    # best offer of a merchant in this room: (merchant id, gold per unit); None = cannot sell here
+    sell: tuple[str, int] | None = None
+
+
+@dataclass(frozen=True)
+class OfferView:
+    item_id: str
+    name: str
+    description: str
+    icon: str | None
+    price: int
+    affordable: bool
+
+
+@dataclass(frozen=True)
+class ShopView:
+    merchant_id: str
+    name: str
+    greeting: str
+    offers: list[OfferView]
+
+
+@dataclass(frozen=True)
+class BankView:
+    used: int
+    capacity: int
+    items: list[ItemView]
 
 
 @dataclass(frozen=True)
@@ -154,6 +183,8 @@ class GameView:
     room: RoomView
     inventory: InventoryView
     group: GroupView
+    shops: list[ShopView]  # merchants in the room
+    bank: BankView | None  # only in bank rooms
 
 
 class ViewService:
@@ -269,7 +300,8 @@ class ViewService:
             floor_items=floor_views,
         )
 
-        items = [self._item(entry) for entry in snapshot.inventory]
+        merchants = self.content.merchants_in_room(room.id)
+        items = [self._item(entry, merchants) for entry in snapshot.inventory]
         inventory_view = InventoryView(
             used=get_occupied_slots(snapshot.inventory),
             capacity=calculate_inventory_capacity(
@@ -281,7 +313,45 @@ class ViewService:
             equipped=[i for i in items if i.equipped_slot is not None],
         )
         group_view = await self._group(row, now)
-        return GameView(player=player, room=room_view, inventory=inventory_view, group=group_view)
+        shops = [
+            ShopView(
+                merchant_id=merchant.id,
+                name=merchant.name,
+                greeting=merchant.greeting,
+                offers=[self._offer(offer, row.gold) for offer in merchant.sells],
+            )
+            for merchant in merchants
+        ]
+        bank_view = await self._bank(row.id) if room.bank else None
+        return GameView(
+            player=player,
+            room=room_view,
+            inventory=inventory_view,
+            group=group_view,
+            shops=shops,
+            bank=bank_view,
+        )
+
+    def _offer(self, offer: MerchantOffer, gold: int) -> OfferView:
+        item = self.content.get_item(offer.item_id)
+        price = buy_price(offer, item, self.content.rules)
+        return OfferView(item.id, item.name, item.description, item.icon, price, price <= gold)
+
+    async def _bank(self, player_id: UUID) -> BankView:
+        async with self.sessions() as session:
+            rows = (
+                await session.scalars(
+                    select(BankItem)
+                    .where(col(BankItem.player_id) == player_id)
+                    .order_by(col(BankItem.item_id), col(BankItem.id))
+                )
+            ).all()
+        stored = [bank_item_state(r) for r in rows]
+        return BankView(
+            used=get_occupied_slots(stored),
+            capacity=self.content.rules.bank.slots,
+            items=[self._item(entry) for entry in stored],
+        )
 
     async def _group(self, row: Player, now: datetime) -> GroupView:
         rules = self.content.rules
@@ -356,8 +426,15 @@ class ViewService:
             invites=[InviteView(inviter_id, name) for inviter_id, name in invites],
         )
 
-    def _item(self, entry: InventoryItemState) -> ItemView:
+    def _item(
+        self, entry: InventoryItemState, merchants: Sequence[MerchantTemplate] = ()
+    ) -> ItemView:
         item = self.content.get_item(entry.item_id)
+        offers = [
+            (merchant.id, price)
+            for merchant in merchants
+            if (price := sell_price(item, merchant, self.content.rules)) is not None
+        ]
         return ItemView(
             id=entry.id,
             name=item.name,
@@ -367,6 +444,7 @@ class ViewService:
             equipped_slot=entry.equipped_slot,
             equippable=item.slot is not None,
             usable=any(isinstance(e, Heal) for e in item.effects),
+            sell=max(offers, key=lambda o: o[1]) if offers else None,
         )
 
     async def log(self, player_id: UUID, limit: int = LOG_LINES) -> list[LogLine]:

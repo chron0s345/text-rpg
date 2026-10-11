@@ -81,8 +81,8 @@ async def test_ui_action_returns_log_lines_and_oob_panels(api: Api) -> None:
         response = await client.post("/ui/actions", data={"type": "say", "text": "<i>hi</i>"})
         assert response.status_code == 200
         assert '<li class="log-chat-say">Du sagst: &lt;i&gt;hi&lt;/i&gt;</li>' in response.text
-        # status, room, actions, group, inventory
-        assert response.text.count('hx-swap-oob="true"') == 5
+        # status, room, actions, shop, bank, group, inventory
+        assert response.text.count('hx-swap-oob="true"') == 7
 
         api.clock.advance(seconds=1)
         moved = await client.post("/ui/actions", data={"type": "move", "direction": "south"})
@@ -134,3 +134,43 @@ async def test_static_files_are_served(api: Api) -> None:
             "/static/icons/dagger.svg",
         ):
             assert (await client.get(path)).status_code == 200, path
+
+
+async def test_shop_and_bank_views(api: Api) -> None:
+    from sqlalchemy import update
+    from sqlmodel import col
+
+    from app.db.models import InventoryItem, Player
+
+    async with api.client() as client:
+        await playing(api, client)
+        character_id = (await client.get("/characters")).json()[0]["id"]
+        async with api.committed.session() as db, db.begin():
+            await db.execute(
+                update(Player)
+                .where(col(Player.id) == character_id)
+                .values(current_room_id="town_market", gold=10)
+            )
+            db.add(InventoryItem(player_id=character_id, item_id="goblin_ear", quantity=3))
+
+        page = (await client.get("/")).text
+        assert "Alchemistin Elira" in page
+        assert "Verkaufen (1 G)" in page and "Alle (3 G)" in page
+        assert 'title="Zu wenig Gold"' in page  # healing potion costs 15
+        assert 'id="bank"' in page and "Bankfach" not in page  # no bank here
+
+        api.clock.advance(seconds=1)
+        bought = await client.post(
+            "/ui/actions",
+            data={"type": "buy", "merchant_id": "alchemist", "item_id": "bread", "quantity": "1"},
+        )
+        assert "Du kaufst Frisches Brot für 3 Gold." in bought.text
+
+        async with api.committed.session() as db, db.begin():
+            await db.execute(
+                update(Player)
+                .where(col(Player.id) == character_id)
+                .values(current_room_id="town_bank")
+            )
+        page = (await client.get("/")).text
+        assert "Bankfach" in page and "Einlagern" in page

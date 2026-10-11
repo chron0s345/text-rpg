@@ -8,6 +8,7 @@ from uuid import UUID
 
 from app.content.schemas import EquipSlot, PlayerState
 from app.db.models import (
+    BankItem,
     CombatParticipation,
     FloorItem,
     Group,
@@ -110,3 +111,7 @@ def invite_snapshot(row: GroupInvite) -> InviteSnapshot:
         group_id=row.group_id,
         expires_at=row.expires_at,
     )
+
+
+def bank_item_state(row: BankItem) -> InventoryItemState:
+    return InventoryItemState(id=row.id, item_id=row.item_id, quantity=row.quantity)

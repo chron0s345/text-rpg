@@ -25,6 +25,17 @@
         <button hx-post="/ui/actions" hx-vals='{{ {"type": "use_item", "inventory_item_id": i.id | string} | tojson }}'>Benutzen</button>
         {% endif %}
         {% if p.state == 'exploring' %}
+          {% if i.sell %}
+          <button hx-post="/ui/actions" hx-vals='{{ {"type": "sell", "merchant_id": i.sell[0], "inventory_item_id": i.id | string, "quantity": "1"} | tojson }}'>Verkaufen ({{ i.sell[1] }} G)</button>
+            {% if i.quantity > 1 %}
+          <button class="subtle" hx-post="/ui/actions" hx-vals='{{ {"type": "sell", "merchant_id": i.sell[0], "inventory_item_id": i.id | string, "quantity": i.quantity | string} | tojson }}'>Alle ({{ i.sell[1] * i.quantity }} G)</button>
+            {% endif %}
+          {% elif view.shops %}
+          <button disabled title="Das kauft hier niemand.">Unverkäuflich</button>
+          {% endif %}
+          {% if view.bank is not none %}
+          <button hx-post="/ui/actions" hx-vals='{{ {"type": "bank_deposit", "inventory_item_id": i.id | string, "quantity": i.quantity | string} | tojson }}'>Einlagern</button>
+          {% endif %}
           {% if i.equippable %}
           <button hx-post="/ui/actions" hx-vals='{{ {"type": "equip", "inventory_item_id": i.id | string} | tojson }}'>Anlegen</button>
           {% endif %}

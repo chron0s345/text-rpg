@@ -15,11 +15,11 @@ from sqlmodel import col
 
 from app.api.schemas import (
     AttackAction,
-    BuyAction,
     LookAction,
     MoveAction,
     PickUpAction,
     SayAction,
+    TradeRequestAction,
 )
 from app.db.models import CombatParticipation, FloorItem, InventoryItem, LogEntry, MonsterInstance
 from app.db.models import Player as PlayerRow
@@ -137,7 +137,7 @@ async def test_offline_deleted_or_unknown_characters_cannot_act(harness: Service
 async def test_actions_of_later_steps_are_rejected(harness: ServiceHarness) -> None:
     h = harness
     actor = await player(h, h.scratch_room("town_market"))
-    outcome = await h.service.execute(actor.id, BuyAction(merchant_id="alchemist", item_id="bread"))
+    outcome = await h.service.execute(actor.id, TradeRequestAction(target_player_id=uuid4()))
     assert texts(outcome.events) == [NOT_AVAILABLE]
 
 

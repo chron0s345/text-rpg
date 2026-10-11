@@ -31,6 +31,9 @@ from sqlmodel import col
 
 from app.api.schemas import (
     AttackAction,
+    BankDepositAction,
+    BankWithdrawAction,
+    BuyAction,
     DropAction,
     EquipAction,
     FleeAction,
@@ -47,6 +50,7 @@ from app.api.schemas import (
     PickUpAction,
     RespawnAction,
     SayAction,
+    SellAction,
     UnequipAction,
     UseItemAction,
 )
@@ -55,6 +59,7 @@ from app.db.models import Player
 from app.db.repository import Repository, SnapshotChangedError, UnknownPlayerError
 from app.engine.actions import resolve_look, resolve_respawn, resolve_say
 from app.engine.ambush import resolve_idle_ambush
+from app.engine.bank import resolve_bank_deposit, resolve_bank_withdraw
 from app.engine.combat import resolve_attack, resolve_flee
 from app.engine.events import ActionResult, ActorAudience, GameEvent, rejected
 from app.engine.groups import (
@@ -72,6 +77,7 @@ from app.engine.inventory_actions import (
     resolve_unequip,
     resolve_use_item,
 )
+from app.engine.merchant import resolve_buy, resolve_sell
 from app.engine.movement import resolve_move
 from app.engine.presence import (
     LOGGED_OUT,
@@ -190,7 +196,8 @@ class ActionService:
         outcome = await self._run(
             player_id,
             self._room_loader(
-                lambda pre: self._target_room(action, pre.room_id, pre.checkpoint_room_id)
+                lambda pre: self._target_room(action, pre.room_id, pre.checkpoint_room_id),
+                with_bank=isinstance(action, BankDepositAction | BankWithdrawAction),
             ),
             resolve,
             LOGOUT if isinstance(action, LogoutAction) else PLAYER_ACTION,
@@ -299,10 +306,15 @@ class ActionService:
     @staticmethod
     def _room_loader(
         target_room: Callable[[PreRead], str] = lambda pre: pre.room_id,
+        *,
+        with_bank: bool = False,
     ) -> Loader[ActionSnapshot]:
-        """The room the action ends in (move: destination, respawn: checkpoint)."""
+        """The room the action ends in (move: destination, respawn: checkpoint); bank actions
+        also lock the actor's bank."""
 
         async def load(repo: Repository, player_id: UUID, pre: PreRead) -> ActionSnapshot:
+            if with_bank:
+                return await repo.load_action_snapshot(player_id, target_room(pre), with_bank=True)
             return await repo.load_action_snapshot(player_id, target_room(pre))
 
         return load
@@ -490,6 +502,16 @@ class ActionService:
                 return resolve_drop(*args, action.inventory_item_id, action.quantity)
             case LogoutAction():
                 return resolve_logout(*args, action.confirm_death)
+            case BuyAction():
+                return resolve_buy(*args, action.merchant_id, action.item_id, action.quantity)
+            case SellAction():
+                return resolve_sell(
+                    *args, action.merchant_id, action.inventory_item_id, action.quantity
+                )
+            case BankDepositAction():
+                return resolve_bank_deposit(*args, action.inventory_item_id, action.quantity)
+            case BankWithdrawAction():
+                return resolve_bank_withdraw(*args, action.bank_item_id, action.quantity)
             case _:
-                # groups, trade, bank, merchants: later steps
+                # trade: later step
                 return rejected(NOT_AVAILABLE)

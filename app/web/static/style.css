@@ -77,6 +77,8 @@ label input { margin-top: .2rem; color: var(--text); }
 .list li { display: flex; justify-content: space-between; align-items: center; gap: .5rem; padding: .25rem 0; border-bottom: 1px solid var(--border); }
 .list li:last-child { border-bottom: none; }
 .list li.fighting { color: var(--danger); }
+.list li.unaffordable > span { opacity: .5; }
+.list li .buttons { flex-wrap: wrap; justify-content: flex-end; }
 .icon { width: 1.1rem; height: 1.1rem; vertical-align: -.2rem; margin-right: .35rem;
   filter: invert(.9); /* stroke=currentColor renders black inside <img> */ }
 .exits, .actions { display: flex; flex-wrap: wrap; gap: .4rem; }

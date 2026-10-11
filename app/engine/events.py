@@ -106,6 +106,11 @@ class InventoryUpsert(BaseModel):
     item: InventoryItemState
 
 
+class BankUpsert(BaseModel):
+    player_id: UUID
+    item: InventoryItemState  # equipped_slot is always None in the bank
+
+
 class FloorItemCreate(BaseModel):
     id: UUID
     room_id: str
@@ -169,6 +174,8 @@ class StateChanges(BaseModel):
     participations_clear_monster_ids: list[UUID] = Field(default_factory=list)
     inventory_upsert: list[InventoryUpsert] = Field(default_factory=list)
     inventory_delete: list[UUID] = Field(default_factory=list)
+    bank_upsert: list[BankUpsert] = Field(default_factory=list)
+    bank_delete: list[UUID] = Field(default_factory=list)
     floor_items_create: list[FloorItemCreate] = Field(default_factory=list)
     floor_items_update: list[FloorItemUpdate] = Field(default_factory=list)
     floor_items_delete: list[UUID] = Field(default_factory=list)
@@ -212,6 +219,13 @@ class ResultBuilder:
         ]
         self.changes.inventory_upsert.extend(
             InventoryUpsert(player_id=player_id, item=e.model_copy()) for e in unique.values()
+        )
+
+    def upsert_bank(self, player_id: UUID, entries: list[InventoryItemState]) -> None:
+        unique = {e.id: e for e in entries}
+        self.changes.bank_upsert = [u for u in self.changes.bank_upsert if u.item.id not in unique]
+        self.changes.bank_upsert.extend(
+            BankUpsert(player_id=player_id, item=e.model_copy()) for e in unique.values()
         )
 
     def event(
@@ -268,6 +282,8 @@ class ResultBuilder:
         changes.inventory_upsert = [
             u for u in changes.inventory_upsert if u.item.id not in deleted_items
         ]
+        deleted_bank = set(changes.bank_delete)
+        changes.bank_upsert = [u for u in changes.bank_upsert if u.item.id not in deleted_bank]
         deleted_floor = set(changes.floor_items_delete)
         changes.floor_items_update = [
             u for u in changes.floor_items_update if u.id not in deleted_floor

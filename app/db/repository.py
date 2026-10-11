@@ -31,6 +31,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col
 
 from app.db.mappers import (
+    bank_item_state,
     floor_item_snapshot,
     group_snapshot,
     invite_snapshot,
@@ -39,6 +40,7 @@ from app.db.mappers import (
     player_snapshot,
 )
 from app.db.models import (
+    BankItem,
     CombatParticipation,
     FloorItem,
     Group,
@@ -84,6 +86,8 @@ class Locks:
     groups: set[UUID] = field(default_factory=set)
     players: set[UUID] = field(default_factory=set)
     inventory: dict[UUID, UUID] = field(default_factory=dict)  # item id -> owner id
+    bank: dict[UUID, UUID] = field(default_factory=dict)  # bank item id -> owner id
+    bank_owners: set[UUID] = field(default_factory=set)  # banks locked (also when empty)
     monsters: set[UUID] = field(default_factory=set)
     participations: set[tuple[UUID, UUID]] = field(default_factory=set)
     floor_items: set[UUID] = field(default_factory=set)
@@ -153,6 +157,20 @@ class Repository:
         )
         rows = await self._lock_rows(stmt)
         self.locks.inventory.update({r.id: r.player_id for r in rows})
+        return rows
+
+    async def lock_bank(self, player_ids: Iterable[UUID]) -> list[BankItem]:
+        ids = sorted(set(player_ids))
+        if not ids:
+            return []
+        stmt = (
+            select(BankItem)
+            .where(col(BankItem.player_id).in_(ids))
+            .order_by(col(BankItem.player_id), col(BankItem.id))
+        )
+        rows = await self._lock_rows(stmt)
+        self.locks.bank.update({r.id: r.player_id for r in rows})
+        self.locks.bank_owners.update(ids)
         return rows
 
     async def lock_monsters_in_room(self, room_id: str) -> list[MonsterInstance]:
@@ -290,7 +308,7 @@ class Repository:
     # --- snapshot ----------------------------------------------------------------------------
 
     async def load_action_snapshot(
-        self, actor_id: UUID, room_id: str | None = None
+        self, actor_id: UUID, room_id: str | None = None, *, with_bank: bool = False
     ) -> ActionSnapshot:
         """Locks and loads everything an action in ``room_id`` may touch.
 
@@ -342,6 +360,7 @@ class Repository:
 
         player_ids = [actor.id, *(p.id for p in in_room)]
         inventory = await self.lock_inventories(player_ids)
+        bank = await self.lock_bank([actor.id]) if with_bank else []
         monsters = await self.lock_monsters_in_room(room)
         participations = await self.lock_participations([m.id for m in monsters])
         floor_items = await self.lock_floor_items_in_room(room)
@@ -364,6 +383,7 @@ class Repository:
             participations=[participation_snapshot(p) for p in participations],
             groups=[group_snapshot(g, await self._member_ids(g.id)) for g in groups],
             floor_items=[floor_item_snapshot(f) for f in floor_items],
+            bank=[bank_item_state(b) for b in bank],
         )
 
     async def _member_ids(self, group_id: UUID) -> list[UUID]:
@@ -484,6 +504,31 @@ class Repository:
             if item is not None:
                 await session.delete(item)
             del locks.inventory[item_id]
+
+        for bank_upsert in changes.bank_upsert:
+            state, owner = bank_upsert.item, bank_upsert.player_id
+            self._require(owner in locks.bank_owners, "bank")
+            if state.id in locks.bank:
+                if locks.bank[state.id] != owner:
+                    raise InconsistentChangesError(f"bank entry {state.id} changed owner")
+                stored = await session.get(BankItem, state.id)
+                assert stored is not None
+                if stored.item_id != state.item_id:
+                    raise InconsistentChangesError(f"bank entry {state.id} changed item")
+                stored.quantity = state.quantity
+            else:
+                session.add(
+                    BankItem(
+                        id=state.id, player_id=owner, item_id=state.item_id, quantity=state.quantity
+                    )
+                )
+                locks.bank[state.id] = owner
+        for bank_id in changes.bank_delete:
+            self._require(bank_id in locks.bank, "bank entry")
+            stored = await session.get(BankItem, bank_id)
+            if stored is not None:
+                await session.delete(stored)
+            del locks.bank[bank_id]
 
         for create in changes.floor_items_create:
             self._require(create.room_id in locks.rooms, f"room {create.room_id}")
