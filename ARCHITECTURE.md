@@ -41,12 +41,16 @@ Bei mehreren Server-Prozessen muss ein Event aus Prozess A auch die SSE-Verbindu
 
 ```
 app/
-├── main.py              # FastAPI-App, Lifespan: Content laden, Event-Bus & World-Ticker starten
+├── main.py              # create_app(): Lifespan mit Content, DB, Event-Bus, Services, World-Ticker
+├── settings.py          # Konfiguration aus der Umgebung (DATABASE_URL, SECRET_KEY, ...)
 ├── api/                 # HTTP-Routen, nur dünne Schicht
 │   ├── auth.py          # Registrierung, Login, Logout
 │   ├── characters.py    # Charaktere anlegen, auswählen, löschen
 │   ├── actions.py       # POST /actions
-│   ├── stream.py        # GET /stream (SSE)
+│   ├── stream.py        # GET /stream (SSE), GET /log
+│   ├── deps.py          # Services, aktueller Account & Charakter
+│   ├── cookies.py       # signiertes Session-Cookie
+│   ├── errors.py        # Service-Fehler → HTTP-Status
 │   └── views.py         # Seiten & Partials
 ├── engine/              # Reine Spiellogik, kein HTTP, kein DB-Zugriff
 │   ├── state.py         # Snapshots (ActionSnapshot, PlayerSnapshot, ...) als Engine-Eingabe
@@ -88,6 +92,7 @@ app/
 ├── services/            # Orchestrierung: sperrt & lädt Zustand, ruft Engine, speichert, publiziert
 │   ├── events.py            # EventPublisher-Interface (Umsetzung im Realtime-Layer)
 │   ├── action_service.py
+│   ├── account_service.py   # Accounts (argon2), Charaktere anlegen/löschen
 │   ├── logbook.py           # Log-Einträge für alle Empfänger eines Events
 │   ├── transactions.py      # Wiederholungsregeln bei Sperrkonflikten
 │   ├── session_service.py   # Login/Logout eines Charakters, Disconnect-Handling
@@ -683,7 +688,7 @@ Umsetzung: `WorldTicker` (`app/services/world_ticker.py`), Engine-Bausteine in `
 - Abgelaufene Gruppeneinladungen und Handelsanfragen (`status = "requested"`) werden gelöscht; offene Handel bleiben unberührt.
 - Führung: Der Leader hält das Advisory Lock auf einer eigenen Verbindung (`TickerLeadership`) und prüft vor jedem Tick, ob es noch dieselbe Datenbank-Session (Backend-PID) ist – SQLAlchemy verbindet eine abgebrochene Verbindung sonst stillschweigend neu, ohne Lock. Beim Beenden wird das Lock freigegeben.
 - Schritt 4 (Disconnect-Fristen) ruft je abgelaufenem Charakter `SessionService.expire_disconnect` in einer eigenen Transaktion auf; die Frist wird dort unter der Sperre erneut geprüft (ein Reconnect dazwischen gewinnt).
-- Noch offen: das Starten des Tickers im Lifespan von `app/main.py` mit dem App-Zusammenbau (Datenbank, Event-Bus, Routen).
+- Der Ticker startet im Lifespan von `app/main.py` (`create_app`).
 
 ### Zufall & Zeit
 
@@ -850,6 +855,19 @@ Action = Annotated[
     Field(discriminator="type"),
 ]
 ```
+
+Umsetzung (`app/api/`, JSON mit Pydantic-Modellen aus `app/api/schemas.py`; die HTML-Ansichten mit Jinja/HTMX folgen mit dem Frontend):
+
+- **Session-Cookie** `rpg_session`: `<account_id>.<ablauf>.<HMAC-SHA256>`, signiert mit `SECRET_KEY` (für alle Worker gleich setzen), `HttpOnly`, `SameSite=Lax`, `Secure` über `COOKIE_SECURE`. Das Cookie nennt nur den Account; welcher Charakter spielt, steht in der Datenbank (der eine Online-Charakter des Accounts). Ein kopiertes Cookie bleibt bis zum Ablauf (7 Tage) gültig.
+- `POST /register`, `POST /login` setzen das Cookie. Falsches Passwort und unbekannter Name liefern dieselbe Antwort (401); unbekannte Namen werden gegen einen Dummy-Hash geprüft. Benutzernamen: 3–32 Zeichen `A–Z a–z 0–9 _ -`, Passwort 8–128 Zeichen.
+- `POST /logout` (Account): loggt den Charakter im Spiel aus; im Kampf zuerst `{"status": "confirm_death"}`, das Cookie bleibt dann bestehen. Mit `{"confirm_death": true}` stirbt der Charakter, danach wird das Cookie gelöscht.
+- `GET/POST /characters`, `POST /characters/{id}/play` (Body optional `{"confirm_death": true}`), `DELETE /characters/{id}` (nur offline, sonst 409). Charakternamen: 3–20 Buchstaben (inkl. Umlaute), eindeutig ohne Groß-/Kleinschreibung; höchstens `max_characters_per_account`. Neue Charaktere starten in `start_room_id` mit den Werten von Level 1.
+- `POST /actions`: Body ist eine `GameAction`; Antwort `ActionResponse {status, events}` mit den Events des Handelnden. `logout` geht an den `SessionService` (das Account-Cookie bleibt, der Client kehrt zur Charakterauswahl zurück).
+- `GET /log?after=&before=&limit=` (max. 200): Log des Charakters im Spiel, älteste zuerst.
+- `GET /stream`: SSE mit benannten Events `ready`, `game` (ein `GameEvent` als JSON), `reload` (Events verworfen, Zustand neu laden) und `closed` (Charakter nicht mehr im Spiel). Heartbeat alle 15 s; dabei wird `SessionService.connect` erneut aufgerufen, was eine anderswo gestartete Frist beendet (z. B. `mark_all_disconnected` eines später gestarteten Workers) und den Stream schließt, wenn der Charakter ausgeloggt wurde. Schließt der letzte Stream eines Charakters in diesem Prozess, startet `disconnect` die Frist. Die Partials pro Event (`log`, `room`, `status`, `group`) kommen mit den HTMX-Ansichten.
+- Fehler: `NotPlayingError` / kein Charakter im Spiel → 401, unbekannter oder fremder Charakter → 404, vergebene Namen, Charakterlimit, Löschen eines Online-Charakters → 409, `RetryLimitExceededError` → 503.
+- Lifespan (`create_app`): Content laden → Engine & Sessions → Event-Bus starten → Services → `mark_all_disconnected` → World-Ticker (`WORLD_TICKER=0` schaltet ihn ab, z. B. für Tests). Beim Beenden in umgekehrter Reihenfolge.
+- Offen: CSRF-Schutz über mehr als `SameSite=Lax` hinaus (JSON-Bodies erzwingen bei fremden Origins einen CORS-Preflight), Schutz gegen Passwort-Raten (Login-Rate-Limit).
 
 ### Fehler & Schutz
 

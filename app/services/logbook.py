@@ -71,3 +71,26 @@ async def recipients(
     else:
         return []
     return [pid for pid in candidates if pid not in excluded]
+
+
+async def read_log(
+    session: AsyncSession,
+    player_id: UUID,
+    *,
+    after: int | None = None,
+    before: int | None = None,
+    limit: int = 50,
+) -> list[LogEntry]:
+    """A page of the player's log, oldest first.
+
+    ``after``: entries newer than that id (reconnect catch-up); ``before``: older ones (scrolling
+    back); neither: the latest ``limit`` entries.
+    """
+    stmt = select(LogEntry).where(col(LogEntry.player_id) == player_id)
+    if after is not None:
+        stmt = stmt.where(col(LogEntry.id) > after).order_by(col(LogEntry.id)).limit(limit)
+        return list((await session.scalars(stmt)).all())
+    if before is not None:
+        stmt = stmt.where(col(LogEntry.id) < before)
+    stmt = stmt.order_by(col(LogEntry.id).desc()).limit(limit)
+    return list(reversed((await session.scalars(stmt)).all()))

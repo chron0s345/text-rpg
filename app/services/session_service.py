@@ -71,6 +71,14 @@ def utc_now() -> datetime:
     return datetime.now(UTC)
 
 
+async def lock_account(session: AsyncSession, account_id: UUID) -> None:
+    """Serializes logins and character changes of one account (blocking, until the transaction
+    ends)."""
+    await session.execute(
+        select(func.pg_advisory_xact_lock(func.hashtextextended(f"account:{account_id}", 0)))
+    )
+
+
 class SessionService:
     def __init__(
         self,
@@ -98,7 +106,7 @@ class SessionService:
             now = self.clock()
 
             async def attempt(session: AsyncSession) -> _Committed:
-                await self._lock_account(session, account_id)
+                await lock_account(session, account_id)
                 other = await session.scalar(
                     select(col(Player.id)).where(
                         col(Player.account_id) == account_id,
@@ -170,6 +178,20 @@ class SessionService:
                 .returning(col(Player.id))
             )
         return updated is not None
+
+    async def location(self, player_id: UUID) -> tuple[str, UUID | None] | None:
+        """Room and group of an online character (what its live stream subscribes to)."""
+        async with self.sessions() as session:
+            row = (
+                await session.execute(
+                    select(col(Player.current_room_id), col(Player.group_id)).where(
+                        col(Player.id) == player_id,
+                        col(Player.online),
+                        col(Player.deleted_at).is_(None),
+                    )
+                )
+            ).first()
+        return None if row is None else (row[0], row[1])
 
     async def disconnect(self, player_id: UUID) -> None:
         """The character's last SSE stream closed: the grace period starts, an active trade is
@@ -251,13 +273,6 @@ class SessionService:
             return len(marked.all())
 
     # --- helpers --------------------------------------------------------------------------------
-
-    @staticmethod
-    async def _lock_account(session: AsyncSession, account_id: UUID) -> None:
-        """Serializes logins of one account (blocking, until the transaction ends)."""
-        await session.execute(
-            select(func.pg_advisory_xact_lock(func.hashtextextended(f"account:{account_id}", 0)))
-        )
 
     @staticmethod
     async def _load(repo: Repository, player_id: UUID, *, presence: bool = False) -> ActionSnapshot:
