@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from uuid import UUID
 
 from app.content.registry import ContentRegistry
-from app.content.schemas import Heal, ItemTemplate, Rules
+from app.content.schemas import Heal, Rules
 from app.engine.encounter import monster_strikes, touch_monster
 from app.engine.events import (
     ActionResult,
@@ -29,6 +29,7 @@ from app.engine.inventory import (
     add_item_to_inventory,
     calculate_inventory_capacity,
     get_occupied_slots,
+    item_label,
 )
 from app.engine.permissions import check_state
 from app.engine.state import (
@@ -42,10 +43,6 @@ from app.engine.stats import stats_of
 
 NOT_OWNED = "Diesen Gegenstand hast du nicht."
 LOCKED = "Dieser Gegenstand ist im Handel angeboten."
-
-
-def _label(quantity: int, item: ItemTemplate) -> str:
-    return f"{quantity}x {item.name}" if quantity > 1 else item.name
 
 
 def _fits(inventory: list[InventoryItemState], content: ContentRegistry, rules: Rules) -> bool:
@@ -307,14 +304,14 @@ def resolve_pick_up(
                     )
                 )
 
-    text = f"Du hebst {_label(added, item)} auf."
+    text = f"Du hebst {item_label(added, item)} auf."
     if added < wanted:
         text += f" Kein Platz für {wanted - added} weitere."
     builder.to_actor("inventory.picked_up", text, item_id=item.id, quantity=added)
     builder.event(
         "floor.picked_up",
         RoomAudience(room_id=floor.room_id),
-        f"{actor.name} hebt {_label(added, item)} auf.",
+        f"{actor.name} hebt {item_label(added, item)} auf.",
         exclude=[actor.id],
         floor_item_id=str(floor.id),
         remaining=remaining,
@@ -360,12 +357,12 @@ def resolve_drop(
     builder.changes.floor_items_create.append(created)
     snapshot.floor_items.append(FloorItemSnapshot.model_validate(created.model_dump()))
     builder.to_actor(
-        "inventory.dropped", f"Du lässt {_label(amount, item)} fallen.", item_id=item.id
+        "inventory.dropped", f"Du lässt {item_label(amount, item)} fallen.", item_id=item.id
     )
     builder.event(
         "floor.dropped",
         RoomAudience(room_id=actor.current_room_id),
-        f"{actor.name} lässt {_label(amount, item)} fallen.",
+        f"{actor.name} lässt {item_label(amount, item)} fallen.",
         exclude=[actor.id],
         floor_item_id=str(created.id),
         item_id=item.id,

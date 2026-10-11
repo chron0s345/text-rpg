@@ -88,8 +88,10 @@ app/
 ├── services/            # Orchestrierung: sperrt & lädt Zustand, ruft Engine, speichert, publiziert
 │   ├── events.py            # EventPublisher-Interface (Umsetzung im Realtime-Layer)
 │   ├── action_service.py
+│   ├── logbook.py           # Log-Einträge für alle Empfänger eines Events
+│   ├── transactions.py      # Wiederholungsregeln bei Sperrkonflikten
 │   ├── session_service.py   # Login/Logout eines Charakters, Disconnect-Handling
-│   └── world_ticker.py      # Respawns, Aufräumen, Disconnect-Fristen
+│   └── world_ticker.py      # Respawns, Aufräumen, Überfälle, Disconnect-Fristen
 └── web/
     ├── templates/
     └── static/
@@ -658,6 +660,18 @@ Ein Hintergrund-Task läuft alle `ticker_interval_seconds` und erledigt in getre
 6. Abgelaufene Gruppeneinladungen und Handelsanfragen löschen
 
 Bei mehreren Server-Prozessen holt sich der Ticker vorher ein PostgreSQL Advisory Lock (`pg_try_advisory_lock`), sodass nur ein Prozess tickt. Die Entscheidungen ("ist fällig", "wird überfallen") liegen in der Engine; der Ticker orchestriert nur.
+
+Umsetzung: `WorldTicker` (`app/services/world_ticker.py`), Engine-Bausteine in `engine/respawn.py` (`respawn_monsters`, `respawn_due_items`), `engine/cleanup.py` (`expire_floor_items`) und `engine/ambush.py` (`resolve_idle_ambush`).
+
+- Ablauf je Schritt wie bei einer Aktion: sperren (`Repository.lock_due_monsters`, `lock_due_item_spawns`, `lock_expired_floor_items`, für Überfälle `load_action_snapshot` des Opfers), Engine, `apply_changes`, Log-Einträge, Commit, **danach** publizieren. Sperrkonflikte werden wie bei Aktionen höchstens dreimal wiederholt.
+- Ein fehlschlagender Schritt wird geloggt und hält die übrigen nicht auf; ebenso der Überfall-Wurf eines einzelnen Spielers.
+- Ticker-Ergebnisse haben keinen Handelnden: Raum-Events gehen an alle Online-Spieler im Raum (inkl. Log), Überfallopfer werden über `Players([id])` benachrichtigt.
+- Monster-Respawn erzeugt `monster.respawned`, Item-Respawn `floor.spawned`, Aufräumen `floor.expired` – jeweils an den Raum.
+- Item-Respawn: Unter der Sperre der fälligen `ItemSpawnState`-Zeile wird `next_spawn_at` geleert und das Spawn-Item mit der Menge aus der Raumregel angelegt. Liegt das Spawn-Item noch (Teilmenge nicht aufgehoben) oder gibt es die Regel nicht mehr, wird nur der Zeitpunkt geleert. `apply_changes` erlaubt unter dieser Sperre nur genau dieses Spawn-Item.
+- Überfall-Kandidaten werden ungesperrt vorgelesen (online, `exploring`, unsicherer Raum mit lebendem Monster mit `chance_per_tick > 0`); jedes Opfer bekommt eine eigene Transaktion, die Engine prüft alles erneut unter der Sperre. Ein bereits kämpfendes Monster überfällt niemanden, daher pro Monster und Tick höchstens ein Überfall. Charaktere in der Disconnect-Frist sind noch online und können überfallen werden.
+- Abgelaufene Gruppeneinladungen und Handelsanfragen (`status = "requested"`) werden gelöscht; offene Handel bleiben unberührt.
+- Führung: Der Leader hält das Advisory Lock auf einer eigenen Verbindung (`TickerLeadership`) und prüft vor jedem Tick, ob es noch dieselbe Datenbank-Session (Backend-PID) ist – SQLAlchemy verbindet eine abgebrochene Verbindung sonst stillschweigend neu, ohne Lock. Beim Beenden wird das Lock freigegeben.
+- Noch offen: Schritt 4 (Disconnect-Fristen) folgt mit dem `SessionService`; das Starten des Tickers im Lifespan von `app/main.py` mit dem App-Zusammenbau (Datenbank, Event-Bus, Routen).
 
 ### Zufall & Zeit
 

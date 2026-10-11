@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import logging
 import random
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
@@ -41,19 +41,11 @@ from app.api.schemas import (
     UseItemAction,
 )
 from app.content.registry import ContentRegistry
-from app.db.models import LogEntry, Player
+from app.db.models import Player
 from app.db.repository import Repository, SnapshotChangedError, UnknownPlayerError
 from app.engine.actions import resolve_look, resolve_respawn, resolve_say
 from app.engine.combat import resolve_attack, resolve_flee
-from app.engine.events import (
-    ActionResult,
-    ActorAudience,
-    GameEvent,
-    GroupAudience,
-    PlayersAudience,
-    RoomAudience,
-    rejected,
-)
+from app.engine.events import ActionResult, ActorAudience, GameEvent, rejected
 from app.engine.inventory_actions import (
     resolve_drop,
     resolve_equip,
@@ -66,21 +58,18 @@ from app.engine.movement import resolve_move
 from app.engine.respawn import respawn_due_monsters
 from app.engine.state import ActionSnapshot
 from app.services.events import EventPublisher, Relocation
+from app.services.logbook import write_log
+from app.services.transactions import MAX_ATTEMPTS, is_retryable
+from app.services.transactions import RetryLimitExceededError as RetryLimitExceededError
 
 logger = logging.getLogger(__name__)
 
-MAX_ATTEMPTS = 3
-RETRYABLE_SQLSTATES = {"40001", "40P01"}  # serialization failure, deadlock detected
 TOO_FAST = "Nicht so schnell."
 NOT_AVAILABLE = "Diese Aktion ist noch nicht verfügbar."
 
 
 class NotPlayingError(Exception):
     """The character is not logged in (offline, deleted or unknown) -> HTTP 401."""
-
-
-class RetryLimitExceededError(Exception):
-    """Lock conflicts persisted over all attempts."""
 
 
 @dataclass(frozen=True)
@@ -100,11 +89,6 @@ class ActionOutcome:
 
 def utc_now() -> datetime:
     return datetime.now(UTC)
-
-
-def _retryable(exc: DBAPIError) -> bool:
-    code = getattr(exc.orig, "sqlstate", None) or getattr(exc.orig, "pgcode", None)
-    return code in RETRYABLE_SQLSTATES
 
 
 class ActionService:
@@ -131,7 +115,7 @@ class ActionService:
             except SnapshotChangedError:
                 continue
             except DBAPIError as exc:
-                if _retryable(exc):
+                if is_retryable(exc):
                     continue
                 raise
             # committed: now (and only now) other players learn about it
@@ -185,7 +169,7 @@ class ActionService:
             await repo.apply_changes(result.changes)
             events = [*respawns.events, *result.events]
             relocations = self._relocations(snapshot, result)
-            await self._write_log(session, player_id, events, now)
+            await write_log(session, events, now, actor_id=player_id)
 
         actor_events = [e for e in events if isinstance(e.audience, ActorAudience)]
         others = [e for e in events if not isinstance(e.audience, ActorAudience)]
@@ -275,56 +259,3 @@ class ActionService:
             case _:
                 # groups, trade, bank, merchants, logout: later steps
                 return rejected(NOT_AVAILABLE)
-
-    # --- log ----------------------------------------------------------------------------------
-
-    async def _write_log(
-        self,
-        session: AsyncSession,
-        actor_id: UUID,
-        events: Sequence[GameEvent],
-        now: datetime,
-    ) -> None:
-        """Every recipient gets a log entry, so a reconnecting client can catch up via
-        ``GET /log?after=``. Global announcements are not logged per player."""
-        for event in events:
-            session.add_all(
-                LogEntry(player_id=pid, kind=event.kind, text=event.text, created_at=now)
-                for pid in await self._recipients(session, actor_id, event)
-            )
-
-    async def _recipients(
-        self, session: AsyncSession, actor_id: UUID, event: GameEvent
-    ) -> list[UUID]:
-        audience = event.audience
-        excluded = set(event.exclude_player_ids)
-        if isinstance(audience, ActorAudience):
-            return [actor_id]
-        if isinstance(audience, PlayersAudience):
-            candidates = list(audience.player_ids)
-        elif isinstance(audience, RoomAudience):
-            candidates = list(
-                (
-                    await session.scalars(
-                        select(col(Player.id)).where(
-                            col(Player.online),
-                            col(Player.deleted_at).is_(None),
-                            col(Player.current_room_id) == audience.room_id,
-                        )
-                    )
-                ).all()
-            )
-        elif isinstance(audience, GroupAudience):
-            candidates = list(
-                (
-                    await session.scalars(
-                        select(col(Player.id)).where(
-                            col(Player.group_id) == audience.group_id,
-                            col(Player.deleted_at).is_(None),
-                        )
-                    )
-                ).all()
-            )
-        else:
-            return []
-        return [pid for pid in candidates if pid not in excluded]

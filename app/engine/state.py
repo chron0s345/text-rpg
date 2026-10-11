@@ -85,6 +85,14 @@ class FloorItemSnapshot(BaseModel):
         return self.expires_at is None or self.expires_at > now
 
 
+class ItemSpawnSnapshot(BaseModel):
+    """Respawn state of one room item rule (``next_spawn_at`` is set once it was picked up)."""
+
+    room_id: str
+    item_id: str
+    next_spawn_at: datetime | None = None
+
+
 class ParticipationSnapshot(BaseModel):
     monster_instance_id: UUID
     player_id: UUID

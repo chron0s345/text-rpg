@@ -2,7 +2,9 @@
 
 Lock order (ARCHITECTURE.md, "Locking") — every code path takes row locks in this order to avoid
 deadlocks: Group -> Trade -> Player (sorted by id) -> InventoryItem -> BankItem ->
-MonsterInstance -> FloorItem. Within a table rows are locked sorted by primary key.
+MonsterInstance -> FloorItem -> ItemSpawnState. Within a table rows are locked sorted by primary
+key. The world ticker's own locks (due monsters, expired floor items, due item spawns) follow the
+same order; each of its transactions locks only one table.
 
 Two rules make the locks meaningful:
 
@@ -85,6 +87,7 @@ class Locks:
     participations: set[tuple[UUID, UUID]] = field(default_factory=set)
     floor_items: set[UUID] = field(default_factory=set)
     rooms: set[str] = field(default_factory=set)  # rooms whose monsters/floor items are locked
+    item_spawns: set[tuple[str, str]] = field(default_factory=set)  # (room, item) spawn states
 
 
 def _locked(stmt: Select[Any]) -> Select[Any]:
@@ -182,6 +185,55 @@ class Repository:
         rows = await self._lock_rows(stmt)
         self.locks.floor_items.update(r.id for r in rows)
         return rows
+
+    # --- world ticker (each in its own short transaction) -------------------------------------
+
+    async def lock_due_monsters(self, now: datetime) -> list[MonsterInstance]:
+        """Dead monsters whose respawn is due, in all rooms."""
+        stmt = (
+            select(MonsterInstance)
+            .where(
+                col(MonsterInstance.alive).is_(False),
+                col(MonsterInstance.respawn_at) <= now,
+            )
+            .order_by(col(MonsterInstance.id))
+        )
+        rows = await self._lock_rows(stmt)
+        self.locks.monsters.update(r.id for r in rows)
+        return rows
+
+    async def lock_expired_floor_items(self, now: datetime) -> list[FloorItem]:
+        """Dropped/looted items past ``expires_at``, in all rooms (spawn items never expire)."""
+        stmt = select(FloorItem).where(col(FloorItem.expires_at) <= now).order_by(col(FloorItem.id))
+        rows = await self._lock_rows(stmt)
+        self.locks.floor_items.update(r.id for r in rows)
+        return rows
+
+    async def lock_due_item_spawns(self, now: datetime) -> list[ItemSpawnState]:
+        """Spawn states whose item is due to reappear. Holding this lock is what allows creating
+        the spawn floor item: picking it up sets ``next_spawn_at`` under the same row lock, so a
+        spawn can neither be skipped nor created twice (ARCHITECTURE.md, "Locking")."""
+        stmt = (
+            select(ItemSpawnState)
+            .where(col(ItemSpawnState.next_spawn_at) <= now)
+            .order_by(col(ItemSpawnState.room_id), col(ItemSpawnState.item_id))
+        )
+        rows = await self._lock_rows(stmt)
+        self.locks.item_spawns.update((r.room_id, r.item_id) for r in rows)
+        return rows
+
+    async def spawn_items_lying(self, keys: Iterable[tuple[str, str]]) -> set[tuple[str, str]]:
+        """Which of the (room, item) spawn rules still have their spawn floor item."""
+        wanted = set(keys)
+        if not wanted:
+            return set()
+        rows = await self.session.execute(
+            select(col(FloorItem.room_id), col(FloorItem.item_id)).where(
+                col(FloorItem.source) == "spawn",
+                col(FloorItem.room_id).in_({room for room, _ in wanted}),
+            )
+        )
+        return {(room, item) for room, item in rows.all() if (room, item) in wanted}
 
     # --- snapshot ----------------------------------------------------------------------------
 
@@ -375,7 +427,14 @@ class Repository:
             del locks.inventory[item_id]
 
         for create in changes.floor_items_create:
-            self._require(create.room_id in locks.rooms, f"room {create.room_id}")
+            self._require(
+                create.room_id in locks.rooms
+                or (
+                    create.source == "spawn"
+                    and (create.room_id, create.item_id) in locks.item_spawns
+                ),
+                f"room {create.room_id}",
+            )
             session.add(FloorItem(**create.model_dump()))
             locks.floor_items.add(create.id)
         for floor_update in changes.floor_items_update:
@@ -391,8 +450,12 @@ class Repository:
             locks.floor_items.discard(floor_id)
 
         for spawn in changes.item_spawns:
-            # spawn state follows its floor item, which is locked with the room
-            self._require(spawn.room_id in locks.rooms, f"room {spawn.room_id}")
+            # spawn state follows its floor item, which is locked with the room (pick-up), or
+            # was locked itself (ticker)
+            self._require(
+                spawn.room_id in locks.rooms or (spawn.room_id, spawn.item_id) in locks.item_spawns,
+                f"room {spawn.room_id}",
+            )
             state_row = await session.get(ItemSpawnState, (spawn.room_id, spawn.item_id))
             if state_row is None:
                 session.add(ItemSpawnState(**spawn.model_dump()))
