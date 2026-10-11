@@ -175,6 +175,8 @@ class SessionService:
                 )
                 .values(disconnected_at=self.clock())
             )
+        # a trade ends when the connection is lost (the other side should not wait for it)
+        await self.actions.check_trades([player_id])
 
     async def mark_all_disconnected(self) -> int:
         """Server start: online characters have no connection yet, so the same grace period

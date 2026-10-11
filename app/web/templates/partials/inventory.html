@@ -21,10 +21,16 @@
     <li title="{{ i.description }}">
       <span>{% if i.icon %}<img src="/static/icons/{{ i.icon }}.svg" alt="" class="icon">{% endif %}{% if i.quantity != 1 %}{{ i.quantity }}× {% endif %}{{ i.name }}</span>
       <span class="buttons">
+        {% if i.offered %}
+        <span class="tag">im Angebot</span>
+        {% else %}
         {% if i.usable and p.state != 'dead' %}
         <button hx-post="/ui/actions" hx-vals='{{ {"type": "use_item", "inventory_item_id": i.id | string} | tojson }}'>Benutzen</button>
         {% endif %}
         {% if p.state == 'exploring' %}
+          {% if view.trade is not none and view.trade.status == 'open' and i.tradable %}
+          <button class="primary" hx-post="/ui/actions" hx-vals='{{ {"type": "trade_offer_item", "trade_id": view.trade.id | string, "inventory_item_id": i.id | string, "quantity": i.quantity | string} | tojson }}'>Anbieten</button>
+          {% endif %}
           {% if i.sell %}
           <button hx-post="/ui/actions" hx-vals='{{ {"type": "sell", "merchant_id": i.sell[0], "inventory_item_id": i.id | string, "quantity": "1"} | tojson }}'>Verkaufen ({{ i.sell[1] }} G)</button>
             {% if i.quantity > 1 %}
@@ -40,6 +46,7 @@
           <button hx-post="/ui/actions" hx-vals='{{ {"type": "equip", "inventory_item_id": i.id | string} | tojson }}'>Anlegen</button>
           {% endif %}
           <button class="subtle" hx-post="/ui/actions" hx-vals='{{ {"type": "drop", "inventory_item_id": i.id | string} | tojson }}'>Fallen lassen</button>
+        {% endif %}
         {% endif %}
       </span>
     </li>

@@ -570,6 +570,14 @@ Regeln:
 - **Endet ein Handel (`completed` oder `cancelled`), werden seine `TradeOffer`-Zeilen in derselben Transaktion gelöscht.** Ein angebotenes Item ist in der Datenbank gegen Löschen geschützt (kein Cascade); bleiben Angebote stehen, kann das Item danach nie mehr verbraucht, fallengelassen oder übertragen werden. Bei der Ausführung werden die Angebote vor dem Umbuchen der Items gelöscht.
 - Rate Limit auf `trade_request`, damit niemand mit Anfragen zugespammt werden kann.
 
+Umsetzung (`engine/trade.py`, `Repository.load_trade_snapshot`):
+
+- Handelsaktionen arbeiten auf einem eigenen Snapshot (`TradeActionSnapshot`): Handelnder und Gegenüber mit Inventaren, alle aktiven Handel beider und der genannte Handel. Sperrreihenfolge: `Trade` → `Player` → `InventoryItem` → `TradeOffer`. Neue Handel entstehen nur unter der Sperre beider Spieler; die aktiven Handel werden nach dem Sperren der Spieler erneut gelesen, ein dazwischen entstandener führt zur Wiederholung. So hat niemand zwei Handel gleichzeitig (auch nicht bei zwei gleichzeitigen Anfragen an dieselbe Person).
+- Pro Charakter höchstens ein aktiver Handel (Anfrage oder offen). Das Rate Limit für Anfragen ist das allgemeine Aktions-Rate-Limit; eine unerwünschte Anfrage lässt sich ablehnen (`trade_cancel`) und läuft sonst ab.
+- Items wechseln den Besitzer als neue Inventarzeilen des Empfängers (eine Zeile wechselt nie den Besitzer); beim Geber wird der Stapel verringert bzw. gelöscht. Die Kapazitätsprüfung rechnet auf beiden Seiten mit dem Platz, den die eigenen abgegebenen Items freigeben.
+- `apply_changes` schreibt Handel und Angebote vor allen Inventaränderungen und führt dazwischen einen Flush aus, damit gelöschte Angebote die angebotenen Items freigeben.
+- Abbruch: Jede Operation, die Raum, Zustand, Online-Status oder Verbindung eines Spielers ändert (auch Überfall durch den Ticker, Tod, Logout, Verbindungsverlust), prüft danach dessen aktive Handel in einer eigenen Transaktion (`ActionService.check_trades`, `resolve_trade_check`) und bricht sie ab, wenn nicht mehr beide anwesend und frei sind. Der World-Ticker wiederholt die Prüfung (Schritt 8). Die Ausführung prüft alle Bedingungen ohnehin noch einmal.
+
 ### Bank
 
 - Zugang nur in Räumen mit `bank: true`, im Zustand `exploring`.
@@ -697,6 +705,7 @@ Umsetzung (`app/services/world_ticker.py`, Engine: `engine/respawn.py`, `engine/
 - Abgelaufene Floor-Items verschwinden ohne Event (sie werden ohnehin schon ausgeblendet).
 - Gelöscht werden abgelaufene Gruppeneinladungen und nur Handelsanfragen im Status `requested`.
 - Schritt 7: Offline-Charaktere, die noch in einer Gruppe sind, verlassen sie (Sicherheitsnetz für den Logout).
+- Schritt 8: Aktive Handel, deren Beteiligte nicht mehr beide anwesend und frei sind, werden abgebrochen (Sicherheitsnetz).
 - Leader-Wahl: Der Lock hängt an einer eigenen, dauerhaft gehaltenen Verbindung; jeder Tick prüft, ob sie noch lebt. Beim Freigeben wird der Lock explizit zurückgegeben (eine nur in den Pool zurückgegebene Verbindung hielte ihn sonst weiter). Bricht die Verbindung ab, übernimmt ein anderer Prozess beim nächsten Tick.
 - Abschaltbar mit `WORLD_TICKER=0` (z. B. für API-Tests); getestet wird mit fester Zeit und einem `tick()` pro Test.
 
@@ -732,7 +741,7 @@ Umsetzung: `ActionService.execute` (`app/services/action_service.py`).
 - Ist der Charakter offline, gelöscht oder unbekannt (auch wenn das erst während des Wartens auf die Sperre passiert), gibt es `NotPlayingError` (HTTP 401).
 - Zufall: `random.SystemRandom` (Würfe sind nicht aus früheren Ergebnissen vorhersagbar); Tests injizieren einen festen Seed und eine feste Uhr.
 - Login (`ActionService.login`) läuft über denselben Ablauf (Sperren, Engine `resolve_login`, Log, Publizieren nach Commit); es ist die einzige Operation für einen Offline-Charakter und unterliegt keinem Rate Limit. `logout` ist ebenfalls vom Rate Limit ausgenommen (nur eine gleichzeitig laufende Aktion wird abgewiesen), damit niemand in der Welt festhängt. `online` und `disconnected_at` werden wie jede Änderung über `PlayerUpdate` geschrieben.
-- Aktionen späterer Schritte (Handel) werden vorerst mit „Diese Aktion ist noch nicht verfügbar.“ abgelehnt.
+- Alle Aktionen aus `GameAction` sind umgesetzt.
 
 ### Locking
 
@@ -921,7 +930,7 @@ Umsetzung (`app/api/views.py`, `app/web/`, `app/services/view_service.py`):
 - Gruppenpanel: Mitglieder mit HP-Balken, Aufenthaltsort und Leitung, offene Einladungen (Annehmen/Ablehnen), Einladen per Name, Verlassen, Entfernen (nur Leitung, nicht im Kampf).
 - Händleransicht: Sortiment mit Preisen (nicht leistbar = ausgegraut), am Inventar „Verkaufen“ mit Erlös pro Stück und für den ganzen Stapel bzw. „Unverkäuflich“.
 - Bankansicht in Bank-Räumen: Bankfach mit Plätzen und „Abheben“, am Inventar „Einlagern“ (ganzer Stapel).
-- Das Handelsfenster folgt mit `engine/trade.py`.
+- Handelsfenster: „Handeln“ an anwesenden Spielern, Anfrage annehmen/ablehnen, beide Angebote nebeneinander mit Bestätigungsstatus (bestätigte Seite grün) und Stand (`revision`), Gold setzen, Items per „Anbieten“ am Inventar hinzufügen und per ✕ zurücknehmen. Angebotene Items zeigen „im Angebot“ und keine anderen Aktionen. Jede Änderung setzt die Bestätigungen zurück und erscheint im Log beider Seiten.
 
 ## Coding Standards
 

@@ -98,6 +98,13 @@ label input { margin-top: .2rem; color: var(--text); }
 .invite { display: flex; justify-content: space-between; align-items: center; gap: .5rem;
   margin: .5rem 0; padding: .4rem .5rem; border: 1px solid var(--accent); border-radius: var(--radius); }
 .group > button { margin-top: .5rem; }
+.trade { border-color: var(--accent); }
+.offers { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-bottom: .6rem; }
+.offer { border: 1px solid var(--border); border-radius: var(--radius); padding: .4rem .5rem; }
+.offer.confirmed { border-color: var(--good); }
+.offer h3 { margin-top: 0; }
+.gold-form { display: flex; gap: .4rem; align-items: end; margin-top: .4rem; }
+.gold-form label { margin: 0; flex: 1; }
 
 @media (max-width: 60rem) {
   .game { height: auto; grid-template-columns: 1fr; grid-template-areas: "status" "center" "left" "right"; }

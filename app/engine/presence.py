@@ -7,8 +7,7 @@ A lost connection is handled by the world ticker: once ``disconnect_grace_second
 (``connection_expired``), the character is logged out like ``logout`` with ``confirm_death``
 (``resolve_connection_lost``).
 
-Not covered yet (later steps): leaving the group and cancelling a running trade on logout. Until
-groups and trades exist, a character has neither.
+After a logout the service leaves the character's group and ends its trades (ActionService).
 """
 
 from __future__ import annotations

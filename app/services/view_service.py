@@ -29,6 +29,8 @@ from app.db.models import (
     LogEntry,
     MonsterInstance,
     Player,
+    Trade,
+    TradeOffer,
 )
 from app.engine.inventory import calculate_inventory_capacity, get_occupied_slots
 from app.engine.movement import DIRECTION_NAMES
@@ -89,7 +91,7 @@ class RoomView:
     bank: bool
     exits: list[ExitView]
     monsters: list[MonsterView]
-    players: list[tuple[str, str]]  # (name, state)
+    players: list[tuple[UUID, str, str]]  # (id, name, state)
     merchants: list[str]
     floor_items: list[FloorItemView]
 
@@ -106,6 +108,31 @@ class ItemView:
     usable: bool
     # best offer of a merchant in this room: (merchant id, gold per unit); None = cannot sell here
     sell: tuple[str, int] | None = None
+    tradable: bool = True
+    offered: bool = False  # part of my offer in an active trade
+
+
+@dataclass(frozen=True)
+class TradeItemView:
+    inventory_item_id: UUID
+    name: str
+    icon: str | None
+    quantity: int
+
+
+@dataclass(frozen=True)
+class TradeView:
+    id: UUID
+    status: str  # requested | open
+    i_initiated: bool
+    other_name: str
+    revision: int
+    my_items: list[TradeItemView]
+    my_gold: int
+    my_confirmed: bool
+    their_items: list[TradeItemView]
+    their_gold: int
+    their_confirmed: bool
 
 
 @dataclass(frozen=True)
@@ -185,6 +212,7 @@ class GameView:
     group: GroupView
     shops: list[ShopView]  # merchants in the room
     bank: BankView | None  # only in bank rooms
+    trade: TradeView | None  # my active trade (request or open)
 
 
 class ViewService:
@@ -227,7 +255,7 @@ class ViewService:
             ).all()
             others = (
                 await session.execute(
-                    select(col(Player.name), col(Player.state))
+                    select(col(Player.id), col(Player.name), col(Player.state))
                     .where(
                         col(Player.current_room_id) == row.current_room_id,
                         col(Player.online),
@@ -295,13 +323,15 @@ class ViewService:
                 for direction, target in room.exits.items()
             ],
             monsters=monster_views,
-            players=[(name, state) for name, state in others],
+            players=[(pid, name, state) for pid, name, state in others],
             merchants=[m.name for m in self.content.merchants_in_room(room.id)],
             floor_items=floor_views,
         )
 
         merchants = self.content.merchants_in_room(room.id)
-        items = [self._item(entry, merchants) for entry in snapshot.inventory]
+        trade_view = await self._trade(row.id)
+        offered = {i.inventory_item_id for i in trade_view.my_items} if trade_view else set()
+        items = [self._item(entry, merchants, offered) for entry in snapshot.inventory]
         inventory_view = InventoryView(
             used=get_occupied_slots(snapshot.inventory),
             capacity=calculate_inventory_capacity(
@@ -330,6 +360,55 @@ class ViewService:
             group=group_view,
             shops=shops,
             bank=bank_view,
+            trade=trade_view,
+        )
+
+    async def _trade(self, player_id: UUID) -> TradeView | None:
+        async with self.sessions() as session:
+            trade = (
+                await session.scalars(
+                    select(Trade).where(
+                        col(Trade.status).in_(("requested", "open")),
+                        (col(Trade.initiator_id) == player_id)
+                        | (col(Trade.partner_id) == player_id),
+                    )
+                )
+            ).first()
+            if trade is None:
+                return None
+            other_id = trade.partner_id if trade.initiator_id == player_id else trade.initiator_id
+            other = await session.get(Player, other_id)
+            rows = (
+                await session.execute(
+                    select(TradeOffer, InventoryItem)
+                    .join(InventoryItem, col(InventoryItem.id) == col(TradeOffer.inventory_item_id))
+                    .where(col(TradeOffer.trade_id) == trade.id)
+                    .order_by(col(InventoryItem.item_id))
+                )
+            ).all()
+
+        def items(owner: UUID) -> list[TradeItemView]:
+            views = []
+            for offer, entry in rows:
+                if offer.player_id != owner:
+                    continue
+                item = self.content.get_item(entry.item_id)
+                views.append(TradeItemView(entry.id, item.name, item.icon, offer.quantity))
+            return views
+
+        mine_first = trade.initiator_id == player_id
+        return TradeView(
+            id=trade.id,
+            status=trade.status,
+            i_initiated=mine_first,
+            other_name=other.name if other is not None else "?",
+            revision=trade.revision,
+            my_items=items(player_id),
+            my_gold=trade.initiator_gold if mine_first else trade.partner_gold,
+            my_confirmed=trade.initiator_confirmed if mine_first else trade.partner_confirmed,
+            their_items=items(other_id),
+            their_gold=trade.partner_gold if mine_first else trade.initiator_gold,
+            their_confirmed=trade.partner_confirmed if mine_first else trade.initiator_confirmed,
         )
 
     def _offer(self, offer: MerchantOffer, gold: int) -> OfferView:
@@ -427,7 +506,10 @@ class ViewService:
         )
 
     def _item(
-        self, entry: InventoryItemState, merchants: Sequence[MerchantTemplate] = ()
+        self,
+        entry: InventoryItemState,
+        merchants: Sequence[MerchantTemplate] = (),
+        offered: set[UUID] | None = None,
     ) -> ItemView:
         item = self.content.get_item(entry.item_id)
         offers = [
@@ -445,6 +527,8 @@ class ViewService:
             equippable=item.slot is not None,
             usable=any(isinstance(e, Heal) for e in item.effects),
             sell=max(offers, key=lambda o: o[1]) if offers else None,
+            tradable=item.tradable,
+            offered=entry.id in (offered or set()),
         )
 
     async def log(self, player_id: UUID, limit: int = LOG_LINES) -> list[LogLine]:

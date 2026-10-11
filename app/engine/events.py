@@ -146,6 +146,45 @@ class GroupCreate(BaseModel):
     created_at: datetime
 
 
+class TradeCreate(BaseModel):
+    id: UUID
+    initiator_id: UUID
+    partner_id: UUID
+    room_id: str
+    expires_at: datetime
+    created_at: datetime
+
+
+class TradeUpdate(BaseModel):
+    """Only explicitly set fields are applied."""
+
+    trade_id: UUID
+    status: Literal["requested", "open", "completed", "cancelled"] | None = None
+    initiator_gold: int | None = None
+    partner_gold: int | None = None
+    initiator_confirmed: bool | None = None
+    partner_confirmed: bool | None = None
+    revision: int | None = None
+
+
+class TradeOfferUpsert(BaseModel):
+    trade_id: UUID
+    player_id: UUID
+    inventory_item_id: UUID
+    quantity: int = Field(ge=1)
+
+
+class TradeOfferDelete(BaseModel):
+    trade_id: UUID
+    inventory_item_id: UUID
+
+
+class TradeLogCreate(BaseModel):
+    trade_id: UUID
+    completed_at: datetime
+    summary: dict[str, Any]
+
+
 class InviteUpsert(BaseModel):
     inviter_id: UUID
     player_id: UUID
@@ -185,6 +224,13 @@ class StateChanges(BaseModel):
     groups_delete: list[UUID] = Field(default_factory=list)
     invites_upsert: list[InviteUpsert] = Field(default_factory=list)
     invites_delete: list[InviteDelete] = Field(default_factory=list)
+    # trades; offers are deleted before inventory changes are applied (offered items are
+    # protected against deletion in the database)
+    trades_create: list[TradeCreate] = Field(default_factory=list)
+    trades: list[TradeUpdate] = Field(default_factory=list)
+    trade_offers_upsert: list[TradeOfferUpsert] = Field(default_factory=list)
+    trade_offers_delete: list[TradeOfferDelete] = Field(default_factory=list)
+    trade_logs: list[TradeLogCreate] = Field(default_factory=list)
 
 
 class ActionResult(BaseModel):
@@ -304,6 +350,12 @@ class ResultBuilder:
         ]
         deleted_groups = set(changes.groups_delete)
         changes.groups = [g for g in changes.groups if g.group_id not in deleted_groups]
+        deleted_offers = {(d.trade_id, d.inventory_item_id) for d in changes.trade_offers_delete}
+        changes.trade_offers_upsert = [
+            u
+            for u in changes.trade_offers_upsert
+            if (u.trade_id, u.inventory_item_id) not in deleted_offers
+        ]
         deleted_invites = {(d.inviter_id, d.player_id) for d in changes.invites_delete}
         changes.invites_upsert = [
             u for u in changes.invites_upsert if (u.inviter_id, u.player_id) not in deleted_invites

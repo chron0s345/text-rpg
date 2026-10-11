@@ -8,6 +8,8 @@
 5. ambush rolls for players idling in a room
 6. expired group invites and trade requests
 7. offline characters still in a group leave it (normally done right after the logout)
+8. active trades whose traders are no longer both here and free end (normally done right after
+   the action that broke them)
 
 The decisions ("is due", "gets ambushed") are made by the engine; the ticker only finds
 candidates (unlocked reads), locks, applies and publishes after the commit. Steps 4 and 5 go
@@ -74,6 +76,7 @@ class TickReport:
     invites_removed: int = 0
     trade_requests_removed: int = 0
     offline_members_removed: int = 0
+    trades_ended: int = 0
 
 
 class WorldTicker:
@@ -173,6 +176,7 @@ class WorldTicker:
             self._roll_idle_ambushes,
             self._remove_expired_requests,
             self._remove_offline_members,
+            self._end_broken_trades,
         )
         for step in steps:
             try:
@@ -351,6 +355,20 @@ class WorldTicker:
         for player_id in player_ids:
             if await self._for_player(self.actions.leave_group, player_id):
                 report.offline_members_removed += 1
+
+    # 8. trades
+
+    async def _end_broken_trades(self, now: datetime, report: TickReport) -> None:
+        async with self.sessions() as session:
+            initiators = (
+                await session.scalars(
+                    select(col(Trade.initiator_id)).where(
+                        col(Trade.status).in_(("requested", "open"))
+                    )
+                )
+            ).all()
+        if initiators:
+            report.trades_ended += await self.actions.check_trades(initiators)
 
     # --- helpers ----------------------------------------------------------------------------
 

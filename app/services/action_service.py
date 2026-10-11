@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import logging
 import random
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Iterable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Final, TypeVar
@@ -51,11 +51,18 @@ from app.api.schemas import (
     RespawnAction,
     SayAction,
     SellAction,
+    TradeAcceptAction,
+    TradeCancelAction,
+    TradeConfirmAction,
+    TradeOfferGoldAction,
+    TradeOfferItemAction,
+    TradeRemoveItemAction,
+    TradeRequestAction,
     UnequipAction,
     UseItemAction,
 )
 from app.content.registry import ContentRegistry
-from app.db.models import Player
+from app.db.models import Player, Trade
 from app.db.repository import Repository, SnapshotChangedError, UnknownPlayerError
 from app.engine.actions import resolve_look, resolve_respawn, resolve_say
 from app.engine.ambush import resolve_idle_ambush
@@ -87,7 +94,17 @@ from app.engine.presence import (
     resolve_logout,
 )
 from app.engine.respawn import respawn_due_monsters
-from app.engine.state import ActionSnapshot, GroupActionSnapshot
+from app.engine.state import ActionSnapshot, GroupActionSnapshot, TradeActionSnapshot
+from app.engine.trade import (
+    resolve_trade_accept,
+    resolve_trade_cancel,
+    resolve_trade_check,
+    resolve_trade_confirm,
+    resolve_trade_offer_gold,
+    resolve_trade_offer_item,
+    resolve_trade_remove_item,
+    resolve_trade_request,
+)
 from app.services.events import EventPublisher, Relocation
 from app.services.log import write_log
 
@@ -97,6 +114,15 @@ MAX_ATTEMPTS = 3
 RETRYABLE_SQLSTATES = {"40001", "40P01"}  # serialization failure, deadlock detected
 TOO_FAST = "Nicht so schnell."
 NOT_AVAILABLE = "Diese Aktion ist noch nicht verfügbar."
+TRADE_ACTIONS: Final = (
+    TradeRequestAction,
+    TradeAcceptAction,
+    TradeOfferItemAction,
+    TradeRemoveItemAction,
+    TradeOfferGoldAction,
+    TradeConfirmAction,
+    TradeCancelAction,
+)
 GROUP_ACTIONS: Final = (
     GroupInviteAction,
     GroupAcceptAction,
@@ -123,7 +149,7 @@ class PreRead:
 
 
 # A room action works on an ActionSnapshot, a group action on a GroupActionSnapshot.
-S = TypeVar("S", ActionSnapshot, GroupActionSnapshot)
+S = TypeVar("S", ActionSnapshot, GroupActionSnapshot, TradeActionSnapshot)
 # locks & loads the snapshot for one attempt
 Loader = Callable[[Repository, UUID, PreRead], Awaitable[S]]
 # engine call for one attempt: (locked snapshot, locked actor row, now, rng) -> result
@@ -156,6 +182,8 @@ class ActionOutcome:
 
     events: list[GameEvent]
     changed: bool = False  # anything happened at all (incl. events for others)
+    # players whose room, state or online status changed: a running trade may have to end
+    unsettled: frozenset[UUID] = frozenset()
 
 
 def utc_now() -> datetime:
@@ -187,6 +215,8 @@ class ActionService:
     async def execute(self, player_id: UUID, action: GameAction) -> ActionOutcome:
         if isinstance(action, GROUP_ACTIONS):
             return await self._group_action(player_id, action)
+        if isinstance(action, TRADE_ACTIONS):
+            return await self._trade_action(player_id, action)
 
         def resolve(
             snapshot: ActionSnapshot, _actor: Player, now: datetime, rng: random.Random
@@ -301,6 +331,39 @@ class ActionService:
             player_id, self._group_loader(other_id, other_name), resolve, PLAYER_ACTION
         )
 
+    async def _trade_action(self, player_id: UUID, action: GameAction) -> ActionOutcome:
+        def resolve(
+            snapshot: TradeActionSnapshot, _actor: Player, now: datetime, rng: random.Random
+        ) -> ActionResult:
+            args = (snapshot, self.content, self.content.rules, now, rng)
+            match action:
+                case TradeRequestAction():
+                    return resolve_trade_request(*args, action.target_player_id)
+                case TradeAcceptAction():
+                    return resolve_trade_accept(*args, action.trade_id)
+                case TradeOfferItemAction():
+                    return resolve_trade_offer_item(
+                        *args, action.trade_id, action.inventory_item_id, action.quantity
+                    )
+                case TradeRemoveItemAction():
+                    return resolve_trade_remove_item(
+                        *args, action.trade_id, action.inventory_item_id
+                    )
+                case TradeOfferGoldAction():
+                    return resolve_trade_offer_gold(*args, action.trade_id, action.amount)
+                case TradeConfirmAction():
+                    return resolve_trade_confirm(*args, action.trade_id, action.revision)
+                case TradeCancelAction():
+                    return resolve_trade_cancel(*args, action.trade_id)
+                case _:
+                    return rejected(NOT_AVAILABLE)
+
+        if isinstance(action, TradeRequestAction):
+            loader = self._trade_loader(partner_id=action.target_player_id)
+        else:
+            loader = self._trade_loader(trade_id=getattr(action, "trade_id", None))
+        return await self._run(player_id, loader, resolve, PLAYER_ACTION)
+
     # --- snapshot loaders -----------------------------------------------------------------------
 
     @staticmethod
@@ -330,6 +393,17 @@ class ActionService:
 
         return load
 
+    @staticmethod
+    def _trade_loader(
+        *, trade_id: UUID | None = None, partner_id: UUID | None = None
+    ) -> Loader[TradeActionSnapshot]:
+        async def load(repo: Repository, player_id: UUID, pre: PreRead) -> TradeActionSnapshot:
+            return await repo.load_trade_snapshot(
+                player_id, trade_id=trade_id, partner_id=partner_id
+            )
+
+        return load
+
     async def _run(
         self,
         player_id: UUID,
@@ -355,8 +429,42 @@ class ActionService:
                 # The action is saved; failing the request would make the client resend it.
                 # Recipients catch up through their log entries (GET /log?after=...).
                 logger.exception("publishing events of %s failed", player_id)
+            if outcome.unsettled:
+                await self.check_trades(outcome.unsettled)
             return outcome
         raise RetryLimitExceededError(f"action of {player_id} kept conflicting")
+
+    async def check_trades(self, player_ids: Iterable[UUID]) -> int:
+        """Ends active trades of these players whose traders are no longer both here and free
+        (moved, fighting, dead, logged out, connection lost). Best effort, in own transactions;
+        the world ticker repeats it. Returns how many checks changed something."""
+        ids = list(set(player_ids))
+        async with self.sessions() as session:
+            traders = set(
+                (
+                    await session.execute(
+                        select(col(Trade.initiator_id), col(Trade.partner_id)).where(
+                            col(Trade.status).in_(("requested", "open")),
+                            col(Trade.initiator_id).in_(ids) | col(Trade.partner_id).in_(ids),
+                        )
+                    )
+                ).all()
+            )
+        changed = 0
+        for player_id in {p for pair in traders for p in pair if p in ids}:
+
+            def resolve(
+                snapshot: TradeActionSnapshot, _actor: Player, now: datetime, rng: random.Random
+            ) -> ActionResult:
+                return resolve_trade_check(snapshot, self.content, self.content.rules, now, rng)
+
+            try:
+                outcome = await self._run(player_id, self._trade_loader(), resolve, CLEANUP)
+            except Exception:
+                logger.exception("checking the trades of %s failed", player_id)
+                continue
+            changed += outcome.changed
+        return changed
 
     # --- one attempt = one transaction ----------------------------------------------------------
 
@@ -414,11 +522,17 @@ class ActionService:
 
         actor_events = [e for e in events if isinstance(e.audience, ActorAudience)]
         others = [e for e in events if not isinstance(e.audience, ActorAudience)]
-        return ActionOutcome(events=actor_events, changed=bool(events)), others, relocations
+        unsettled = frozenset(
+            u.player_id
+            for u in result.changes.players
+            if {"current_room_id", "state", "online", "disconnected_at"} & u.model_fields_set
+        )
+        outcome = ActionOutcome(events=actor_events, changed=bool(events), unsettled=unsettled)
+        return outcome, others, relocations
 
     @staticmethod
     def _relocations(
-        snapshot: ActionSnapshot | GroupActionSnapshot, result: ActionResult
+        snapshot: ActionSnapshot | GroupActionSnapshot | TradeActionSnapshot, result: ActionResult
     ) -> list[Relocation]:
         """Players whose room or group changed (move, respawn, joining or leaving a group):
         their live connections must follow them."""

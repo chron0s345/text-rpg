@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import cast
+from typing import Any, cast
 from uuid import UUID
 
 from app.content.schemas import EquipSlot, PlayerState
@@ -16,6 +16,8 @@ from app.db.models import (
     InventoryItem,
     MonsterInstance,
     Player,
+    Trade,
+    TradeOffer,
 )
 from app.engine.state import (
     FloorItemSnapshot,
@@ -25,6 +27,8 @@ from app.engine.state import (
     MonsterSnapshot,
     ParticipationSnapshot,
     PlayerSnapshot,
+    TradeOfferSnapshot,
+    TradeSnapshot,
 )
 
 
@@ -57,6 +61,7 @@ def player_snapshot(
         combat_target_id=row.combat_target_id,
         group_id=row.group_id,
         online=row.online,
+        disconnected=row.disconnected_at is not None,
         inventory=[inventory_item_state(i) for i in inventory],
         locked_item_ids=list(locked_item_ids),
     )
@@ -115,3 +120,25 @@ def invite_snapshot(row: GroupInvite) -> InviteSnapshot:
 
 def bank_item_state(row: BankItem) -> InventoryItemState:
     return InventoryItemState(id=row.id, item_id=row.item_id, quantity=row.quantity)
+
+
+def trade_snapshot(row: Trade, offers: Iterable[TradeOffer]) -> TradeSnapshot:
+    return TradeSnapshot(
+        id=row.id,
+        initiator_id=row.initiator_id,
+        partner_id=row.partner_id,
+        room_id=row.room_id,
+        status=cast(Any, row.status),
+        initiator_gold=row.initiator_gold,
+        partner_gold=row.partner_gold,
+        initiator_confirmed=row.initiator_confirmed,
+        partner_confirmed=row.partner_confirmed,
+        revision=row.revision,
+        expires_at=row.expires_at,
+        offers=[
+            TradeOfferSnapshot(
+                player_id=o.player_id, inventory_item_id=o.inventory_item_id, quantity=o.quantity
+            )
+            for o in offers
+        ],
+    )
