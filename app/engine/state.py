@@ -48,6 +48,8 @@ class PlayerSnapshot(BaseModel):
     state: PlayerState
     combat_target_id: UUID | None = None
     group_id: UUID | None = None
+    online: bool = True
+    disconnected: bool = False  # connection lost, grace period running
     inventory: list[InventoryItemState] = Field(default_factory=list)
     # inventory entries offered in an open trade: cannot be dropped, used, equipped, sold, banked
     locked_item_ids: list[UUID] = Field(default_factory=list)
@@ -99,6 +101,101 @@ class GroupSnapshot(BaseModel):
     member_ids: list[UUID]  # ordered by join time (oldest first)
 
 
+class InviteSnapshot(BaseModel):
+    inviter_id: UUID
+    player_id: UUID
+    group_id: UUID | None  # None while the inviter has no group yet
+    expires_at: datetime
+
+    def valid_at(self, now: datetime) -> bool:
+        return self.expires_at > now
+
+
+class GroupActionSnapshot(BaseModel):
+    """Everything a group action may touch (wherever the players are): the actor, the other
+    player involved (invitee, inviter, kicked member), all members of their groups, and the
+    open invitations from or to these players. Member order = join order (oldest first)."""
+
+    actor: PlayerSnapshot
+    players: list[PlayerSnapshot] = Field(default_factory=list)  # everyone else involved
+    groups: list[GroupSnapshot] = Field(default_factory=list)
+    invites: list[InviteSnapshot] = Field(default_factory=list)
+
+    def player(self, player_id: UUID) -> PlayerSnapshot | None:
+        if player_id == self.actor.id:
+            return self.actor
+        return next((p for p in self.players if p.id == player_id), None)
+
+    def group(self, group_id: UUID) -> GroupSnapshot | None:
+        return next((g for g in self.groups if g.id == group_id), None)
+
+    def invite(self, inviter_id: UUID, player_id: UUID) -> InviteSnapshot | None:
+        return next(
+            (i for i in self.invites if i.inviter_id == inviter_id and i.player_id == player_id),
+            None,
+        )
+
+
+class TradeOfferSnapshot(BaseModel):
+    player_id: UUID
+    inventory_item_id: UUID
+    quantity: int = Field(ge=1)
+
+
+class TradeSnapshot(BaseModel):
+    id: UUID
+    initiator_id: UUID
+    partner_id: UUID
+    room_id: str
+    status: Literal["requested", "open", "completed", "cancelled"]
+    initiator_gold: int = 0
+    partner_gold: int = 0
+    initiator_confirmed: bool = False
+    partner_confirmed: bool = False
+    revision: int = 0
+    expires_at: datetime
+    offers: list[TradeOfferSnapshot] = Field(default_factory=list)
+
+    @property
+    def active(self) -> bool:
+        return self.status in ("requested", "open")
+
+    def involves(self, player_id: UUID) -> bool:
+        return player_id in (self.initiator_id, self.partner_id)
+
+    def other(self, player_id: UUID) -> UUID:
+        return self.partner_id if player_id == self.initiator_id else self.initiator_id
+
+    def gold_of(self, player_id: UUID) -> int:
+        return self.initiator_gold if player_id == self.initiator_id else self.partner_gold
+
+    def offers_of(self, player_id: UUID) -> list[TradeOfferSnapshot]:
+        return [o for o in self.offers if o.player_id == player_id]
+
+
+class TradeActionSnapshot(BaseModel):
+    """A trade action: the actor and the other trader (with inventories), and every active
+    trade of either of them plus the trade the action names (locked: Trade -> Player ->
+    InventoryItem -> TradeOffer)."""
+
+    actor: PlayerSnapshot
+    partner: PlayerSnapshot | None = None
+    trades: list[TradeSnapshot] = Field(default_factory=list)
+
+    def player(self, player_id: UUID) -> PlayerSnapshot | None:
+        if player_id == self.actor.id:
+            return self.actor
+        if self.partner is not None and player_id == self.partner.id:
+            return self.partner
+        return None
+
+    def trade(self, trade_id: UUID) -> TradeSnapshot | None:
+        return next((t for t in self.trades if t.id == trade_id), None)
+
+    def active_trades_of(self, player_id: UUID) -> list[TradeSnapshot]:
+        return [t for t in self.trades if t.active and t.involves(player_id)]
+
+
 class ActionSnapshot(BaseModel):
     """Relevant slice of the world for one action.
 
@@ -117,6 +214,8 @@ class ActionSnapshot(BaseModel):
     participations: list[ParticipationSnapshot] = Field(default_factory=list)
     groups: list[GroupSnapshot] = Field(default_factory=list)
     floor_items: list[FloorItemSnapshot] = Field(default_factory=list)
+    # the actor's bank storage; only loaded (and locked) for bank actions
+    bank: list[InventoryItemState] = Field(default_factory=list)
 
     @property
     def players_in_room(self) -> list[PlayerSnapshot]:

@@ -1,0 +1,20 @@
+{% set p = view.player %}{% set b = view.bank %}
+<section id="bank" class="panel bank" aria-labelledby="bank-title"{% if b is none %} hidden{% endif %}{% if oob %} hx-swap-oob="true"{% endif %}>
+  {% if b is not none %}
+  <h2 id="bank-title">Bankfach <span class="muted">{{ b.used }}/{{ b.capacity }} Plätze</span></h2>
+  {% if b.items %}
+  <ul class="list">
+    {% for i in b.items %}
+    <li title="{{ i.description }}">
+      <span>{% if i.icon %}<img src="/static/icons/{{ i.icon }}.svg" alt="" class="icon">{% endif %}{% if i.quantity != 1 %}{{ i.quantity }}× {% endif %}{{ i.name }}</span>
+      {% if p.state == 'exploring' %}
+      <button hx-post="/ui/actions" hx-vals='{{ {"type": "bank_withdraw", "bank_item_id": i.id | string, "quantity": i.quantity | string} | tojson }}'>Abheben</button>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">Leer. Gegenstände im Bankfach gehen beim Tod nicht verloren.</p>
+  {% endif %}
+  {% endif %}
+</section>

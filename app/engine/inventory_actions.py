@@ -62,9 +62,10 @@ def _cap_hp(builder: ResultBuilder, player: PlayerSnapshot, content: ContentRegi
         report_hp(builder, player)
 
 
-def _remove_quantity(
+def remove_quantity(
     builder: ResultBuilder, player: PlayerSnapshot, entry: InventoryItemState, quantity: int
 ) -> None:
+    """Takes ``quantity`` units off an inventory stack (deletes it when empty)."""
     entry.quantity -= quantity
     if entry.quantity <= 0:
         player.inventory = [i for i in player.inventory if i.id != entry.id]
@@ -224,7 +225,7 @@ def resolve_use_item(
     healed = min(heal, max_hp - actor.hp)
     actor.hp += healed
     builder.update_player(actor.id, hp=actor.hp)
-    _remove_quantity(builder, actor, entry, 1)
+    remove_quantity(builder, actor, entry, 1)
     builder.to_actor(
         "inventory.used",
         f"Du benutzt {item.name} und erhältst {healed} HP.",
@@ -347,7 +348,7 @@ def resolve_drop(
     item = content.get_item(entry.item_id)
 
     builder = ResultBuilder(actor_id=actor.id)
-    _remove_quantity(builder, actor, entry, amount)
+    remove_quantity(builder, actor, entry, amount)
     created = FloorItemCreate(
         id=new_id(rng),
         room_id=actor.current_room_id,

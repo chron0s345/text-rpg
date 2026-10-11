@@ -1,0 +1,58 @@
+{% set inv = view.inventory %}{% set p = view.player %}
+<section id="inventory" class="panel inventory" aria-labelledby="inventory-title"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <h2 id="inventory-title">Inventar <span class="muted">{{ inv.used }}/{{ inv.capacity }} Plätze · Taschen {{ inv.bags }}/{{ inv.bag_slots }}</span></h2>
+  {% if inv.equipped %}
+  <h3>Ausgerüstet</h3>
+  <ul class="list">
+    {% for i in inv.equipped %}
+    <li title="{{ i.description }}">
+      <span>{% if i.icon %}<img src="/static/icons/{{ i.icon }}.svg" alt="" class="icon">{% endif %}{{ i.name }}</span>
+      {% if p.state == 'exploring' %}
+      <button hx-post="/ui/actions" hx-vals='{{ {"type": "unequip", "inventory_item_id": i.id | string} | tojson }}'>Ablegen</button>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  <h3>Rucksack</h3>
+  {% if inv.carried %}
+  <ul class="list">
+    {% for i in inv.carried %}
+    <li title="{{ i.description }}">
+      <span>{% if i.icon %}<img src="/static/icons/{{ i.icon }}.svg" alt="" class="icon">{% endif %}{% if i.quantity != 1 %}{{ i.quantity }}× {% endif %}{{ i.name }}</span>
+      <span class="buttons">
+        {% if i.offered %}
+        <span class="tag">im Angebot</span>
+        {% else %}
+        {% if i.usable and p.state != 'dead' %}
+        <button hx-post="/ui/actions" hx-vals='{{ {"type": "use_item", "inventory_item_id": i.id | string} | tojson }}'>Benutzen</button>
+        {% endif %}
+        {% if p.state == 'exploring' %}
+          {% if view.trade is not none and view.trade.status == 'open' and i.tradable %}
+          <button class="primary" hx-post="/ui/actions" hx-vals='{{ {"type": "trade_offer_item", "trade_id": view.trade.id | string, "inventory_item_id": i.id | string, "quantity": i.quantity | string} | tojson }}'>Anbieten</button>
+          {% endif %}
+          {% if i.sell %}
+          <button hx-post="/ui/actions" hx-vals='{{ {"type": "sell", "merchant_id": i.sell[0], "inventory_item_id": i.id | string, "quantity": "1"} | tojson }}'>Verkaufen ({{ i.sell[1] }} G)</button>
+            {% if i.quantity > 1 %}
+          <button class="subtle" hx-post="/ui/actions" hx-vals='{{ {"type": "sell", "merchant_id": i.sell[0], "inventory_item_id": i.id | string, "quantity": i.quantity | string} | tojson }}'>Alle ({{ i.sell[1] * i.quantity }} G)</button>
+            {% endif %}
+          {% elif view.shops %}
+          <button disabled title="Das kauft hier niemand.">Unverkäuflich</button>
+          {% endif %}
+          {% if view.bank is not none %}
+          <button hx-post="/ui/actions" hx-vals='{{ {"type": "bank_deposit", "inventory_item_id": i.id | string, "quantity": i.quantity | string} | tojson }}'>Einlagern</button>
+          {% endif %}
+          {% if i.equippable %}
+          <button hx-post="/ui/actions" hx-vals='{{ {"type": "equip", "inventory_item_id": i.id | string} | tojson }}'>Anlegen</button>
+          {% endif %}
+          <button class="subtle" hx-post="/ui/actions" hx-vals='{{ {"type": "drop", "inventory_item_id": i.id | string} | tojson }}'>Fallen lassen</button>
+        {% endif %}
+        {% endif %}
+      </span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">Leer.</p>
+  {% endif %}
+</section>

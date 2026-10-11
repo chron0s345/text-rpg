@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Oakhaven – Willkommen{% endblock %}
+{% block body_class %}page-narrow{% endblock %}
+{% block body %}
+<main>
+  <h1>Oakhaven</h1>
+  <p class="lead">Ein Text-Rollenspiel für viele Spieler.</p>
+  {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+  <div class="cards">
+    <form method="post" action="/welcome/login" class="card">
+      <h2>Einloggen</h2>
+      <label>Benutzername <input name="username" autocomplete="username" required maxlength="32" value="{{ username or '' }}"></label>
+      <label>Passwort <input name="password" type="password" autocomplete="current-password" required maxlength="128"></label>
+      <button type="submit">Einloggen</button>
+    </form>
+    <form method="post" action="/welcome/register" class="card">
+      <h2>Neuer Account</h2>
+      <label>Benutzername <input name="username" autocomplete="username" required minlength="3" maxlength="32" pattern="[A-Za-z0-9_.\-]+"></label>
+      <label>Passwort <input name="password" type="password" autocomplete="new-password" required minlength="8" maxlength="128"></label>
+      <button type="submit">Registrieren</button>
+    </form>
+  </div>
+</main>
+{% endblock %}
