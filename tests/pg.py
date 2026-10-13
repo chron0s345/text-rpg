@@ -105,6 +105,16 @@ class Committed:
                     text("DELETE FROM monster_instance WHERE room_id = :r"), {"r": room}
                 )
             for account_id in self.accounts:
+                # the trade audit has no foreign keys (it outlives trades and players), so it is
+                # not cascaded; seeded test RNGs reuse trade ids, so stale rows would leak
+                await db.execute(
+                    text(
+                        "DELETE FROM trade_log WHERE trade_id IN (SELECT t.id FROM trade t "
+                        "JOIN player p ON p.id IN (t.initiator_id, t.partner_id) "
+                        "WHERE p.account_id = :id)"
+                    ),
+                    {"id": account_id},
+                )
                 await db.execute(text("DELETE FROM account WHERE id = :id"), {"id": account_id})
 
 

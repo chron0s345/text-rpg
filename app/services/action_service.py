@@ -635,5 +635,5 @@ class ActionService:
             case BankWithdrawAction():
                 return resolve_bank_withdraw(*args, action.bank_item_id, action.quantity)
             case _:
-                # trade: later step
+                # unreachable: group and trade actions are dispatched before (execute)
                 return rejected(NOT_AVAILABLE)
