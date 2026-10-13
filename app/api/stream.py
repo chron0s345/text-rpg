@@ -43,7 +43,9 @@ def sse_message(event: str, data: str) -> str:
 
 def encode_game_event(event: GameEvent) -> str:
     message = sse_message("log", log_line(event.kind, event.text))
-    if not event.kind.startswith("chat."):
+    # chat and announcements change no state: no panel refresh (an announcement reaches every
+    # client at once and would make all of them reload their panels at the same moment)
+    if not event.kind.startswith(("chat.", "server.")):
         message += sse_message("update", "{}")
     return message
 
