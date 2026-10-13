@@ -675,7 +675,7 @@ Umsetzung: Engine `engine/presence.py` (`resolve_login`, `resolve_logout`), Kont
 - Charakterwechsel loggt den bisherigen Charakter zuerst in einer eigenen Transaktion aus (im Kampf nur mit `confirm_death`, sonst `409`), danach wird der neue eingeloggt. Ein gleichzeitiger zweiter Login scheitert am partiellen Unique-Index (ein Online-Charakter pro Account) und wird als `409` gemeldet.
 - Ein Login eines bereits eingeloggten Charakters (zweiter Tab, Reconnect) setzt nur `disconnected_at = null`, ohne den Raum erneut zu benachrichtigen.
 - Abgelaufene Fristen arbeitet der World-Ticker ab (`connection_expired`, `resolve_connection_lost` = Logout mit `confirm_death`). Ob die Frist abgelaufen ist, wird am gesperrten Datensatz geprüft; ein Reconnect kurz davor gewinnt.
-- Beim Logout wird die Gruppe verlassen (siehe *Gruppen*); laufenden Handel abbrechen folgt mit `trade.py`.
+- Beim Logout wird die Gruppe verlassen (siehe *Gruppen*) und ein laufender Handel abgebrochen (siehe *Handel*).
 
 ### Respawn & Aufräumen
 
@@ -955,6 +955,8 @@ Umsetzung (`app/api/views.py`, `app/web/`, `app/services/view_service.py`):
 | API | Auth, Charakterauswahl, Logout-Bestätigung, Rate Limit | `httpx.AsyncClient` |
 
 Der Content-Test läuft in CI, damit kaputte YAML-Dateien nie gemerged werden.
+
+Nebenläufigkeitsfälle ohne eigenen Platz in den Feature-Tests stehen in `tests/services/test_concurrency_cases.py`. Jeder Fall läuft in beiden Reihenfolgen: Eine dritte Transaktion hält die umkämpfte Zeile, beide Operationen reihen sich in die Sperrwarteschlange ein, dann wird freigegeben. PostgreSQL vergibt Zeilensperren in Warteschlangenreihenfolge, daher wird pro Reihenfolge das exakte serielle Ergebnis geprüft. Betreffen beide Operationen denselben Charakter (z. B. Überfall durch den Ticker und `move`), wartet die zweite nicht, sondern wird über den Claim pro Spieler abgewiesen (`BUSY`); der Ticker würfelt beim nächsten Tick erneut.
 
 ## Deployment
 
