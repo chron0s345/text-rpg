@@ -34,3 +34,7 @@ class Settings:
     heartbeat_seconds: float = 15.0
     # background upkeep (respawns, cleanup, disconnect deadlines, ambushes); WORLD_TICKER=0 disables
     world_ticker: bool = field(default_factory=lambda: os.environ.get("WORLD_TICKER", "1") != "0")
+    # log entries older than this are deleted by the world ticker (hourly); 0 keeps them forever
+    log_retention_days: int = field(
+        default_factory=lambda: int(os.environ.get("LOG_RETENTION_DAYS", "30") or "0")
+    )

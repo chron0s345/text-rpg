@@ -11,7 +11,7 @@ import logging
 import random
 from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -84,6 +84,11 @@ def create_app(
                 bus,
                 clock=clock,
                 rng_factory=rng_factory,
+                log_retention=(
+                    timedelta(days=settings.log_retention_days)
+                    if settings.log_retention_days > 0
+                    else None
+                ),
             )
             ticker_task = asyncio.create_task(ticker.run(stop), name="world-ticker")
         try:
