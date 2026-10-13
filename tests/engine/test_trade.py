@@ -217,7 +217,7 @@ def test_gold_and_removing_items(content: ContentRegistry, rules: Rules) -> None
 
 def test_confirm_needs_the_current_revision(content: ContentRegistry, rules: Rules) -> None:
     anna, ben = traders()
-    trade = open_trade(anna, ben, revision=2)
+    trade = open_trade(anna, ben, revision=2, initiator_gold=5)
     snap = TradeActionSnapshot(actor=anna, partner=ben, trades=[trade])
     stale = resolve_trade_confirm(snap, content, rules, NOW, RNG, trade.id, 1)
     assert actor_texts(stale) == ["Das Angebot hat sich geändert. Prüfe es und bestätige erneut."]
@@ -227,6 +227,17 @@ def test_confirm_needs_the_current_revision(content: ContentRegistry, rules: Rul
         "initiator_confirmed": True
     }
     assert texts_for(first, ben.id) == ["Anna bestätigt den Handel."]
+
+
+def test_an_empty_trade_cannot_be_confirmed(content: ContentRegistry, rules: Rules) -> None:
+    anna, ben = traders()
+    trade = open_trade(anna, ben)
+    snap = TradeActionSnapshot(actor=anna, partner=ben, trades=[trade])
+
+    result = resolve_trade_confirm(snap, content, rules, NOW, RNG, trade.id, 0)
+
+    assert actor_texts(result) == ["Es gibt noch nichts zu handeln. Legt zuerst etwas ins Angebot."]
+    assert result.changes.trades == []
 
 
 def test_second_confirmation_executes_the_trade(content: ContentRegistry, rules: Rules) -> None:

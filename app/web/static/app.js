@@ -44,6 +44,14 @@
     if (e.detail.type === "reload") { e.preventDefault(); window.location.reload(); }
   });
 
+  // Leaving the page (logout, character selection, reload): close the stream first, so the
+  // aborted connection does not show up as an SSE error in the console.
+  window.addEventListener("pagehide", () => {
+    const el = document.querySelector("[sse-connect]");
+    const internal = el && el["htmx-internal-data"];
+    if (internal && internal.sseEventSource) internal.sseEventSource.close();
+  });
+
   // Closing the tab in a fight kills the character after the grace period: warn.
   window.addEventListener("beforeunload", (e) => {
     const status = document.getElementById("status");
