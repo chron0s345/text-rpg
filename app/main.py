@@ -11,11 +11,12 @@ import logging
 import random
 from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.api import actions, auth, characters, stream, views
@@ -26,6 +27,7 @@ from app.realtime.bus import PostgresEventBus
 from app.realtime.connections import ConnectionManager
 from app.services.account_service import AccountService
 from app.services.action_service import ActionService, utc_now
+from app.services.login_guard import LoginGuard, ThrottlePolicy
 from app.services.session_service import SessionService
 from app.services.view_service import ViewService
 from app.services.world_ticker import WorldTicker
@@ -36,6 +38,24 @@ logger = logging.getLogger(__name__)
 
 SESSION_COOKIE = "rpg_session"
 SESSION_MAX_AGE_SECONDS = 14 * 24 * 3600
+
+
+def login_guard(
+    settings: Settings,
+    sessions: async_sessionmaker[AsyncSession],
+    clock: Callable[[], datetime],
+) -> LoginGuard:
+    window = timedelta(seconds=settings.login_window_seconds)
+    lockout = timedelta(seconds=settings.login_lockout_seconds)
+    return LoginGuard(
+        sessions,
+        clock=clock,
+        per_user=ThrottlePolicy(settings.login_attempts_per_user, window, lockout),
+        per_address=ThrottlePolicy(settings.login_attempts_per_address, window, lockout),
+        registrations_per_address=ThrottlePolicy(
+            settings.registrations_per_address, window, lockout
+        ),
+    )
 
 
 def create_app(
@@ -59,10 +79,11 @@ def create_app(
             sessions, content, bus, clock=clock, rng_factory=rng_factory
         )
         presence = SessionService(sessions, actions_service, clock=clock)
+        guard = login_guard(settings, sessions, clock)
         app.state.services = Services(
             content=content,
             sessions=sessions,
-            accounts=AccountService(sessions, content, clock=clock),
+            accounts=AccountService(sessions, content, clock=clock, guard=guard),
             actions=actions_service,
             presence=presence,
             views=ViewService(sessions, content, clock=clock),
@@ -84,6 +105,7 @@ def create_app(
                 bus,
                 clock=clock,
                 rng_factory=rng_factory,
+                login_guard=guard,
             )
             ticker_task = asyncio.create_task(ticker.run(stop), name="world-ticker")
         try:

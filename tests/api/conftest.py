@@ -9,6 +9,7 @@ from __future__ import annotations
 import random
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
+from typing import Any
 from uuid import uuid4
 
 import pytest
@@ -50,19 +51,43 @@ class Api:
         return character_id
 
 
-def settings_for(database_url: str) -> Settings:
-    return Settings(
-        database_url=database_url,
-        session_secret="test-secret",
-        heartbeat_seconds=0.2,
-        world_ticker=False,  # ticks are tested on their own (tests/services/test_world_ticker.py)
-    )
+def settings_for(database_url: str, **overrides: Any) -> Settings:
+    values: dict[str, Any] = {
+        "database_url": database_url,
+        "session_secret": "test-secret",
+        "heartbeat_seconds": 0.2,
+        # ticks are tested on their own (tests/services/test_world_ticker.py)
+        "world_ticker": False,
+        # every test client has the same address: the login limits get their own tests
+        # (tests/api/test_login_limits.py)
+        "login_attempts_per_address": 10_000,
+        "registrations_per_address": 10_000,
+    }
+    values.update(overrides)
+    return Settings(**values)
+
+
+async def clear_login_throttle(committed: Committed) -> None:
+    async with committed.session() as db, db.begin():
+        await db.execute(text("DELETE FROM login_throttle"))
 
 
 @pytest.fixture
-async def api(database_url: str, committed: Committed) -> AsyncIterator[Api]:
+def api_settings() -> dict[str, Any]:
+    """Overrides of ``settings_for`` (a test module can override this fixture)."""
+    return {}
+
+
+@pytest.fixture
+async def api(
+    database_url: str, committed: Committed, api_settings: dict[str, Any]
+) -> AsyncIterator[Api]:
     clock = Clock()
-    app = create_app(settings_for(database_url), clock=clock, rng_factory=lambda: random.Random(5))
+    app = create_app(
+        settings_for(database_url, **api_settings),
+        clock=clock,
+        rng_factory=lambda: random.Random(5),
+    )
     api = Api(app, clock, committed)
     async with app.router.lifespan_context(app):
         try:
@@ -73,3 +98,4 @@ async def api(database_url: str, committed: Committed) -> AsyncIterator[Api]:
                     text("DELETE FROM account WHERE username = ANY(:names)"),
                     {"names": api.usernames},
                 )
+            await clear_login_throttle(committed)

@@ -7,14 +7,32 @@ from fastapi import APIRouter, HTTPException, Request, status
 from app.api.deps import ServicesDep, current_account_id, session_player_id
 from app.api.schemas import AccountOut, Credentials, LogoutRequest
 from app.services.account_service import AccountError, UsernameTakenError
+from app.services.login_guard import TooManyAttemptsError
 
 router = APIRouter(tags=["auth"])
+
+
+def client_address(request: Request) -> str | None:
+    """Behind a reverse proxy run uvicorn with ``--proxy-headers`` (and ``--forwarded-allow-ips``),
+    otherwise every client has the proxy's address and shares its login limit."""
+    return request.client.host if request.client else None
+
+
+def too_many(exc: TooManyAttemptsError) -> HTTPException:
+    seconds = max(1, int(exc.retry_after.total_seconds()))
+    return HTTPException(
+        status.HTTP_429_TOO_MANY_REQUESTS, exc.message, headers={"Retry-After": str(seconds)}
+    )
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(body: Credentials, request: Request, services: ServicesDep) -> AccountOut:
     try:
-        account = await services.accounts.register(body.username, body.password)
+        account = await services.accounts.register(
+            body.username, body.password, address=client_address(request)
+        )
+    except TooManyAttemptsError as exc:
+        raise too_many(exc) from exc
     except UsernameTakenError as exc:
         raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
     except AccountError as exc:
@@ -26,7 +44,12 @@ async def register(body: Credentials, request: Request, services: ServicesDep) -
 
 @router.post("/login")
 async def login(body: Credentials, request: Request, services: ServicesDep) -> AccountOut:
-    account = await services.accounts.authenticate(body.username, body.password)
+    try:
+        account = await services.accounts.login(
+            body.username, body.password, address=client_address(request)
+        )
+    except TooManyAttemptsError as exc:
+        raise too_many(exc) from exc
     if account is None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Benutzername oder Passwort falsch.")
     request.session.clear()
