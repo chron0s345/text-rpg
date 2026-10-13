@@ -20,6 +20,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.api import actions, auth, characters, stream, views
 from app.api.deps import Services
+from app.api.security import SecurityHeaders
 from app.content.loader import load_content
 from app.db.session import create_engine, create_session_factory
 from app.realtime.bus import PostgresEventBus
@@ -109,6 +110,7 @@ def create_app(
         same_site="lax",
         https_only=settings.https_only,
     )
+    app.add_middleware(SecurityHeaders)
     app.include_router(auth.router)
     app.include_router(characters.router)
     app.include_router(actions.router)

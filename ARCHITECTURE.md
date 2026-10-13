@@ -905,6 +905,7 @@ Action = Annotated[
 - `logout` im Kampf ohne `confirm_death` → Antwort mit Bestätigungsdialog.
 - Rate Limit über `min_action_interval_ms`.
 - `say`-Texte und Charakternamen werden beim Rendern escaped (Jinja-Autoescape). Charakternamen werden zusätzlich auf erlaubte Zeichen beschränkt.
+- Sicherheits-Header auf jeder Antwort (`app/api/security.py`, reine ASGI-Middleware, damit der SSE-Stream unberührt bleibt): `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: same-origin` und eine strikte Content-Security-Policy (`default-src 'self'`, `script-src 'self'` ohne `unsafe-inline`/`unsafe-eval`, `frame-ancestors 'none'`, `form-action 'self'`). Ausgenommen von der CSP sind nur FastAPIs `/docs` und `/redoc` (Swagger vom CDN). Dafür gilt im Frontend: keine Inline-Skripte, -Handler (`hx-on`) oder -Styles; htmx läuft mit `allowEval: false` und ohne eingefügte Indikator-Styles (`htmx-config` in `base.html`), Verhalten wie „Formular nach dem Senden leeren“ (`data-reset-on-success`) steht in `app.js`.
 
 ## Frontend
 

@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Oakhaven{% endblock %}</title>
   <link rel="icon" href="/static/icons/dagger.svg" type="image/svg+xml">
+  <!-- no eval and no injected <style>: the Content-Security-Policy allows neither -->
+  <meta name="htmx-config" content='{"allowEval": false, "includeIndicatorStyles": false}'>
   <link rel="stylesheet" href="/static/style.css">
   <script src="/static/vendor/htmx-2.0.4.min.js"></script>
   <script src="/static/vendor/htmx-ext-sse-2.2.2.js"></script>
