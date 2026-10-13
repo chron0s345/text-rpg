@@ -1,22 +1,23 @@
-"""World ticker: background task for everything that happens without a player action
-(ARCHITECTURE.md, "World-Ticker").
-
-Every ``ticker_interval_seconds`` one tick runs these steps, each in its own short transaction(s):
+"""World ticker (ARCHITECTURE.md, "World-Ticker"): background upkeep every
+``ticker_interval_seconds``, each step in its own short transactions:
 
 1. monster respawns
 2. item respawns
 3. expired floor items
-4. expired disconnect grace periods (``SessionService.expire_disconnect``, one transaction each)
-5. idle ambushes (one transaction per candidate)
+4. expired disconnect grace periods (logout; death in combat)
+5. ambush rolls for players idling in a room
 6. expired group invites and trade requests
+7. offline characters still in a group leave it (normally done right after the logout)
+8. active trades whose traders are no longer both here and free end (normally done right after
+   the action that broke them)
 
-The decisions ("is due", "is ambushed") are made by the engine; the ticker only locks, applies,
-logs, commits and then publishes, exactly like ``ActionService``. A failing step is logged and
-does not stop the following ones.
+The decisions ("is due", "gets ambushed") are made by the engine; the ticker only finds
+candidates (unlocked reads), locks, applies and publishes after the commit. Steps 4 and 5 go
+through ``ActionService`` like player actions (same locks, log entries, retries).
 
-Only one process ticks: the leader holds a session-level PostgreSQL advisory lock on a dedicated
-connection (``TickerLeadership``). If that connection breaks, the lock is gone and any process
-(this one included) can take over on its next attempt.
+With several server processes only one ticks: it holds a session-level PostgreSQL advisory lock
+(``pg_try_advisory_lock``) on a dedicated connection. If that connection drops, another process
+takes over at its next tick.
 """
 
 from __future__ import annotations
@@ -25,120 +26,57 @@ import asyncio
 import logging
 import random
 from collections.abc import Awaitable, Callable, Sequence
-from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any, Final
 from uuid import UUID
 
-from sqlalchemy import delete, exists, func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, AsyncSession, async_sessionmaker
 from sqlmodel import col
 
 from app.content.registry import ContentRegistry
 from app.db.mappers import floor_item_snapshot, monster_snapshot
-from app.db.models import GroupInvite, MonsterInstance, Player, Trade, TradeOffer
-from app.db.repository import Repository, UnknownPlayerError
-from app.engine.ambush import resolve_idle_ambush
-from app.engine.cleanup import expire_floor_items
+from app.db.models import (
+    FloorItem,
+    GroupInvite,
+    ItemSpawnState,
+    MonsterInstance,
+    Player,
+    Trade,
+)
+from app.db.repository import Repository
+from app.engine.cleanup import ItemSpawnSnapshot, expired_floor_items, respawn_items
 from app.engine.events import ActionResult, GameEvent
-from app.engine.respawn import respawn_due_items, respawn_monsters
-from app.engine.state import ItemSpawnSnapshot
+from app.engine.respawn import respawn_monsters
+from app.services.action_service import (
+    ActionOutcome,
+    ActionService,
+    NotPlayingError,
+    RetryLimitExceededError,
+    utc_now,
+)
 from app.services.events import EventPublisher
-from app.services.logbook import write_log
-from app.services.session_service import SessionService
-from app.services.transactions import in_transaction
+from app.services.log import write_log
 
 logger = logging.getLogger(__name__)
 
-TICKER_LOCK = "text-rpg:world-ticker"
-
-
-def utc_now() -> datetime:
-    return datetime.now(UTC)
+TICKER_LOCK: Final = "text-rpg:world-ticker"
 
 
 @dataclass
 class TickReport:
-    """What one tick did (for logs and tests)."""
+    """What one tick did (numbers of rows/characters), for logs and tests."""
 
     monsters_respawned: int = 0
     items_respawned: int = 0
-    floor_items_expired: int = 0
-    disconnects_expired: int = 0
+    floor_items_removed: int = 0
+    connections_expired: int = 0
     ambushes: int = 0
-    invites_expired: int = 0
-    trade_requests_expired: int = 0
-    failed_steps: list[str] = field(default_factory=list)
-
-
-class TickerLeadership:
-    """Session-level ``pg_try_advisory_lock`` held on a dedicated connection.
-
-    The lock belongs to the database session, so the connection must never go back to the pool
-    while it holds the lock: ``release`` unlocks explicitly and invalidates the connection if
-    that fails.
-    """
-
-    def __init__(self, engine: AsyncEngine, key: str = TICKER_LOCK) -> None:
-        self.engine = engine
-        self.key = key
-        self._connection: AsyncConnection | None = None
-        self._backend_pid: int | None = None  # the database session that holds the lock
-
-    async def ensure(self) -> bool:
-        """Checks that the held lock is still alive, or tries (non-blocking) to take it."""
-        if self._connection is not None:
-            # Same backend = lock still held. SQLAlchemy silently reconnects an invalidated
-            # connection, and a new backend does not hold the lock any more.
-            try:
-                pid = await self._connection.scalar(select(func.pg_backend_pid()))
-                await self._connection.commit()
-            except Exception:
-                logger.warning("world ticker lost its leader connection", exc_info=True)
-                pid = None
-            if pid is not None and pid == self._backend_pid:
-                return True
-            logger.warning("world ticker leadership lost")
-            await self._discard()
-        connection = await self.engine.connect()
-        try:
-            acquired = await connection.scalar(
-                select(func.pg_try_advisory_lock(func.hashtextextended(self.key, 0)))
-            )
-            pid = await connection.scalar(select(func.pg_backend_pid()))
-            await connection.commit()  # the lock outlives the transaction; do not idle in one
-        except BaseException:
-            await connection.invalidate()
-            await connection.close()
-            raise
-        if not acquired:
-            await connection.close()
-            return False
-        self._connection, self._backend_pid = connection, pid
-        return True
-
-    async def release(self) -> None:
-        if self._connection is None:
-            return
-        connection, self._connection = self._connection, None
-        try:
-            await connection.scalar(
-                select(func.pg_advisory_unlock(func.hashtextextended(self.key, 0)))
-            )
-            await connection.commit()
-        except Exception:
-            logger.warning("unlocking the world ticker lock failed", exc_info=True)
-            await connection.invalidate()  # closing the database session drops the lock
-        finally:
-            await connection.close()
-
-    async def _discard(self) -> None:
-        connection, self._connection = self._connection, None
-        if connection is not None:
-            try:
-                await connection.invalidate()
-                await connection.close()
-            except Exception:
-                logger.debug("closing a broken leader connection failed", exc_info=True)
+    invites_removed: int = 0
+    trade_requests_removed: int = 0
+    offline_members_removed: int = 0
+    trades_ended: int = 0
 
 
 class WorldTicker:
@@ -147,217 +85,295 @@ class WorldTicker:
         engine: AsyncEngine,
         sessions: async_sessionmaker[AsyncSession],
         content: ContentRegistry,
+        actions: ActionService,
         publisher: EventPublisher,
         *,
         clock: Callable[[], datetime] = utc_now,
         rng_factory: Callable[[], random.Random] = random.SystemRandom,
-        interval_seconds: float | None = None,
-        session_service: SessionService | None = None,
     ) -> None:
+        self.engine = engine
         self.sessions = sessions
         self.content = content
+        self.actions = actions
         self.publisher = publisher
         self.clock = clock
-        # SystemRandom by default: ambush rolls must not be predictable from earlier outputs
         self.rng_factory = rng_factory
-        self.interval_seconds = (
-            interval_seconds
-            if interval_seconds is not None
-            else content.rules.timings.ticker_interval_seconds
-        )
-        self.leadership = TickerLeadership(engine)
-        self.session_service = session_service or SessionService(
-            sessions, content, publisher, clock=clock, rng_factory=rng_factory
-        )
+        self._lock_connection: AsyncConnection | None = None
 
-    # --- background loop ------------------------------------------------------------------------
+    # --- loop & leadership ------------------------------------------------------------------
 
-    async def run(self) -> None:
-        """Ticks forever while this process is the leader; stops on cancellation."""
+    async def run(self, stop: asyncio.Event) -> None:
+        """Ticks until ``stop`` is set. Never dies on errors (they are logged)."""
+        interval = self.content.rules.timings.ticker_interval_seconds
         try:
-            while True:
+            while not stop.is_set():
                 try:
-                    if await self.leadership.ensure():
-                        report = await self.tick()
-                        logger.debug("world tick: %s", report)
+                    if await self.hold_lock():
+                        await self.tick()
                 except Exception:
                     logger.exception("world tick failed")
-                await asyncio.sleep(self.interval_seconds)
+                try:
+                    await asyncio.wait_for(stop.wait(), timeout=interval)
+                except TimeoutError:
+                    pass
         finally:
-            await asyncio.shield(self.leadership.release())
+            await self.release_lock()
+
+    async def hold_lock(self) -> bool:
+        """True while this process is the one that ticks."""
+        if self._lock_connection is not None:
+            try:  # still alive? (the lock dies with the connection)
+                await self._lock_connection.execute(select(1))
+                await self._lock_connection.commit()
+                return True
+            except Exception:
+                logger.warning("world ticker lost its lock connection")
+                connection, self._lock_connection = self._lock_connection, None
+                await connection.invalidate()
+                await connection.close()
+                return False
+        connection = await self.engine.connect()
+        try:
+            acquired = await connection.scalar(
+                select(func.pg_try_advisory_lock(func.hashtext(TICKER_LOCK)))
+            )
+            await connection.commit()  # the session-level lock outlives the transaction
+        except Exception:
+            await connection.close()
+            raise
+        if not acquired:
+            await connection.close()
+            return False
+        self._lock_connection = connection
+        return True
+
+    async def release_lock(self) -> None:
+        """Gives up leadership. ``close()`` alone would only return the connection to the pool,
+        where its session (and the advisory lock) would live on."""
+        connection, self._lock_connection = self._lock_connection, None
+        if connection is None:
+            return
+        try:
+            await connection.execute(select(func.pg_advisory_unlock(func.hashtext(TICKER_LOCK))))
+            await connection.commit()
+        except Exception:
+            # broken connection: discard it, the server ends the session and with it the lock
+            await connection.invalidate()
+        finally:
+            await connection.close()
+
+    # --- one tick ---------------------------------------------------------------------------
 
     async def tick(self) -> TickReport:
-        """One run of all steps at the same ``now``. Callers must hold the leadership (tests call
-        it directly)."""
+        """All steps once. A failing step is logged and does not stop the others."""
         now = self.clock()
         report = TickReport()
-        steps: list[tuple[str, Callable[[datetime, TickReport], Awaitable[None]]]] = [
-            ("monster_respawns", self._respawn_monsters),
-            ("item_respawns", self._respawn_items),
-            ("floor_cleanup", self._expire_floor_items),
-            ("disconnect_deadlines", self._expire_disconnects),
-            ("idle_ambushes", self._idle_ambushes),
-            ("expired_requests", self._expire_requests),
-        ]
-        for name, step in steps:
+        steps = (
+            self._respawn_monsters,
+            self._respawn_items,
+            self._remove_expired_floor_items,
+            self._expire_connections,
+            self._roll_idle_ambushes,
+            self._remove_expired_requests,
+            self._remove_offline_members,
+            self._end_broken_trades,
+        )
+        for step in steps:
             try:
                 await step(now, report)
             except Exception:
-                logger.exception("world ticker step %s failed", name)
-                report.failed_steps.append(name)
+                logger.exception("world ticker step %s failed", step.__name__)
         return report
-
-    # --- steps ----------------------------------------------------------------------------------
-
-    async def _respawn_monsters(self, now: datetime, report: TickReport) -> None:
-        async def attempt(session: AsyncSession) -> ActionResult:
-            repo = Repository(session)
-            monsters = [monster_snapshot(m) for m in await repo.lock_due_monsters(now)]
-            result = respawn_monsters(monsters, self.content, now)
-            await repo.apply_changes(result.changes)
-            report.monsters_respawned = len(result.changes.monsters)
-            return result
-
-        await self._run(attempt, now)
-
-    async def _respawn_items(self, now: datetime, report: TickReport) -> None:
-        async def attempt(session: AsyncSession) -> ActionResult:
-            repo = Repository(session)
-            spawns = [
-                ItemSpawnSnapshot(
-                    room_id=s.room_id, item_id=s.item_id, next_spawn_at=s.next_spawn_at
-                )
-                for s in await repo.lock_due_item_spawns(now)
-            ]
-            lying = await repo.spawn_items_lying((s.room_id, s.item_id) for s in spawns)
-            result = respawn_due_items(spawns, lying, self.content, now, self.rng_factory())
-            await repo.apply_changes(result.changes)
-            report.items_respawned = len(result.changes.floor_items_create)
-            return result
-
-        await self._run(attempt, now)
-
-    async def _expire_floor_items(self, now: datetime, report: TickReport) -> None:
-        async def attempt(session: AsyncSession) -> ActionResult:
-            repo = Repository(session)
-            items = [floor_item_snapshot(f) for f in await repo.lock_expired_floor_items(now)]
-            result = expire_floor_items(items, self.content, now)
-            await repo.apply_changes(result.changes)
-            report.floor_items_expired = len(result.changes.floor_items_delete)
-            return result
-
-        await self._run(attempt, now)
-
-    async def _expire_disconnects(self, now: datetime, report: TickReport) -> None:
-        for player_id in await self.session_service.expired_disconnects(now):
-            try:
-                if await self.session_service.expire_disconnect(player_id, now):
-                    report.disconnects_expired += 1
-            except Exception:
-                # one player's conflict must not keep everybody else online
-                logger.exception("expiring the disconnect of %s failed", player_id)
-
-    async def _idle_ambushes(self, now: datetime, report: TickReport) -> None:
-        for victim_id in await self._ambush_candidates():
-
-            async def attempt(session: AsyncSession, victim_id: UUID = victim_id) -> ActionResult:
-                repo = Repository(session)
-                try:
-                    snapshot = await repo.load_action_snapshot(victim_id)
-                except UnknownPlayerError:  # deleted meanwhile
-                    return ActionResult()
-                victim = await session.get(Player, victim_id)  # refreshed under the lock
-                # never against offline characters (ambush.ambush_candidates precondition)
-                if victim is None or not victim.online or victim.deleted_at is not None:
-                    return ActionResult()
-                result = resolve_idle_ambush(
-                    snapshot, self.content, self.content.rules, now, self.rng_factory()
-                )
-                await repo.apply_changes(result.changes)
-                return result
-
-            try:
-                result = await self._run(attempt, now)
-            except Exception:
-                # one player's conflict must not cost everybody else their roll
-                logger.exception("idle ambush roll for %s failed", victim_id)
-                continue
-            if result.changes.participations_upsert:
-                report.ambushes += 1
-
-    async def _ambush_candidates(self) -> list[UUID]:
-        """Unlocked pre-read: online, exploring players in unsafe rooms with a living monster
-        that may ambush while players idle. The engine re-checks everything under the locks."""
-        ambushers = [
-            m.id
-            for m in self.content.monsters.values()
-            if m.ambush and m.ambush.chance_per_tick > 0
-        ]
-        if not ambushers:
-            return []
-        unsafe = [r.id for r in self.content.rooms.values() if not r.safe]
-        async with self.sessions() as session:
-            rows = await session.scalars(
-                select(col(Player.id))
-                .where(
-                    col(Player.online),
-                    col(Player.deleted_at).is_(None),
-                    col(Player.state) == "exploring",
-                    col(Player.current_room_id).in_(unsafe),
-                    exists().where(
-                        col(MonsterInstance.room_id) == col(Player.current_room_id),
-                        col(MonsterInstance.alive),
-                        col(MonsterInstance.monster_id).in_(ambushers),
-                    ),
-                )
-                .order_by(col(Player.id))
-            )
-            return list(rows.all())
-
-    async def _expire_requests(self, now: datetime, report: TickReport) -> None:
-        """Expired group invites and unanswered trade requests are deleted. A request has no
-        offers yet; the guard keeps an inconsistent row from failing the whole step."""
-        async with self.sessions() as session, session.begin():
-            invites = await session.execute(
-                delete(GroupInvite).where(col(GroupInvite.expires_at) <= now)
-            )
-            trades = await session.execute(
-                delete(Trade).where(
-                    col(Trade.status) == "requested",
-                    col(Trade.expires_at) <= now,
-                    ~exists().where(col(TradeOffer.trade_id) == col(Trade.id)),
-                )
-            )
-        report.invites_expired = _rowcount(invites)
-        report.trade_requests_expired = _rowcount(trades)
-
-    # --- transaction, log, publish --------------------------------------------------------------
-
-    async def _run(
-        self, attempt: Callable[[AsyncSession], Awaitable[ActionResult]], now: datetime
-    ) -> ActionResult:
-        """One transaction per attempt (fresh ``Repository`` inside ``attempt``); log entries in
-        the same transaction; events only after the commit. Lock conflicts are retried."""
-
-        async def logged(session: AsyncSession) -> ActionResult:
-            result = await attempt(session)
-            await write_log(session, result.events, now)
-            return result
-
-        result = await in_transaction(self.sessions, logged)
-        await self._publish(result.events)
-        return result
 
     async def _publish(self, events: Sequence[GameEvent]) -> None:
         if not events:
             return
         try:
             await self.publisher.publish(events)
-        except Exception:
-            # committed already; recipients catch up through their log entries
+        except Exception:  # committed anyway; clients catch up via their log
             logger.exception("publishing world ticker events failed")
 
+    async def _rooms(self, column: Any, *conditions: Any) -> list[str]:
+        """Rooms with something due (unlocked read; the locked re-check decides)."""
+        async with self.sessions() as session:
+            rows = await session.scalars(select(column).where(*conditions).distinct())
+            return list(rows.all())
 
-def _rowcount(result: object) -> int:
-    count = getattr(result, "rowcount", 0)
-    return count if isinstance(count, int) and count > 0 else 0
+    # 1. monsters
+
+    async def _respawn_monsters(self, now: datetime, report: TickReport) -> None:
+        rooms = await self._rooms(
+            col(MonsterInstance.room_id),
+            col(MonsterInstance.alive).is_(False),
+            col(MonsterInstance.respawn_at) <= now,
+        )
+        for room_id in rooms:
+            async with self.sessions() as session, session.begin():
+                repo = Repository(session)
+                monsters = [monster_snapshot(m) for m in await repo.lock_monsters_in_room(room_id)]
+                result = respawn_monsters(monsters, self.content, now)
+                await self._apply(session, repo, result, now)
+            report.monsters_respawned += len(result.changes.monsters)
+            await self._publish(result.events)
+
+    # 2. spawn items
+
+    async def _respawn_items(self, now: datetime, report: TickReport) -> None:
+        rooms = await self._rooms(
+            col(ItemSpawnState.room_id), col(ItemSpawnState.next_spawn_at) <= now
+        )
+        for room_id in rooms:
+            if room_id not in self.content.rooms:
+                continue  # room removed from the content: nothing to spawn
+            async with self.sessions() as session, session.begin():
+                repo = Repository(session)
+                floor_rows, spawn_rows = await repo.lock_room_items(room_id)
+                result = respawn_items(
+                    room_id,
+                    [ItemSpawnSnapshot(s.room_id, s.item_id, s.next_spawn_at) for s in spawn_rows],
+                    [floor_item_snapshot(f) for f in floor_rows],
+                    self.content,
+                    now,
+                    self.rng_factory(),
+                )
+                await self._apply(session, repo, result, now)
+            report.items_respawned += len(result.changes.floor_items_create)
+            await self._publish(result.events)
+
+    # 3. floor items
+
+    async def _remove_expired_floor_items(self, now: datetime, report: TickReport) -> None:
+        rooms = await self._rooms(col(FloorItem.room_id), col(FloorItem.expires_at) <= now)
+        for room_id in rooms:
+            async with self.sessions() as session, session.begin():
+                repo = Repository(session)
+                floor = [
+                    floor_item_snapshot(f) for f in await repo.lock_floor_items_in_room(room_id)
+                ]
+                result = ActionResult()
+                result.changes.floor_items_delete = expired_floor_items(floor, now)
+                await repo.apply_changes(result.changes)
+            report.floor_items_removed += len(result.changes.floor_items_delete)
+
+    # 4. disconnect grace periods
+
+    async def _expire_connections(self, now: datetime, report: TickReport) -> None:
+        grace = timedelta(seconds=self.content.rules.timings.disconnect_grace_seconds)
+        async with self.sessions() as session:
+            player_ids = (
+                await session.scalars(
+                    select(col(Player.id)).where(
+                        col(Player.online),
+                        col(Player.deleted_at).is_(None),
+                        col(Player.disconnected_at) <= now - grace,
+                    )
+                )
+            ).all()
+        for player_id in player_ids:
+            if await self._for_player(self.actions.expire_connection, player_id):
+                report.connections_expired += 1
+
+    # 5. ambushes of idling players
+
+    async def _roll_idle_ambushes(self, now: datetime, report: TickReport) -> None:
+        """Candidates: exploring, online characters in unsafe rooms with a living monster that
+        can ambush. Whether it happens (and which monster) is rolled by the engine."""
+        ambushers = [m.id for m in self.content.monsters.values() if m.ambush is not None]
+        if not ambushers:
+            return
+        async with self.sessions() as session:
+            rooms = (
+                await session.scalars(
+                    select(col(MonsterInstance.room_id))
+                    .where(
+                        col(MonsterInstance.alive),
+                        col(MonsterInstance.monster_id).in_(ambushers),
+                    )
+                    .distinct()
+                )
+            ).all()
+            rooms = [r for r in rooms if r in self.content.rooms and not self.content.rooms[r].safe]
+            if not rooms:
+                return
+            player_ids = (
+                await session.scalars(
+                    select(col(Player.id))
+                    .where(
+                        col(Player.online),
+                        col(Player.deleted_at).is_(None),
+                        col(Player.state) == "exploring",
+                        col(Player.current_room_id).in_(rooms),
+                    )
+                    .order_by(col(Player.id))
+                )
+            ).all()
+        for player_id in player_ids:
+            if await self._for_player(self.actions.idle_ambush, player_id):
+                report.ambushes += 1
+
+    async def _for_player(
+        self, operation: Callable[[UUID], Awaitable[ActionOutcome]], player_id: UUID
+    ) -> bool:
+        """Runs a per-player step; True if something happened."""
+        try:
+            outcome = await operation(player_id)
+        except (NotPlayingError, RetryLimitExceededError):
+            return False  # logged out meanwhile / busy: next tick
+        except Exception:
+            logger.exception("world ticker step for %s failed", player_id)
+            return False
+        return outcome.changed
+
+    # 6. invites & trade requests
+
+    async def _remove_expired_requests(self, now: datetime, report: TickReport) -> None:
+        async with self.sessions() as session, session.begin():
+            invites = await session.execute(
+                delete(GroupInvite)
+                .where(col(GroupInvite.expires_at) <= now)
+                .returning(col(GroupInvite.player_id))
+            )
+            report.invites_removed = len(invites.all())
+            trades = await session.execute(
+                delete(Trade)
+                .where(col(Trade.status) == "requested", col(Trade.expires_at) <= now)
+                .returning(col(Trade.id))
+            )
+            report.trade_requests_removed = len(trades.all())
+
+    # 7. offline group members
+
+    async def _remove_offline_members(self, now: datetime, report: TickReport) -> None:
+        async with self.sessions() as session:
+            player_ids = (
+                await session.scalars(
+                    select(col(Player.id)).where(
+                        col(Player.online).is_(False), col(Player.group_id).is_not(None)
+                    )
+                )
+            ).all()
+        for player_id in player_ids:
+            if await self._for_player(self.actions.leave_group, player_id):
+                report.offline_members_removed += 1
+
+    # 8. trades
+
+    async def _end_broken_trades(self, now: datetime, report: TickReport) -> None:
+        async with self.sessions() as session:
+            initiators = (
+                await session.scalars(
+                    select(col(Trade.initiator_id)).where(
+                        col(Trade.status).in_(("requested", "open"))
+                    )
+                )
+            ).all()
+        if initiators:
+            report.trades_ended += await self.actions.check_trades(initiators)
+
+    # --- helpers ----------------------------------------------------------------------------
+
+    async def _apply(
+        self, session: AsyncSession, repo: Repository, result: ActionResult, now: datetime
+    ) -> None:
+        await repo.apply_changes(result.changes)
+        await write_log(session, None, result.events, now)

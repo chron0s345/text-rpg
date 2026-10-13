@@ -1,22 +1,38 @@
-"""POST /actions: one game action of the character in the world."""
+"""``POST /actions``: one game action of the active character (ARCHITECTURE.md, "Aktionen").
+
+Rejections by the game rules (wrong state, too fast, ...) are not HTTP errors but events in the
+response. The actor gets its results here; everyone else via SSE.
+"""
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from typing import Annotated
 
-from app.api.deps import CurrentPlayer, Services
+from fastapi import APIRouter, Body, HTTPException, Request, status
+
+from app.api.deps import PlayerId, ServicesDep, not_playing
 from app.api.schemas import ActionResponse, GameAction, LogoutAction
+from app.engine.presence import LOGGED_OUT
+from app.services.action_service import NotPlayingError, RetryLimitExceededError
 
-router = APIRouter(tags=["actions"])
+router = APIRouter(tags=["game"])
 
 
 @router.post("/actions")
-async def act(action: GameAction, player_id: CurrentPlayer, services: Services) -> ActionResponse:
-    """The acting player's results come back here; everybody else gets them via SSE. Actions
-    not allowed right now are answered with ``action.rejected`` events, not HTTP errors."""
-    if isinstance(action, LogoutAction):
-        # the account session (cookie) stays: the client returns to the character selection
-        outcome = await services.presence.logout(player_id, confirm_death=action.confirm_death)
-        return ActionResponse(status=outcome.status, events=outcome.events)
-    result = await services.actions.execute(player_id, action)
-    return ActionResponse(events=result.events)
+async def act(
+    action: Annotated[GameAction, Body()],
+    request: Request,
+    player_id: PlayerId,
+    services: ServicesDep,
+) -> ActionResponse:
+    try:
+        outcome = await services.actions.execute(player_id, action)
+    except NotPlayingError as exc:
+        raise not_playing(request) from exc
+    except RetryLimitExceededError as exc:
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE, "Zu viel los gerade, versuche es noch einmal."
+        ) from exc
+    if isinstance(action, LogoutAction) and any(e.kind == LOGGED_OUT for e in outcome.events):
+        request.session.pop("player_id", None)  # back to character selection
+    return ActionResponse.of(outcome.events)

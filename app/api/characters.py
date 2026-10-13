@@ -2,60 +2,85 @@
 
 from __future__ import annotations
 
-import dataclasses
 from uuid import UUID
 
-from fastapi import APIRouter, Response, status
+from fastapi import APIRouter, HTTPException, Request, Response, status
 
-from app.api.deps import CurrentAccount, Services
-from app.api.schemas import (
-    ActionResponse,
-    CharacterCreateRequest,
-    CharacterResponse,
-    ConfirmDeathRequest,
+from app.api.deps import AccountId, ServicesDep, session_player_id
+from app.api.schemas import ActionResponse, CharacterCreate, CharacterOut, PlayRequest
+from app.services.account_service import (
+    AccountError,
+    CharacterInfo,
+    CharacterLimitError,
+    CharacterNameTakenError,
+    CharacterNotFoundError,
+    CharacterOnlineError,
 )
-from app.services.account_service import CharacterSummary
+from app.services.session_service import ConfirmDeathRequiredError, SessionConflictError
 
 router = APIRouter(prefix="/characters", tags=["characters"])
 
 
-def _response(character: CharacterSummary) -> CharacterResponse:
-    return CharacterResponse.model_validate(dataclasses.asdict(character))
+def _out(info: CharacterInfo) -> CharacterOut:
+    return CharacterOut(
+        id=info.id,
+        name=info.name,
+        level=info.level,
+        state=info.state,
+        room_id=info.room_id,
+        online=info.online,
+    )
 
 
 @router.get("")
-async def list_characters(
-    account_id: CurrentAccount, services: Services
-) -> list[CharacterResponse]:
-    return [_response(c) for c in await services.accounts.characters(account_id)]
+async def list_characters(account_id: AccountId, services: ServicesDep) -> list[CharacterOut]:
+    return [_out(c) for c in await services.accounts.list_characters(account_id)]
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_character(
-    body: CharacterCreateRequest, account_id: CurrentAccount, services: Services
-) -> CharacterResponse:
-    player_id = await services.accounts.create_character(account_id, body.name)
-    created = next(c for c in await services.accounts.characters(account_id) if c.id == player_id)
-    return _response(created)
+    body: CharacterCreate, account_id: AccountId, services: ServicesDep
+) -> CharacterOut:
+    try:
+        return _out(await services.accounts.create_character(account_id, body.name))
+    except (CharacterNameTakenError, CharacterLimitError) as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+    except AccountError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
 
 
-@router.post("/{player_id}/play")
+@router.post("/{character_id}/play")
 async def play(
-    player_id: UUID,
-    account_id: CurrentAccount,
-    services: Services,
-    body: ConfirmDeathRequest | None = None,
+    character_id: UUID,
+    request: Request,
+    account_id: AccountId,
+    services: ServicesDep,
+    body: PlayRequest | None = None,
 ) -> ActionResponse:
-    """Logs the character in. Another character of the account in combat would die: then the
-    answer is ``confirm_death`` and nothing changed."""
-    confirm = body.confirm_death if body is not None else False
-    outcome = await services.presence.play(account_id, player_id, confirm_death=confirm)
-    return ActionResponse(status=outcome.status, events=outcome.events)
+    """Logs the character in (and another character of the account out). 409 if that other
+    character is in combat and ``confirm_death`` is not set."""
+    try:
+        outcome = await services.presence.play(
+            account_id, character_id, confirm_death=body.confirm_death if body else False
+        )
+    except CharacterNotFoundError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+    except (ConfirmDeathRequiredError, SessionConflictError) as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+    request.session["player_id"] = str(character_id)
+    return ActionResponse.of(outcome.events)
 
 
-@router.delete("/{player_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{character_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_character(
-    player_id: UUID, account_id: CurrentAccount, services: Services
+    character_id: UUID, request: Request, account_id: AccountId, services: ServicesDep
 ) -> Response:
-    await services.accounts.delete_character(account_id, player_id)
+    try:
+        await services.accounts.delete_character(account_id, character_id)
+    except CharacterNotFoundError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+    except CharacterOnlineError as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+    if session_player_id(request) == character_id:
+        request.session.pop("player_id", None)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

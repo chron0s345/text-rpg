@@ -3,26 +3,31 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import cast
+from typing import Any, cast
 from uuid import UUID
 
 from app.content.schemas import EquipSlot, PlayerState
 from app.db.models import (
+    BankItem,
     CombatParticipation,
     FloorItem,
     Group,
+    GroupInvite,
     InventoryItem,
     MonsterInstance,
     Player,
     Trade,
+    TradeOffer,
 )
 from app.engine.state import (
     FloorItemSnapshot,
     GroupSnapshot,
     InventoryItemState,
+    InviteSnapshot,
     MonsterSnapshot,
     ParticipationSnapshot,
     PlayerSnapshot,
+    TradeOfferSnapshot,
     TradeSnapshot,
 )
 
@@ -55,6 +60,8 @@ def player_snapshot(
         state=cast(PlayerState, row.state),
         combat_target_id=row.combat_target_id,
         group_id=row.group_id,
+        online=row.online,
+        disconnected=row.disconnected_at is not None,
         inventory=[inventory_item_state(i) for i in inventory],
         locked_item_ids=list(locked_item_ids),
     )
@@ -102,12 +109,36 @@ def group_snapshot(row: Group, member_ids: list[UUID]) -> GroupSnapshot:
     )
 
 
-def trade_snapshot(row: Trade) -> TradeSnapshot:
-    return TradeSnapshot.model_validate(
-        {
-            "id": row.id,
-            "initiator_id": row.initiator_id,
-            "partner_id": row.partner_id,
-            "status": row.status,
-        }
+def invite_snapshot(row: GroupInvite) -> InviteSnapshot:
+    return InviteSnapshot(
+        inviter_id=row.inviter_id,
+        player_id=row.player_id,
+        group_id=row.group_id,
+        expires_at=row.expires_at,
+    )
+
+
+def bank_item_state(row: BankItem) -> InventoryItemState:
+    return InventoryItemState(id=row.id, item_id=row.item_id, quantity=row.quantity)
+
+
+def trade_snapshot(row: Trade, offers: Iterable[TradeOffer]) -> TradeSnapshot:
+    return TradeSnapshot(
+        id=row.id,
+        initiator_id=row.initiator_id,
+        partner_id=row.partner_id,
+        room_id=row.room_id,
+        status=cast(Any, row.status),
+        initiator_gold=row.initiator_gold,
+        partner_gold=row.partner_gold,
+        initiator_confirmed=row.initiator_confirmed,
+        partner_confirmed=row.partner_confirmed,
+        revision=row.revision,
+        expires_at=row.expires_at,
+        offers=[
+            TradeOfferSnapshot(
+                player_id=o.player_id, inventory_item_id=o.inventory_item_id, quantity=o.quantity
+            )
+            for o in offers
+        ],
     )

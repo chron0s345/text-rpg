@@ -9,11 +9,6 @@ from app.engine.state import InventoryItemState
 IdFactory = Callable[[], UUID]
 
 
-def item_label(quantity: int, item: ItemTemplate) -> str:
-    """Player-facing name of a stack: "3x Brot", or just the name for a single item."""
-    return f"{quantity}x {item.name}" if quantity > 1 else item.name
-
-
 def calculate_inventory_capacity(
     base_slots: int,
     items: Sequence[InventoryItemState],

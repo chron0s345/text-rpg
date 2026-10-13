@@ -1,75 +1,97 @@
-"""FastAPI app: wiring of content, database, event bus, services, routes and the world ticker.
+"""FastAPI app. Lifespan: load content, connect the database and the event bus, wire services.
 
-Lifespan (ARCHITECTURE.md, "Projektstruktur"):
-1. load and validate content (startup fails on broken YAML),
-2. database engine + session factory,
-3. event bus (LISTEN/NOTIFY) delivering to this process's SSE connections,
-4. services; online characters get the disconnect grace period (server start),
-5. world ticker as background task (only the advisory-lock leader actually ticks).
-Shutdown runs in reverse order.
+``create_app`` takes overrides for tests (database, clock, RNG); uvicorn uses ``app``.
+The world ticker runs as a background task (only one process ticks, see services/world_ticker.py).
 """
 
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import logging
-from collections.abc import AsyncGenerator
+import random
+from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
+from datetime import datetime
+from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from starlette.middleware.sessions import SessionMiddleware
 
-from app.api import actions, auth, characters, stream
-from app.api.deps import AppServices
-from app.api.errors import install_error_handlers
+from app.api import actions, auth, characters, stream, views
+from app.api.deps import Services
 from app.content.loader import load_content
 from app.db.session import create_engine, create_session_factory
 from app.realtime.bus import PostgresEventBus
 from app.realtime.connections import ConnectionManager
 from app.services.account_service import AccountService
-from app.services.action_service import ActionService
+from app.services.action_service import ActionService, utc_now
 from app.services.session_service import SessionService
+from app.services.view_service import ViewService
 from app.services.world_ticker import WorldTicker
 from app.settings import Settings
+from app.web.render import STATIC_DIR
 
 logger = logging.getLogger(__name__)
 
+SESSION_COOKIE = "rpg_session"
+SESSION_MAX_AGE_SECONDS = 14 * 24 * 3600
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+
+def create_app(
+    settings: Settings | None = None,
+    *,
+    clock: Callable[[], datetime] = utc_now,
+    rng_factory: Callable[[], random.Random] = random.SystemRandom,
+) -> FastAPI:
+    settings = settings or Settings()
+
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-        config = settings or Settings.from_env()
-        content = load_content(config.data_dir, icons_dir=config.icons_dir)
+        content = load_content(Path(settings.data_dir), icons_dir=Path(settings.icons_dir))
         app.state.content = content
-        engine = create_engine(config.database_url)
+        engine = create_engine(settings.database_url)
         sessions = create_session_factory(engine)
         connections = ConnectionManager()
-        bus = PostgresEventBus(config.database_url, connections)
+        bus = PostgresEventBus(settings.database_url, connections)
+        await bus.start()
+        actions_service = ActionService(
+            sessions, content, bus, clock=clock, rng_factory=rng_factory
+        )
+        presence = SessionService(sessions, actions_service, clock=clock)
+        app.state.services = Services(
+            content=content,
+            sessions=sessions,
+            accounts=AccountService(sessions, content, clock=clock),
+            actions=actions_service,
+            presence=presence,
+            views=ViewService(sessions, content, clock=clock),
+            connections=connections,
+            heartbeat_seconds=settings.heartbeat_seconds,
+        )
+        # nobody is connected to a fresh process: the disconnect grace period applies
+        marked = await presence.mark_all_disconnected()
+        if marked:
+            logger.info("marked %d online characters as disconnected", marked)
+        stop = asyncio.Event()
         ticker_task: asyncio.Task[None] | None = None
-        try:
-            await bus.start()
-            presence = SessionService(sessions, content, bus)
-            app.state.services = AppServices(
-                settings=config,
-                content=content,
-                sessions=sessions,
-                accounts=AccountService(sessions, content),
-                actions=ActionService(sessions, content, bus),
-                presence=presence,
-                connections=connections,
+        if settings.world_ticker:
+            ticker = WorldTicker(
+                engine,
+                sessions,
+                content,
+                actions_service,
+                bus,
+                clock=clock,
+                rng_factory=rng_factory,
             )
-            marked = await presence.mark_all_disconnected()
-            if marked:
-                logger.info("%d online characters wait for their connection", marked)
-            if config.start_world_ticker:
-                ticker = WorldTicker(engine, sessions, content, bus, session_service=presence)
-                ticker_task = asyncio.create_task(ticker.run(), name="world-ticker")
+            ticker_task = asyncio.create_task(ticker.run(stop), name="world-ticker")
+        try:
             yield
         finally:
+            stop.set()
             if ticker_task is not None:
-                ticker_task.cancel()
-                with contextlib.suppress(asyncio.CancelledError):
-                    await ticker_task
+                await ticker_task
             await bus.stop()
             await engine.dispose()
 
@@ -79,9 +101,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         version="0.1.0",
         lifespan=lifespan,
     )
-    install_error_handlers(app)
-    for module in (auth, characters, actions, stream):
-        app.include_router(module.router)
+    app.add_middleware(
+        SessionMiddleware,
+        secret_key=settings.session_secret,
+        session_cookie=SESSION_COOKIE,
+        max_age=SESSION_MAX_AGE_SECONDS,
+        same_site="lax",
+        https_only=settings.https_only,
+    )
+    app.include_router(auth.router)
+    app.include_router(characters.router)
+    app.include_router(actions.router)
+    app.include_router(stream.router)
+    app.include_router(views.router)
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
     @app.get("/health")
     async def health_check() -> dict[str, str]:

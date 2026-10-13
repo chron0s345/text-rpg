@@ -48,6 +48,7 @@ RNG = random.Random(1)
         ("unequip", {"exploring"}),
         ("drop", {"exploring"}),
         ("group_accept", {"exploring", "in_combat"}),
+        ("group_decline", {"exploring", "in_combat", "dead"}),
         ("trade_accept", {"exploring"}),
         ("trade_offer_item", {"exploring"}),
         ("trade_offer_gold", {"exploring"}),
@@ -67,7 +68,7 @@ def test_state_table_matches_architecture(action: str, allowed: set[str]) -> Non
 
 def test_every_action_type_has_an_entry() -> None:
     # every row of the table above is checked in test_state_table_matches_architecture
-    assert len(ALLOWED_STATES) == 28
+    assert len(ALLOWED_STATES) == 29
 
 
 def test_check_state_messages() -> None:

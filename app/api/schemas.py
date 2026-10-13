@@ -1,19 +1,14 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import datetime
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field, PositiveInt
 
-from app.content.schemas import Direction, PlayerState
+from app.content.schemas import Direction
 from app.engine.events import GameEvent
-from app.services.account_service import (
-    CHARACTER_NAME_PATTERN,
-    MAX_PASSWORD_LENGTH,
-    MIN_PASSWORD_LENGTH,
-    USERNAME_PATTERN,
-)
 
 
 class MoveAction(BaseModel):
@@ -64,12 +59,17 @@ class SayAction(BaseModel):
 
 class GroupInviteAction(BaseModel):
     type: Literal["group_invite"] = "group_invite"
-    player_name: str
+    player_name: str = Field(min_length=1, max_length=20)
 
 
 class GroupAcceptAction(BaseModel):
     type: Literal["group_accept"] = "group_accept"
-    group_id: UUID
+    inviter_id: UUID  # the invitation may predate the group (created on accept)
+
+
+class GroupDeclineAction(BaseModel):
+    type: Literal["group_decline"] = "group_decline"
+    inviter_id: UUID
 
 
 class GroupLeaveAction(BaseModel):
@@ -176,6 +176,7 @@ GameAction = Annotated[
     | SayAction
     | GroupInviteAction
     | GroupAcceptAction
+    | GroupDeclineAction
     | GroupLeaveAction
     | GroupKickAction
     | TradeRequestAction
@@ -197,51 +198,57 @@ GameAction = Annotated[
 ]
 
 
-# --- accounts, characters, responses ------------------------------------------------------------
+# --- requests & responses of the HTTP API (app/api/) ------------------------------------------
 
 
-class RegisterRequest(BaseModel):
-    username: str = Field(pattern=USERNAME_PATTERN.pattern)
-    password: str = Field(min_length=MIN_PASSWORD_LENGTH, max_length=MAX_PASSWORD_LENGTH)
+class Credentials(BaseModel):
+    username: str = Field(max_length=32)
+    password: str = Field(max_length=128)
 
 
-class LoginRequest(BaseModel):
-    username: str = Field(min_length=1, max_length=64)
-    password: str = Field(min_length=1, max_length=MAX_PASSWORD_LENGTH)
+class AccountOut(BaseModel):
+    id: UUID
+    username: str
 
 
-class AccountResponse(BaseModel):
-    account_id: UUID
+class CharacterCreate(BaseModel):
+    name: str = Field(max_length=20)
 
 
-class CharacterCreateRequest(BaseModel):
-    name: str = Field(pattern=CHARACTER_NAME_PATTERN.pattern)
-
-
-class CharacterResponse(BaseModel):
+class CharacterOut(BaseModel):
     id: UUID
     name: str
     level: int
-    state: PlayerState
-    online: bool
+    state: str
     room_id: str
+    online: bool
 
 
-class ConfirmDeathRequest(BaseModel):
-    """Logging out or switching characters in combat kills the character: confirm it."""
+class PlayRequest(BaseModel):
+    confirm_death: bool = False  # another character of the account is in combat
 
-    confirm_death: bool = False
+
+class LogoutRequest(BaseModel):
+    confirm_death: bool = False  # the active character is in combat
+
+
+class EventOut(BaseModel):
+    """A game event as the client sees it (audience/routing details stay on the server)."""
+
+    kind: str
+    text: str
+    data: dict[str, Any] = Field(default_factory=dict)
 
 
 class ActionResponse(BaseModel):
-    """``confirm_death``: nothing happened, the client shows the confirmation dialog and sends
-    the request again with ``confirm_death: true``."""
+    events: list[EventOut]
 
-    status: Literal["ok", "confirm_death"] = "ok"
-    events: list[GameEvent] = Field(default_factory=list)
+    @classmethod
+    def of(cls, events: Sequence[GameEvent]) -> ActionResponse:
+        return cls(events=[EventOut(kind=e.kind, text=e.text, data=e.data) for e in events])
 
 
-class LogEntryResponse(BaseModel):
+class LogEntryOut(BaseModel):
     id: int
     kind: str
     text: str
@@ -249,4 +256,4 @@ class LogEntryResponse(BaseModel):
 
 
 class LogPage(BaseModel):
-    entries: list[LogEntryResponse]  # oldest first
+    entries: list[LogEntryOut]  # oldest first

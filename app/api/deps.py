@@ -1,96 +1,77 @@
-"""Shared route dependencies: the app's services and who is asking.
+"""Shared dependencies of the routes: services from the app state, session cookie contents.
 
-Routes stay thin (ARCHITECTURE.md, "Abhängigkeitsregeln"): they validate input, resolve the
-account/character and call a service. No game logic here.
+The session cookie (signed, ``SessionMiddleware``) holds ``account_id`` and, once a character
+was chosen, ``player_id``. Whether that character is really in the world is decided by the
+database (``Player.online``), never by the cookie.
 """
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from dataclasses import dataclass, field
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, Request, Response, status
+from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from app.api.cookies import COOKIE_NAME, read_session, sign_session
 from app.content.registry import ContentRegistry
 from app.realtime.connections import ConnectionManager
 from app.services.account_service import AccountService
 from app.services.action_service import ActionService
 from app.services.session_service import SessionService
-from app.settings import Settings
-
-NOT_LOGGED_IN = "Nicht angemeldet."
-NO_CHARACTER = "Kein Charakter im Spiel."
-
-
-def utc_now() -> datetime:
-    return datetime.now(UTC)
+from app.services.view_service import ViewService
 
 
 @dataclass
-class AppServices:
-    """Everything the routes need; built once in the app lifespan (``app.state.services``)."""
-
-    settings: Settings
+class Services:
     content: ContentRegistry
     sessions: async_sessionmaker[AsyncSession]
     accounts: AccountService
     actions: ActionService
     presence: SessionService
+    views: ViewService
     connections: ConnectionManager
-    clock: Callable[[], datetime] = utc_now
+    heartbeat_seconds: float
+    # SSE cleanup tasks scheduled from finished streams (kept so they are not garbage collected)
+    background: set[object] = field(default_factory=set)
 
 
-def get_services(request: Request) -> AppServices:
-    services: AppServices = request.app.state.services
+def get_services(request: Request) -> Services:
+    services: Services = request.app.state.services
     return services
 
 
-Services = Annotated[AppServices, Depends(get_services)]
+def _uuid(value: object) -> UUID | None:
+    try:
+        return UUID(str(value)) if value else None
+    except ValueError:
+        return None
 
 
-async def current_account(request: Request, services: Services) -> UUID:
-    """401 without a valid session cookie (or for an account that no longer exists)."""
-    account_id = read_session(
-        services.settings.secret_key, request.cookies.get(COOKIE_NAME), services.clock()
-    )
-    if account_id is None or not await services.accounts.account_exists(account_id):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, NOT_LOGGED_IN)
+def current_account_id(request: Request) -> UUID:
+    account_id = _uuid(request.session.get("account_id"))
+    if account_id is None:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Nicht eingeloggt.")
     return account_id
 
 
-CurrentAccount = Annotated[UUID, Depends(current_account)]
+def session_player_id(request: Request) -> UUID | None:
+    return _uuid(request.session.get("player_id"))
 
 
-async def current_player(account_id: CurrentAccount, services: Services) -> UUID:
-    """The account's character in the world; 401 if none is (or it was logged out meanwhile)."""
-    player_id = await services.accounts.active_character(account_id)
+def current_player_id(request: Request, _account: AccountId) -> UUID:
+    player_id = session_player_id(request)
     if player_id is None:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, NO_CHARACTER)
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Kein Charakter ausgewählt.")
     return player_id
 
 
-CurrentPlayer = Annotated[UUID, Depends(current_player)]
+ServicesDep = Annotated[Services, Depends(get_services)]
+AccountId = Annotated[UUID, Depends(current_account_id)]
+PlayerId = Annotated[UUID, Depends(current_player_id)]
 
 
-def set_session_cookie(response: Response, services: AppServices, account_id: UUID) -> None:
-    settings = services.settings
-    expires_at = services.clock() + timedelta(seconds=settings.session_max_age_seconds)
-    response.set_cookie(
-        COOKIE_NAME,
-        sign_session(settings.secret_key, account_id, expires_at),
-        max_age=settings.session_max_age_seconds,
-        httponly=True,
-        secure=settings.cookie_secure,
-        samesite="lax",
-    )
-
-
-def clear_session_cookie(response: Response, services: AppServices) -> None:
-    response.delete_cookie(
-        COOKIE_NAME, httponly=True, secure=services.settings.cookie_secure, samesite="lax"
-    )
+def not_playing(request: Request) -> HTTPException:
+    """The cookie names a character that is not in the world (anymore)."""
+    request.session.pop("player_id", None)
+    return HTTPException(status.HTTP_401_UNAUTHORIZED, "Dein Charakter ist nicht im Spiel.")

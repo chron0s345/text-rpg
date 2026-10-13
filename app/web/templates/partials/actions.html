@@ -1,0 +1,18 @@
+{% set p = view.player %}
+<section id="actions" class="panel actions" aria-label="Aktionen"{% if oob %} hx-swap-oob="true"{% endif %}>
+  {% if p.state == 'dead' %}
+    <button class="primary" hx-post="/ui/actions" hx-vals='{"type": "respawn"}'>Am Checkpoint erwachen</button>
+  {% elif p.state == 'in_combat' %}
+    {% for m in view.room.monsters if m.fighting_me %}
+    <button class="primary" hx-post="/ui/actions" hx-vals='{{ {"type": "attack", "target_id": m.id | string} | tojson }}'>{{ m.name }} angreifen</button>
+    {% endfor %}
+    <button hx-post="/ui/actions" hx-vals='{"type": "flee"}'>Fliehen</button>
+  {% endif %}
+  <button hx-post="/ui/actions" hx-vals='{"type": "look"}'>Umsehen</button>
+  {% if p.state == 'in_combat' %}
+  <button class="danger subtle" hx-post="/ui/actions" hx-vals='{"type": "logout", "confirm_death": "true"}'
+          hx-confirm="Du bist im Kampf. Wenn du dich jetzt ausloggst, stirbt dein Charakter und verliert Gold und Gegenstände. Wirklich ausloggen?">Ausloggen</button>
+  {% else %}
+  <button class="subtle" hx-post="/ui/actions" hx-vals='{"type": "logout"}'>Ausloggen</button>
+  {% endif %}
+</section>

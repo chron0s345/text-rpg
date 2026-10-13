@@ -2,9 +2,9 @@
 
 Lock order (ARCHITECTURE.md, "Locking") — every code path takes row locks in this order to avoid
 deadlocks: Group -> Trade -> Player (sorted by id) -> InventoryItem -> BankItem ->
-MonsterInstance -> FloorItem -> ItemSpawnState. Within a table rows are locked sorted by primary
-key. The world ticker's own locks (due monsters, expired floor items, due item spawns) follow the
-same order; each of its transactions locks only one table.
+MonsterInstance -> FloorItem -> ItemSpawnState; group actions: Group -> Player -> GroupInvite;
+trade actions: Trade -> Player -> InventoryItem -> TradeOffer.
+Within a table rows are locked sorted by primary key.
 
 Two rules make the locks meaningful:
 
@@ -27,33 +27,42 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import Select, select
-from sqlalchemy import delete as sql_delete
+from sqlalchemy import Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col
 
 from app.db.mappers import (
+    bank_item_state,
     floor_item_snapshot,
     group_snapshot,
+    invite_snapshot,
     monster_snapshot,
     participation_snapshot,
     player_snapshot,
     trade_snapshot,
 )
 from app.db.models import (
+    BankItem,
     CombatParticipation,
     FloorItem,
     Group,
+    GroupInvite,
     InventoryItem,
     ItemSpawnState,
     LogEntry,
     MonsterInstance,
     Player,
     Trade,
+    TradeLog,
     TradeOffer,
 )
 from app.engine.events import StateChanges
-from app.engine.state import ActionSnapshot, PlayerSnapshot
+from app.engine.state import (
+    ActionSnapshot,
+    GroupActionSnapshot,
+    PlayerSnapshot,
+    TradeActionSnapshot,
+)
 
 ACTIVE_TRADE_STATUSES = ("requested", "open")
 
@@ -83,14 +92,17 @@ class Locks:
     """Rows locked in the current transaction; ``apply_changes`` may only write these."""
 
     groups: set[UUID] = field(default_factory=set)
-    trades: set[UUID] = field(default_factory=set)
     players: set[UUID] = field(default_factory=set)
     inventory: dict[UUID, UUID] = field(default_factory=dict)  # item id -> owner id
+    bank: dict[UUID, UUID] = field(default_factory=dict)  # bank item id -> owner id
+    bank_owners: set[UUID] = field(default_factory=set)  # banks locked (also when empty)
     monsters: set[UUID] = field(default_factory=set)
     participations: set[tuple[UUID, UUID]] = field(default_factory=set)
     floor_items: set[UUID] = field(default_factory=set)
     rooms: set[str] = field(default_factory=set)  # rooms whose monsters/floor items are locked
-    item_spawns: set[tuple[str, str]] = field(default_factory=set)  # (room, item) spawn states
+    invites: set[tuple[UUID, UUID]] = field(default_factory=set)  # (inviter_id, player_id)
+    trades: set[UUID] = field(default_factory=set)
+    trade_offers: set[tuple[UUID, UUID]] = field(default_factory=set)  # (trade_id, item_id)
 
 
 def _locked(stmt: Select[Any]) -> Select[Any]:
@@ -135,20 +147,6 @@ class Repository:
         self.locks.groups.update(r.id for r in rows)
         return rows
 
-    async def lock_active_trades(self, player_id: UUID) -> list[Trade]:
-        """The player's trades in status "requested" or "open"."""
-        stmt = (
-            select(Trade)
-            .where(
-                (col(Trade.initiator_id) == player_id) | (col(Trade.partner_id) == player_id),
-                col(Trade.status).in_(ACTIVE_TRADE_STATUSES),
-            )
-            .order_by(col(Trade.id))
-        )
-        rows = await self._lock_rows(stmt)
-        self.locks.trades.update(r.id for r in rows)
-        return rows
-
     async def lock_players(self, player_ids: Iterable[UUID]) -> list[Player]:
         ids = sorted(set(player_ids))
         if not ids:
@@ -169,6 +167,20 @@ class Repository:
         )
         rows = await self._lock_rows(stmt)
         self.locks.inventory.update({r.id: r.player_id for r in rows})
+        return rows
+
+    async def lock_bank(self, player_ids: Iterable[UUID]) -> list[BankItem]:
+        ids = sorted(set(player_ids))
+        if not ids:
+            return []
+        stmt = (
+            select(BankItem)
+            .where(col(BankItem.player_id).in_(ids))
+            .order_by(col(BankItem.player_id), col(BankItem.id))
+        )
+        rows = await self._lock_rows(stmt)
+        self.locks.bank.update({r.id: r.player_id for r in rows})
+        self.locks.bank_owners.update(ids)
         return rows
 
     async def lock_monsters_in_room(self, room_id: str) -> list[MonsterInstance]:
@@ -203,75 +215,259 @@ class Repository:
         self.locks.floor_items.update(r.id for r in rows)
         return rows
 
-    # --- world ticker (each in its own short transaction) -------------------------------------
-
-    async def lock_due_monsters(self, now: datetime) -> list[MonsterInstance]:
-        """Dead monsters whose respawn is due, in all rooms."""
-        stmt = (
-            select(MonsterInstance)
-            .where(
-                col(MonsterInstance.alive).is_(False),
-                col(MonsterInstance.respawn_at) <= now,
-            )
-            .order_by(col(MonsterInstance.id))
-        )
-        rows = await self._lock_rows(stmt)
-        self.locks.monsters.update(r.id for r in rows)
-        return rows
-
-    async def lock_expired_floor_items(self, now: datetime) -> list[FloorItem]:
-        """Dropped/looted items past ``expires_at``, in all rooms (spawn items never expire)."""
-        stmt = select(FloorItem).where(col(FloorItem.expires_at) <= now).order_by(col(FloorItem.id))
-        rows = await self._lock_rows(stmt)
-        self.locks.floor_items.update(r.id for r in rows)
-        return rows
-
-    async def lock_due_item_spawns(self, now: datetime) -> list[ItemSpawnState]:
-        """Spawn states whose item is due to reappear. Holding this lock is what allows creating
-        the spawn floor item: picking it up sets ``next_spawn_at`` under the same row lock, so a
-        spawn can neither be skipped nor created twice (ARCHITECTURE.md, "Locking")."""
+    async def lock_room_items(self, room_id: str) -> tuple[list[FloorItem], list[ItemSpawnState]]:
+        """Floor items and spawn states of a room (world ticker: item respawns). Same order as
+        picking up (floor items, then the spawn state), so the two serialize on the room."""
+        floor_items = await self.lock_floor_items_in_room(room_id)
         stmt = (
             select(ItemSpawnState)
-            .where(col(ItemSpawnState.next_spawn_at) <= now)
-            .order_by(col(ItemSpawnState.room_id), col(ItemSpawnState.item_id))
+            .where(col(ItemSpawnState.room_id) == room_id)
+            .order_by(col(ItemSpawnState.item_id))
         )
+        spawn_states = await self._lock_rows(stmt)
+        self.locks.rooms.add(room_id)
+        return floor_items, spawn_states
+
+    async def _apply_trades(self, changes: StateChanges) -> None:
+        """Trades first: ending offers must be gone before offered items change or vanish."""
+        session, locks = self.session, self.locks
+        for trade_create in changes.trades_create:
+            self._require(
+                trade_create.initiator_id in locks.players
+                and trade_create.partner_id in locks.players,
+                "trade players",
+            )
+            session.add(Trade(**trade_create.model_dump()))
+            locks.trades.add(trade_create.id)
+        for trade_update in changes.trades:
+            self._require(trade_update.trade_id in locks.trades, "trade")
+            trade = await session.get(Trade, trade_update.trade_id)
+            assert trade is not None
+            for key, value in trade_update.model_dump(
+                exclude_unset=True, exclude={"trade_id"}
+            ).items():
+                setattr(trade, key, value)
+        for offer_delete in changes.trade_offers_delete:
+            offer_key = (offer_delete.trade_id, offer_delete.inventory_item_id)
+            self._require(offer_key in locks.trade_offers, "trade offer")
+            offer = await session.get(TradeOffer, offer_key)
+            if offer is not None:
+                await session.delete(offer)
+            locks.trade_offers.discard(offer_key)
+        for offer_upsert in changes.trade_offers_upsert:
+            offer_key = (offer_upsert.trade_id, offer_upsert.inventory_item_id)
+            self._require(
+                offer_upsert.trade_id in locks.trades
+                and locks.inventory.get(offer_upsert.inventory_item_id) == offer_upsert.player_id,
+                "trade offer item",
+            )
+            offer = await session.get(TradeOffer, offer_key)
+            if offer is None:
+                session.add(TradeOffer(**offer_upsert.model_dump()))
+                locks.trade_offers.add(offer_key)
+            else:
+                offer.quantity = offer_upsert.quantity
+        for log in changes.trade_logs:
+            self._require(log.trade_id in locks.trades, "trade")
+            session.add(TradeLog(**log.model_dump()))
+        if changes.trades_create or changes.trades or changes.trade_offers_delete:
+            await session.flush()
+
+    async def lock_trades(self, trade_ids: Iterable[UUID]) -> list[Trade]:
+        ids = sorted(set(trade_ids))
+        if not ids:
+            return []
+        stmt = select(Trade).where(col(Trade.id).in_(ids)).order_by(col(Trade.id))
         rows = await self._lock_rows(stmt)
-        self.locks.item_spawns.update((r.room_id, r.item_id) for r in rows)
+        self.locks.trades.update(r.id for r in rows)
         return rows
 
-    async def spawn_items_lying(self, keys: Iterable[tuple[str, str]]) -> set[tuple[str, str]]:
-        """Which of the (room, item) spawn rules still have their spawn floor item."""
-        wanted = set(keys)
-        if not wanted:
-            return set()
-        rows = await self.session.execute(
-            select(col(FloorItem.room_id), col(FloorItem.item_id)).where(
-                col(FloorItem.source) == "spawn",
-                col(FloorItem.room_id).in_({room for room, _ in wanted}),
-            )
+    async def lock_trade_offers(self, trade_ids: Iterable[UUID]) -> list[TradeOffer]:
+        ids = sorted(set(trade_ids))
+        if not ids:
+            return []
+        stmt = (
+            select(TradeOffer)
+            .where(col(TradeOffer.trade_id).in_(ids))
+            .order_by(col(TradeOffer.trade_id), col(TradeOffer.inventory_item_id))
         )
-        return {(room, item) for room, item in rows.all() if (room, item) in wanted}
+        rows = await self._lock_rows(stmt)
+        self.locks.trade_offers.update((r.trade_id, r.inventory_item_id) for r in rows)
+        return rows
+
+    async def _active_trade_ids(self, player_ids: Iterable[UUID]) -> set[UUID]:
+        ids = list(set(player_ids))
+        stmt = select(col(Trade.id)).where(
+            col(Trade.status).in_(ACTIVE_TRADE_STATUSES),
+            col(Trade.initiator_id).in_(ids) | col(Trade.partner_id).in_(ids),
+        )
+        return set((await self.session.scalars(stmt)).all())
+
+    async def load_trade_snapshot(
+        self,
+        actor_id: UUID,
+        *,
+        trade_id: UUID | None = None,
+        partner_id: UUID | None = None,
+    ) -> TradeActionSnapshot:
+        """Locks a trade action: the trade it names (if the actor is part of it), every active
+        trade of the actor and of the other trader, both players and their inventories, and the
+        offers. Order: Trade -> Player -> InventoryItem -> TradeOffer.
+
+        The other trader is ``partner_id`` (request), the other side of ``trade_id``, or else
+        the other side of the actor's active trade (housekeeping checks). New trades are only
+        created under both players' locks, so the active trades read again after locking them
+        are final; a trade that appeared in between means retry."""
+        named = None
+        if trade_id is not None:
+            named = (
+                await self.session.execute(
+                    select(col(Trade.initiator_id), col(Trade.partner_id)).where(
+                        col(Trade.id) == trade_id
+                    )
+                )
+            ).first()
+            if named is not None and actor_id not in named:
+                named = None  # not the actor's trade: it sees nothing of it
+        if partner_id is None and named is not None:
+            partner_id = named[1] if named[0] == actor_id else named[0]
+        if partner_id is None and trade_id is None:
+            for other_trade in await self._active_trade_ids([actor_id]):
+                row = (
+                    await self.session.execute(
+                        select(col(Trade.initiator_id), col(Trade.partner_id)).where(
+                            col(Trade.id) == other_trade
+                        )
+                    )
+                ).one()
+                partner_id = row[1] if row[0] == actor_id else row[0]
+                break
+        player_ids = [actor_id, *([partner_id] if partner_id is not None else [])]
+
+        trade_ids = await self._active_trade_ids(player_ids)
+        if named is not None and trade_id is not None:
+            trade_ids.add(trade_id)
+        trades = await self.lock_trades(trade_ids)
+        players = await self.lock_players(player_ids)
+        actor = next((p for p in players if p.id == actor_id), None)
+        if actor is None or actor.deleted_at is not None:
+            raise UnknownPlayerError(actor_id)
+        if not (await self._active_trade_ids(player_ids)) <= self.locks.trades:
+            raise SnapshotChangedError("a trade was started while locking")
+        partner = next((p for p in players if p.id != actor_id and p.deleted_at is None), None)
+
+        inventory = await self.lock_inventories(p.id for p in players)
+        offers = await self.lock_trade_offers(t.id for t in trades)
+        active = {t.id for t in trades if t.status in ACTIVE_TRADE_STATUSES}
+        locked_items = {o.inventory_item_id for o in offers if o.trade_id in active}
+
+        def snap(row: Player) -> PlayerSnapshot:
+            items = [i for i in inventory if i.player_id == row.id]
+            return player_snapshot(row, items, [i.id for i in items if i.id in locked_items])
+
+        return TradeActionSnapshot(
+            actor=snap(actor),
+            partner=snap(partner) if partner is not None else None,
+            trades=[trade_snapshot(t, [o for o in offers if o.trade_id == t.id]) for t in trades],
+        )
+
+    async def lock_invites(self, player_ids: Iterable[UUID]) -> list[GroupInvite]:
+        """Open invitations from or to these players (taken after the players)."""
+        ids = sorted(set(player_ids))
+        if not ids:
+            return []
+        stmt = (
+            select(GroupInvite)
+            .where((col(GroupInvite.inviter_id).in_(ids)) | (col(GroupInvite.player_id).in_(ids)))
+            .order_by(col(GroupInvite.inviter_id), col(GroupInvite.player_id))
+        )
+        rows = await self._lock_rows(stmt)
+        self.locks.invites.update((r.inviter_id, r.player_id) for r in rows)
+        return rows
+
+    async def load_group_snapshot(
+        self,
+        actor_id: UUID,
+        *,
+        other_id: UUID | None = None,
+        other_name: str | None = None,
+    ) -> GroupActionSnapshot:
+        """Locks what a group action may touch, wherever the players are: the groups of the
+        actor and of the other player (by id or case-insensitive name), all their members, the
+        two players, and their open invitations. Order: groups -> players -> invites."""
+        pre_actor = (
+            await self.session.execute(
+                select(col(Player.group_id)).where(
+                    col(Player.id) == actor_id, col(Player.deleted_at).is_(None)
+                )
+            )
+        ).first()
+        if pre_actor is None:
+            raise UnknownPlayerError(actor_id)
+        other_filter = None
+        if other_id is not None:
+            other_filter = col(Player.id) == other_id
+        elif other_name is not None:
+            other_filter = func.lower(col(Player.name)) == other_name.strip().lower()
+        pre_other = None
+        if other_filter is not None:
+            pre_other = (
+                await self.session.execute(
+                    select(col(Player.id), col(Player.group_id)).where(
+                        other_filter, col(Player.deleted_at).is_(None)
+                    )
+                )
+            ).first()
+        group_ids = {g for g in (pre_actor.group_id, pre_other[1] if pre_other else None) if g}
+
+        groups = await self.lock_groups(group_ids)
+        members = (
+            (
+                await self.session.scalars(
+                    select(col(Player.id)).where(
+                        col(Player.group_id).in_([g.id for g in groups]),
+                        col(Player.deleted_at).is_(None),
+                    )
+                )
+            ).all()
+            if groups
+            else []
+        )
+        wanted = {actor_id, *members, *([pre_other[0]] if pre_other else [])}
+        players = await self.lock_players(wanted)
+        actor = next((p for p in players if p.id == actor_id), None)
+        if actor is None or actor.deleted_at is not None:
+            raise UnknownPlayerError(actor_id)
+        for player in players:
+            if player.group_id is not None and player.group_id not in self.locks.groups:
+                raise SnapshotChangedError(f"group {player.group_id} of {player.id} is not locked")
+        invites = await self.lock_invites(p.id for p in players)
+
+        def by_join(row: Player) -> tuple[datetime, UUID]:
+            assert row.group_joined_at is not None
+            return row.group_joined_at, row.id
+
+        snapshots = []
+        for group in groups:
+            in_group = sorted((p for p in players if p.group_id == group.id), key=by_join)
+            snapshots.append(group_snapshot(group, [p.id for p in in_group]))
+        return GroupActionSnapshot(
+            actor=player_snapshot(actor, []),
+            players=[player_snapshot(p, []) for p in players if p.id != actor_id],
+            groups=snapshots,
+            invites=[invite_snapshot(i) for i in invites],
+        )
 
     # --- snapshot ----------------------------------------------------------------------------
 
     async def load_action_snapshot(
-        self,
-        actor_id: UUID,
-        room_id: str | None = None,
-        *,
-        lock_trades: bool = False,
-        lock_group_members: bool = False,
+        self, actor_id: UUID, room_id: str | None = None, *, with_bank: bool = False
     ) -> ActionSnapshot:
         """Locks and loads everything an action in ``room_id`` may touch.
 
         ``room_id`` defaults to the actor's current room; ``move`` passes the destination and
         ``respawn`` the checkpoint (the snapshot describes the room where the action ends).
         All player data in the result was read under the lock.
-
-        ``lock_trades``: also lock the actor's active trades (``snapshot.trades``), so the action
-        may cancel them. ``lock_group_members``: also lock the rows of all members of the actor's
-        group, wherever they are, so the action may change their membership (leaving, dissolving).
-        Members are read after the group lock, which every membership change takes first.
         """
         # unlocked, column-only pre-read (never puts rows into the identity map)
         pre_actor = (
@@ -299,11 +495,7 @@ class Repository:
             group_ids.add(pre_actor.group_id)
 
         groups = await self.lock_groups(group_ids)
-        members: list[UUID] = []
-        if lock_group_members and pre_actor.group_id is not None:
-            members = await self._member_ids(pre_actor.group_id)
-        trades = await self.lock_active_trades(actor_id) if lock_trades else []
-        players = await self.lock_players([actor_id, *(pid for pid, _ in others), *members])
+        players = await self.lock_players([actor_id, *(pid for pid, _ in others)])
 
         actor = next((p for p in players if p.id == actor_id), None)
         if actor is None or actor.deleted_at is not None:
@@ -321,6 +513,7 @@ class Repository:
 
         player_ids = [actor.id, *(p.id for p in in_room)]
         inventory = await self.lock_inventories(player_ids)
+        bank = await self.lock_bank([actor.id]) if with_bank else []
         monsters = await self.lock_monsters_in_room(room)
         participations = await self.lock_participations([m.id for m in monsters])
         floor_items = await self.lock_floor_items_in_room(room)
@@ -343,7 +536,7 @@ class Repository:
             participations=[participation_snapshot(p) for p in participations],
             groups=[group_snapshot(g, await self._member_ids(g.id)) for g in groups],
             floor_items=[floor_item_snapshot(f) for f in floor_items],
-            trades=[trade_snapshot(t) for t in trades],
+            bank=[bank_item_state(b) for b in bank],
         )
 
     async def _member_ids(self, group_id: UUID) -> list[UUID]:
@@ -382,16 +575,14 @@ class Repository:
         self._bind_transaction()
         session, locks = self.session, self.locks
 
-        # first: offers must be gone before offered inventory entries can be deleted
-        for trade_id in changes.trades_cancel:
-            self._require(trade_id in locks.trades, "trade")
-            trade = await session.get(Trade, trade_id)
-            assert trade is not None
-            await session.execute(
-                sql_delete(TradeOffer).where(col(TradeOffer.trade_id) == trade_id)
-            )
-            trade.status = "cancelled"
-            trade.initiator_confirmed = trade.partner_confirmed = False
+        await self._apply_trades(changes)
+
+        for group_create in changes.groups_create:
+            self._require(group_create.leader_id in locks.players, "group leader")
+            session.add(Group(**group_create.model_dump()))
+            locks.groups.add(group_create.id)
+        if changes.groups_create:
+            await session.flush()  # members reference the new group
 
         for player_update in changes.players:
             self._require(player_update.player_id in locks.players, "player")
@@ -469,15 +660,33 @@ class Repository:
                 await session.delete(item)
             del locks.inventory[item_id]
 
+        for bank_upsert in changes.bank_upsert:
+            state, owner = bank_upsert.item, bank_upsert.player_id
+            self._require(owner in locks.bank_owners, "bank")
+            if state.id in locks.bank:
+                if locks.bank[state.id] != owner:
+                    raise InconsistentChangesError(f"bank entry {state.id} changed owner")
+                stored = await session.get(BankItem, state.id)
+                assert stored is not None
+                if stored.item_id != state.item_id:
+                    raise InconsistentChangesError(f"bank entry {state.id} changed item")
+                stored.quantity = state.quantity
+            else:
+                session.add(
+                    BankItem(
+                        id=state.id, player_id=owner, item_id=state.item_id, quantity=state.quantity
+                    )
+                )
+                locks.bank[state.id] = owner
+        for bank_id in changes.bank_delete:
+            self._require(bank_id in locks.bank, "bank entry")
+            stored = await session.get(BankItem, bank_id)
+            if stored is not None:
+                await session.delete(stored)
+            del locks.bank[bank_id]
+
         for create in changes.floor_items_create:
-            self._require(
-                create.room_id in locks.rooms
-                or (
-                    create.source == "spawn"
-                    and (create.room_id, create.item_id) in locks.item_spawns
-                ),
-                f"room {create.room_id}",
-            )
+            self._require(create.room_id in locks.rooms, f"room {create.room_id}")
             session.add(FloorItem(**create.model_dump()))
             locks.floor_items.add(create.id)
         for floor_update in changes.floor_items_update:
@@ -493,12 +702,8 @@ class Repository:
             locks.floor_items.discard(floor_id)
 
         for spawn in changes.item_spawns:
-            # spawn state follows its floor item, which is locked with the room (pick-up), or
-            # was locked itself (ticker)
-            self._require(
-                spawn.room_id in locks.rooms or (spawn.room_id, spawn.item_id) in locks.item_spawns,
-                f"room {spawn.room_id}",
-            )
+            # spawn state follows its floor item, which is locked with the room
+            self._require(spawn.room_id in locks.rooms, f"room {spawn.room_id}")
             state_row = await session.get(ItemSpawnState, (spawn.room_id, spawn.item_id))
             if state_row is None:
                 session.add(ItemSpawnState(**spawn.model_dump()))
@@ -514,19 +719,37 @@ class Repository:
             ).items():
                 setattr(group, key, value)
 
+        for invite_delete in changes.invites_delete:
+            invite_key = (invite_delete.inviter_id, invite_delete.player_id)
+            self._require(invite_key in locks.invites, "group invite")
+            invite = await session.get(GroupInvite, invite_key)
+            if invite is not None:
+                await session.delete(invite)
+            locks.invites.discard(invite_key)
+        for invite_upsert in changes.invites_upsert:
+            invite_key = (invite_upsert.inviter_id, invite_upsert.player_id)
+            self._require(
+                invite_upsert.inviter_id in locks.players
+                and invite_upsert.player_id in locks.players,
+                "group invite players",
+            )
+            invite = await session.get(GroupInvite, invite_key)
+            if invite is None:
+                session.add(GroupInvite(**invite_upsert.model_dump()))
+                locks.invites.add(invite_key)
+            else:
+                invite.group_id = invite_upsert.group_id
+                invite.expires_at = invite_upsert.expires_at
+
+        await session.flush()  # members leave before their group is deleted
+        for group_id in changes.groups_delete:
+            self._require(group_id in locks.groups, "group")
+            group = await session.get(Group, group_id)
+            if group is not None:
+                await session.delete(group)  # its open invitations cascade
+            locks.groups.discard(group_id)
+
         await session.flush()
-        if changes.groups_delete:
-            for group_id in changes.groups_delete:
-                self._require(group_id in locks.groups, "group")
-                if await session.scalar(
-                    select(col(Player.id)).where(col(Player.group_id) == group_id).limit(1)
-                ):
-                    raise InconsistentChangesError(f"group {group_id} still has members")
-                group = await session.get(Group, group_id)
-                if group is not None:
-                    await session.delete(group)
-                locks.groups.discard(group_id)
-            await session.flush()
 
     async def add_log_entry(
         self, player_id: UUID, kind: str, text: str, created_at: datetime

@@ -1,24 +1,19 @@
-"""Accounts and characters (ARCHITECTURE.md, "Grundannahmen", API: /register, /login,
-/characters).
+"""Accounts and character management (ARCHITECTURE.md, "API": register, login, characters).
 
-- Passwords are hashed with argon2 (in a worker thread: hashing is deliberately slow). Unknown
-  usernames are checked against a dummy hash, so response times do not reveal which exist.
-- Usernames and character names are unique ignoring case (database indexes); names are limited
-  to letters so they render safely and are easy to type in commands.
-- New characters start at level 1 in ``rules.start_room_id`` with the level-1 base values.
-- Characters are soft-deleted, and only while offline. Creating, deleting and logging in for one
-  account are serialized by the same per-account advisory lock (character limit, online check).
+Passwords are hashed with argon2. Hashing is deliberately slow, so it runs in a worker thread
+and never blocks the event loop.
 """
 
 from __future__ import annotations
 
+import asyncio
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime
+from typing import Final
 from uuid import UUID
 
-import anyio
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHashError, VerificationError
 from sqlalchemy import func, select
@@ -28,46 +23,62 @@ from sqlmodel import col
 
 from app.content.registry import ContentRegistry
 from app.db.models import Account, Player
-from app.services.session_service import UnknownCharacterError, lock_account
+from app.services.action_service import utc_now
 
-USERNAME_PATTERN = re.compile(r"^[A-Za-z0-9_-]{3,32}$")
-CHARACTER_NAME_PATTERN = re.compile(r"^[A-Za-zÄÖÜäöüß]{3,20}$")
-MIN_PASSWORD_LENGTH = 8
-MAX_PASSWORD_LENGTH = 128
+# Letters only (incl. German umlauts): names show up in every room and chat line.
+CHARACTER_NAME: Final = re.compile(r"[A-Za-zÄÖÜäöüß]{3,20}")
+USERNAME: Final = re.compile(r"[A-Za-z0-9_.-]{3,32}")
+MIN_PASSWORD_LENGTH: Final = 8
+MAX_PASSWORD_LENGTH: Final = 128
 
 
-class UsernameTakenError(Exception):
+class AccountError(Exception):
+    """Base class; the message is shown to the user (German)."""
+
+
+class UsernameTakenError(AccountError):
     pass
 
 
-class InvalidCredentialsError(Exception):
+class InvalidInputError(AccountError):
     pass
 
 
-class CharacterNameTakenError(Exception):
+class CharacterNameTakenError(AccountError):
     pass
 
 
-class CharacterLimitError(Exception):
+class CharacterLimitError(AccountError):
     pass
 
 
-class CharacterOnlineError(Exception):
-    """Only offline characters can be deleted."""
+class CharacterNotFoundError(AccountError):
+    pass
+
+
+class CharacterOnlineError(AccountError):
+    pass
 
 
 @dataclass(frozen=True)
-class CharacterSummary:
+class CharacterInfo:
     id: UUID
     name: str
     level: int
     state: str
-    online: bool
     room_id: str
+    online: bool
 
 
-def utc_now() -> datetime:
-    return datetime.now(UTC)
+def _info(row: Player) -> CharacterInfo:
+    return CharacterInfo(
+        id=row.id,
+        name=row.name,
+        level=row.level,
+        state=row.state,
+        room_id=row.current_room_id,
+        online=row.online,
+    )
 
 
 class AccountService:
@@ -76,99 +87,95 @@ class AccountService:
         sessions: async_sessionmaker[AsyncSession],
         content: ContentRegistry,
         *,
-        clock: Callable[[], datetime] = utc_now,
         hasher: PasswordHasher | None = None,
+        clock: Callable[[], datetime] = utc_now,
     ) -> None:
         self.sessions = sessions
         self.content = content
-        self.clock = clock
         self.hasher = hasher or PasswordHasher()
-        self._dummy_hash: str | None = None
+        self.clock = clock
+        # verified against when the username does not exist: same cost, no user enumeration
+        self._dummy_hash = self.hasher.hash("not a real password")
 
-    # --- accounts -------------------------------------------------------------------------------
+    # --- accounts ---------------------------------------------------------------------------
 
-    async def register(self, username: str, password: str) -> UUID:
-        password_hash = await anyio.to_thread.run_sync(self.hasher.hash, password)
-        account = Account(username=username, password_hash=password_hash)
+    async def register(self, username: str, password: str) -> Account:
+        if not USERNAME.fullmatch(username):
+            raise InvalidInputError("Benutzername: 3–32 Zeichen, nur Buchstaben, Ziffern und _ . -")
+        if not MIN_PASSWORD_LENGTH <= len(password) <= MAX_PASSWORD_LENGTH:
+            raise InvalidInputError(
+                f"Passwort: {MIN_PASSWORD_LENGTH}–{MAX_PASSWORD_LENGTH} Zeichen."
+            )
+        password_hash = await asyncio.to_thread(self.hasher.hash, password)
+        account = Account(username=username, password_hash=password_hash, created_at=self.clock())
         try:
             async with self.sessions() as session, session.begin():
                 session.add(account)
-        except IntegrityError as exc:
-            raise UsernameTakenError(username) from exc
-        return account.id
+        except IntegrityError as exc:  # unique, case-insensitive
+            raise UsernameTakenError("Dieser Benutzername ist vergeben.") from exc
+        return account
 
-    async def authenticate(self, username: str, password: str) -> UUID:
+    async def authenticate(self, username: str, password: str) -> Account | None:
         async with self.sessions() as session:
-            account = await session.scalar(
-                select(Account).where(func.lower(col(Account.username)) == username.lower())
-            )
-        stored = account.password_hash if account is not None else await self._dummy()
-        if not await anyio.to_thread.run_sync(self._verify, stored, password) or account is None:
-            raise InvalidCredentialsError(username)
-        if self.hasher.check_needs_rehash(stored):
+            account = (
+                await session.scalars(
+                    select(Account).where(func.lower(col(Account.username)) == username.lower())
+                )
+            ).first()
+        if account is None:
+            await asyncio.to_thread(self._verify, self._dummy_hash, password)
+            return None
+        if not await asyncio.to_thread(self._verify, account.password_hash, password):
+            return None
+        if self.hasher.check_needs_rehash(account.password_hash):
             await self._rehash(account.id, password)
-        return account.id
+        return account
 
-    def _verify(self, stored: str, password: str) -> bool:
+    def _verify(self, password_hash: str, password: str) -> bool:
         try:
-            return self.hasher.verify(stored, password)
+            return self.hasher.verify(password_hash, password)
         except (VerificationError, InvalidHashError):
             return False
 
-    async def _dummy(self) -> str:
-        if self._dummy_hash is None:
-            self._dummy_hash = await anyio.to_thread.run_sync(self.hasher.hash, "not a password")
-        return self._dummy_hash
-
     async def _rehash(self, account_id: UUID, password: str) -> None:
-        password_hash = await anyio.to_thread.run_sync(self.hasher.hash, password)
+        password_hash = await asyncio.to_thread(self.hasher.hash, password)
         async with self.sessions() as session, session.begin():
             account = await session.get(Account, account_id)
             if account is not None:
                 account.password_hash = password_hash
 
-    async def account_exists(self, account_id: UUID) -> bool:
-        async with self.sessions() as session:
-            return await session.get(Account, account_id) is not None
+    # --- characters -------------------------------------------------------------------------
 
-    # --- characters -----------------------------------------------------------------------------
-
-    async def characters(self, account_id: UUID) -> list[CharacterSummary]:
+    async def list_characters(self, account_id: UUID) -> list[CharacterInfo]:
         async with self.sessions() as session:
             rows = await session.scalars(
                 select(Player)
                 .where(col(Player.account_id) == account_id, col(Player.deleted_at).is_(None))
                 .order_by(col(Player.name))
             )
-            return [
-                CharacterSummary(p.id, p.name, p.level, p.state, p.online, p.current_room_id)
-                for p in rows.all()
-            ]
+            return [_info(row) for row in rows.all()]
 
-    async def active_character(self, account_id: UUID) -> UUID | None:
-        """The account's character that is in the world (at most one, database index)."""
-        async with self.sessions() as session:
-            return await session.scalar(
-                select(col(Player.id)).where(
-                    col(Player.account_id) == account_id,
-                    col(Player.online),
-                    col(Player.deleted_at).is_(None),
-                )
-            )
-
-    async def create_character(self, account_id: UUID, name: str) -> UUID:
+    async def create_character(self, account_id: UUID, name: str) -> CharacterInfo:
+        """New character with level-1 stats in ``start_room_id`` (also its first checkpoint)."""
+        if not CHARACTER_NAME.fullmatch(name):
+            raise InvalidInputError("Name: 3–20 Buchstaben.")
         rules = self.content.rules
         start = rules.level_rule(1)
         try:
             async with self.sessions() as session, session.begin():
-                await lock_account(session, account_id)
+                # account row lock: concurrent creates cannot exceed the character limit
+                account = await session.get(Account, account_id, with_for_update=True)
+                if account is None:
+                    raise CharacterNotFoundError("Account existiert nicht.")
                 count = await session.scalar(
-                    select(func.count()).where(
-                        col(Player.account_id) == account_id, col(Player.deleted_at).is_(None)
-                    )
+                    select(func.count())
+                    .select_from(Player)
+                    .where(col(Player.account_id) == account_id, col(Player.deleted_at).is_(None))
                 )
                 if (count or 0) >= rules.max_characters_per_account:
-                    raise CharacterLimitError(account_id)
+                    raise CharacterLimitError(
+                        f"Höchstens {rules.max_characters_per_account} Charaktere pro Account."
+                    )
                 player = Player(
                     account_id=account_id,
                     name=name,
@@ -180,25 +187,23 @@ class AccountService:
                     checkpoint_room_id=rules.start_room_id,
                 )
                 session.add(player)
-                await session.flush()
-        except IntegrityError as exc:
-            raise CharacterNameTakenError(name) from exc
-        return player.id
+        except IntegrityError as exc:  # unique, case-insensitive among non-deleted characters
+            raise CharacterNameTakenError("Dieser Name ist vergeben.") from exc
+        return _info(player)
 
-    async def delete_character(self, account_id: UUID, player_id: UUID) -> None:
+    async def owned_character(self, account_id: UUID, character_id: UUID) -> CharacterInfo:
+        async with self.sessions() as session:
+            row = await session.get(Player, character_id)
+            if row is None or row.account_id != account_id or row.deleted_at is not None:
+                raise CharacterNotFoundError("Diesen Charakter gibt es nicht.")
+            return _info(row)
+
+    async def delete_character(self, account_id: UUID, character_id: UUID) -> None:
+        """Soft delete, only while offline (the name becomes free again)."""
         async with self.sessions() as session, session.begin():
-            await lock_account(session, account_id)
-            player = await session.scalar(
-                select(Player)
-                .where(
-                    col(Player.id) == player_id,
-                    col(Player.account_id) == account_id,
-                    col(Player.deleted_at).is_(None),
-                )
-                .with_for_update()
-            )
-            if player is None:
-                raise UnknownCharacterError(player_id)
-            if player.online:
-                raise CharacterOnlineError(player_id)
-            player.deleted_at = self.clock()
+            row = await session.get(Player, character_id, with_for_update=True)
+            if row is None or row.account_id != account_id or row.deleted_at is not None:
+                raise CharacterNotFoundError("Diesen Charakter gibt es nicht.")
+            if row.online:
+                raise CharacterOnlineError("Logge den Charakter zuerst aus.")
+            row.deleted_at = self.clock()
