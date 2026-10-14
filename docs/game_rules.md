@@ -225,6 +225,26 @@ Viele Händler haben **Aufträge**. Steht ein Auftraggeber im Raum, zeigt das Pa
 | Die Wappen von Aelmar | Taucher Brack | 12 | 4× Wappen von Aelmar bringen |
 | Splitter der Leere | Der Händler ohne Gesicht | 14 | 5× Leerensplitter bringen (wiederholbar) |
 | Der letzte König | Schwester Liora | 15 | 1× Schattenkönig Morvath besiegen (nach „Der Ring der Valen“) |
+| Vogelscheuche ohne Wirkung | Müllerin Grete | 1 | 4× Krähenfeder bringen |
+| Kräuter aus dem Moor | Alchemistin Elira | 3 | 6× Moorkraut bringen |
+| Asche zu Asche | Schwester Liora | 3 | 5× Knochenstaub bringen (nach „Ruhe für die Toten“) |
+| Brückenzoll | Schmied Brandt | 5 | 1× Höhlentroll besiegen (nach „Wölfe vor den Toren“) |
+| Fremde Boote | Fischerin Maren | 6 | 4× Schmuggler besiegen |
+| Federn für Pfeile | Waffenmeisterin Brunhild | 6 | 4× Harpyienfeder bringen |
+| Die Mine zurückerobern | Waffenmeisterin Brunhild | 6 | 5× Grubenghul besiegen |
+| Der Sturm in der Flasche | Fischerin Maren | 7 | 3× Sturmessenz bringen |
+| Lichter im Nebel | Waldläuferin Nimriel | 8 | 4× Gefangenes Irrlicht bringen |
+| Die Königin der Netze | Alchemistin Elira | 9 | 1× Spinnenkönigin Ysvara besiegen (nach „Seide aus der Tiefe“) |
+| Dornen im Hain | Waldläuferin Nimriel | 10 | 3× Dornenbestie besiegen (nach „Den Hain heilen“) |
+| Hrimfangs Ende | Waffenmeisterin Brunhild | 10 | 1× Eisdrache Hrimfang besiegen (nach „Pelze für den Winter“) |
+| Schuppen aus der Glut | Kundschafterin Ilva | 11 | 4× Salamanderschuppe bringen |
+| Asche im Wind | Kundschafterin Ilva | 11 | 5× Aschegeist besiegen |
+| Räuber der Tiefe | Taucher Brack | 11 | 5× Tiefseeräuber besiegen |
+| Zähne eines Riesen | Goldschmied Aurel | 13 | 3× Riesenzahn bringen |
+| Der Glutfürst | Kundschafterin Ilva | 13 | 1× Glutfürst Ignaros besiegen (nach „Glutkerne“) |
+| Das Auge der Tiefe | Taucher Brack | 13 | 1× Der Kraken Ul'thar besiegen (nach „Die Wappen von Aelmar“) |
+| Pelze aus Schatten | Der Händler ohne Gesicht | 14 | 4× Schattenfell bringen |
+| Schlaflose Nächte | Wirtin Hanne | 15 | 3× Albtraum besiegen |
 
 ## Händler & Bank
 
