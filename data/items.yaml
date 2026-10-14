@@ -1368,8 +1368,8 @@
   description: "GESUCHT – wer die Gruft unter dem Alten Friedhof betritt und den Siegelring der Valen zurückbringt. Der Stadtrat zahlt gut. Darunter, mit Kohle gekritzelt: »Der Ring ist nicht das Problem. Das Grüne Licht ist es.«"
   kind: misc
   icon: "scroll"
-  value: 2
-  sellable: true
+  value: 0
+  sellable: false
   stackable: false
 
 - id: goblin_letter
@@ -1377,8 +1377,8 @@
   description: "In krakeliger Schrift: »Groß-Boss sagt, Wald nicht mehr gut. Tote laufen im Moor. Grünes Licht auf dem Turm am Meer, und wer hinschaut, geht ins Wasser. Wir gehen nach Osten in die Felder. Ratten essen ist besser als tot sein.«"
   kind: misc
   icon: "scroll"
-  value: 2
-  sellable: true
+  value: 0
+  sellable: false
   stackable: false
 
 - id: child_drawing
@@ -1386,8 +1386,8 @@
   description: "Mit Kreide gemalt: ein Turm am Meer, oben eine Frau mit grünen Haaren, die singt. Darunter in Kinderschrift: »Mama sagt, wer das Lied hört, kommt nicht zurück. Papa ist zum Fischen gefahren.«"
   kind: misc
   icon: "scroll"
-  value: 2
-  sellable: true
+  value: 0
+  sellable: false
   stackable: false
 
 - id: valen_testament
@@ -1395,8 +1395,8 @@
   description: "»Ich, Aldric Valen, habe die Tür geöffnet, die mein Großvater versiegelte. Die Stimme unter der Mine versprach mir ewiges Leben. Wer dies liest: Sie hat ihr Versprechen gehalten. Auf ihre Weise. Grabt nicht tiefer.«"
   kind: misc
   icon: "scroll"
-  value: 2
-  sellable: true
+  value: 0
+  sellable: false
   stackable: false
 
 - id: miner_diary
@@ -1404,8 +1404,8 @@
   description: "»Tag 41. Wir haben zu tief gegraben. Unter dem dritten Stollen ist ein Riss, kalt wie der Winter und still wie ein Grab. Seitdem kommen die Spinnen. Seitdem flüstert es nachts. Morgen verbarrikadieren wir die Wache.«"
   kind: misc
   icon: "scroll"
-  value: 2
-  sellable: true
+  value: 0
+  sellable: false
   stackable: false
 
 - id: ship_log
@@ -1413,8 +1413,8 @@
   description: "Die letzten Einträge, verwischt vom Salzwasser: »Grünes Licht am Leuchtturm, wo seit Jahren kein Wärter mehr lebt. Der Kapitän hält Kurs darauf. Wir alle hören den Gesang. Niemand dreht das Ruder.«"
   kind: misc
   icon: "scroll"
-  value: 2
-  sellable: true
+  value: 0
+  sellable: false
   stackable: false
 
 - id: smuggler_note
@@ -1422,8 +1422,8 @@
   description: "»Lieferung für den Kunden ohne Gesicht: drei Kisten Sternenstahl, bezahlt mit Gold, das kalt ist. Treffpunkt wie immer unter der Mine. Frag nicht, wie er da unten lebt. Frag nicht, was er mit dem Stahl macht.«"
   kind: misc
   icon: "scroll"
-  value: 2
-  sellable: true
+  value: 0
+  sellable: false
   stackable: false
 
 - id: dwarf_chronicle
@@ -1431,8 +1431,8 @@
   description: "»Im Jahr des Langen Winters verschlossen die Alten den Riss mit Feuer und Eis. Hrimfang wacht im Norden, Ignaros im Herzen des Bergs. Solange ihre Kräfte im Gleichgewicht sind, bleibt die Tür zu. Möge niemand je beide erschlagen.«"
   kind: misc
   icon: "scroll"
-  value: 2
-  sellable: true
+  value: 0
+  sellable: false
   stackable: false
 
 - id: ilva_map
@@ -1440,8 +1440,8 @@
   description: "Eine hastig gezeichnete Karte des Kraters, Lavaströme rot schraffiert. Am Rand steht: »Der Glutfürst schläft nicht. Er wacht. Und was er bewacht, liegt nicht hier, sondern unter uns allen.«"
   kind: misc
   icon: "scroll"
-  value: 2
-  sellable: true
+  value: 0
+  sellable: false
   stackable: false
 
 - id: lantern_prayer
@@ -1449,8 +1449,8 @@
   description: "»Licht, das nicht wankt. Licht, das nicht frisst. Halte die Nacht vor diesem Kreis. – Wer dies liest, ist weiter gekommen als wir. Lass eine Laterne brennen, wenn du gehst.«"
   kind: misc
   icon: "scroll"
-  value: 2
-  sellable: true
+  value: 0
+  sellable: false
   stackable: false
 
 - id: black_tablet
@@ -1458,8 +1458,8 @@
   description: "Eine Steintafel, deren Schrift sich beim Lesen bewegt: »Ich war ein König, bevor es Sterne gab. Sie haben mich unter die Welt gesperrt, mit Feuer und mit Eis. Doch Türen öffnen sich immer von innen. Ihr habt mich nur besiegt. Nicht verschlossen.«"
   kind: misc
   icon: "scroll"
-  value: 2
-  sellable: true
+  value: 0
+  sellable: false
   stackable: false
 
 # --- Silberhain (Stufe 8–10) ---
@@ -1600,8 +1600,8 @@
   description: "Eine Abreibung von einem der Grenzsteine, mit einer Übersetzung am Rand: »Wir hüteten den Hain, bis der Schatten aus der Tiefe in die Wurzeln kroch. Der Hüter trank davon. Nun hütet er nichts mehr. Wer ihn erlöst, gebe sein Herz der Erde zurück.«"
   kind: misc
   icon: "scroll"
-  value: 2
-  sellable: true
+  value: 0
+  sellable: false
   stackable: false
 
 # --- Versunkene Stadt Aelmar (Stufe 11–13) ---
@@ -1745,6 +1745,79 @@
   description: "»Die Seherin vom Leuchtturm warnte uns: Der Schatten unter der Mine sucht einen Weg ans Meer. Wir lachten. Dann kam das grüne Licht, dann das Lied, dann der Kraken. Aelmar geht nicht unter, sagten wir. Ich schreibe dies, während das Wasser steigt.«"
   kind: misc
   icon: "scroll"
-  value: 2
+  value: 0
+  sellable: false
+  stackable: false
+
+# --- Oakhaven: Gasthaus und Tempel ---
+
+- id: stew
+  name: "Eintopf vom Goldenen Krug"
+  description: "Ein Holzschälchen voll mit Rüben, Speck und etwas, das Hanne »Geheimzutat« nennt. Stellt 20 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "bread"
+  value: 10
   sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - type: heal
+      amount: 20
+
+- id: honey_mead
+  name: "Honigmet"
+  description: "Golden, süß und stärker, als er schmeckt. Stellt 8 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "potion"
+  value: 4
+  sellable: true
+  stackable: true
+  max_stack: 10
+  effects:
+    - type: heal
+      amount: 8
+
+- id: holy_water
+  name: "Geweihtes Wasser"
+  description: "Ein Fläschchen aus dem Tempelbrunnen, gesegnet von Schwester Liora. Stellt 25 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "potion"
+  value: 18
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - type: heal
+      amount: 25
+
+- id: light_charm
+  name: "Lichtamulett"
+  description: "Ein kleines Sonnensymbol aus Messing, im Tempel geweiht. Es wärmt, wenn es dunkel wird."
+  kind: armor
+  slot: neck
+  icon: "amulet"
+  value: 40
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: max_hp
+      amount: 8
+
+- id: tavern_rumors
+  name: "Gerüchte aus dem Goldenen Krug"
+  description: "Auf einen Bierdeckel gekritzelt: »Im Wald überfallen Goblins nur noch selten – sie sind in die Felder gezogen. Im Moor gibt es ein Lagerfeuer, das nie ausgeht. Die Zwerge im Gebirge verkaufen den besten Stahl, aber nur gegen Gold. Und wer den Leuchtturm sieht, soll sich die Ohren zuhalten.«"
+  kind: misc
+  icon: "scroll"
+  value: 0
+  sellable: false
+  stackable: false
+
+- id: temple_prayer
+  name: "Gebet für die Fortgegangenen"
+  description: "»Licht, geleite die, die hinausgehen. Gib ihnen ein Feuer am Moor, eine Laterne in der Tiefe und einen Weg zurück. Und wenn sie nicht zurückkehren, so trage ihre Namen, bis wir sie holen.«"
+  kind: misc
+  icon: "scroll"
+  value: 0
+  sellable: false
   stackable: false

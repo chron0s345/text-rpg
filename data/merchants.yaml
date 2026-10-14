@@ -191,3 +191,31 @@
       price: 30
     - item_id: phoenix_draught
       price: 160
+
+- id: innkeeper
+  name: "Wirtin Hanne"
+  room_id: tavern
+  greeting: "Setz dich, Wanderer. Eintopf ist warm, Met ist kalt, und Geschichten gibt's umsonst."
+  buys: listed
+  buys_kinds: [consumable, misc]
+  sells:
+    - item_id: stew
+      price: 10
+    - item_id: honey_mead
+      price: 4
+    - item_id: bread
+      price: 3
+
+- id: priestess
+  name: "Schwester Liora"
+  room_id: temple
+  greeting: "Das Licht sei mit dir. Nimm, was du brauchst – und komm zurück."
+  buys: listed
+  buys_kinds: [misc]
+  sells:
+    - item_id: holy_water
+      price: 18
+    - item_id: healing_potion
+      price: 15
+    - item_id: light_charm
+      price: 40
