@@ -231,8 +231,8 @@
 - id: ice_drake
   name: "Eisdrache Hrimfang"
   level: 10
-  max_hp: 260
-  attack: 36
+  max_hp: 320
+  attack: 38
   defense: 16
   xp_reward: 900
   gold_reward: [80, 160]
@@ -241,6 +241,10 @@
     delay_seconds: 20
     hp_per_second: 5.0
   loot_table:
+    - item_id: drake_shield
+      chance: 0.1
+    - item_id: winter_heart
+      chance: 0.08
     - item_id: drake_scale
       chance: 1.0
     - item_id: elixir
@@ -269,6 +273,8 @@
     chance_per_tick: 0.06
     max_level_difference: 2
   loot_table:
+    - item_id: silver_ring
+      chance: 0.02
     - item_id: ghoul_claw
       chance: 0.6
     - item_id: iron_greaves
@@ -301,8 +307,8 @@
 - id: spider_queen
   name: "Spinnenkönigin Ysvara"
   level: 9
-  max_hp: 190
-  attack: 34
+  max_hp: 250
+  attack: 37
   defense: 13
   xp_reward: 650
   gold_reward: [40, 90]
@@ -311,9 +317,365 @@
     delay_seconds: 20
     hp_per_second: 4.0
   loot_table:
+    - item_id: spider_ring
+      chance: 0.12
     - item_id: queen_fang
       chance: 1.0
     - item_id: elixir
       chance: 0.3
     - item_id: war_axe
+      chance: 0.1
+
+# --- Kornfelder ---
+
+- id: field_rat
+  name: "Feldratte"
+  level: 1
+  max_hp: 8
+  attack: 4
+  defense: 0
+  xp_reward: 8
+  gold_reward: [0, 2]
+  respawn_seconds: 45
+  ambush:
+    chance_on_enter: 0.1
+    chance_per_tick: 0.03
+    max_level_difference: 2
+  loot_table:
+    - item_id: rat_tail
+      chance: 0.7
+
+- id: giant_crow
+  name: "Riesenkrähe"
+  level: 2
+  max_hp: 14
+  attack: 7
+  defense: 1
+  xp_reward: 18
+  gold_reward: [0, 3]
+  respawn_seconds: 60
+  regen:
+    delay_seconds: 10
+    hp_per_second: 1.0
+  ambush:
+    chance_on_enter: 0.15
+    chance_per_tick: 0.04
+    max_level_difference: 2
+  loot_table:
+    - item_id: crow_feather
+      chance: 0.7
+      min_qty: 1
+      max_qty: 2
+
+- id: wild_boar
+  name: "Wildschwein"
+  level: 2
+  max_hp: 22
+  attack: 7
+  defense: 2
+  xp_reward: 26
+  gold_reward: [0, 0]
+  respawn_seconds: 90
+  regen:
+    delay_seconds: 15
+    hp_per_second: 1.0
+  # greift nur an, wenn man es stört
+  loot_table:
+    - item_id: boar_ham
+      chance: 0.6
+    - item_id: boar_hide
+      chance: 0.5
+
+- id: shambling_corpse
+  name: "Wandelnder Leichnam"
+  level: 3
+  max_hp: 30
+  attack: 9
+  defense: 2
+  xp_reward: 40
+  gold_reward: [1, 6]
+  respawn_seconds: 90
+  ambush:
+    chance_on_enter: 0.15
+    chance_per_tick: 0.05
+    max_level_difference: 2
+  loot_table:
+    - item_id: bone_dust
+      chance: 0.5
+    - item_id: rusty_dagger
+      chance: 0.08
+
+- id: crypt_knight
+  name: "Gruftritter"
+  level: 4
+  max_hp: 40
+  attack: 12
+  defense: 5
+  xp_reward: 70
+  gold_reward: [4, 12]
+  respawn_seconds: 150
+  ambush:
+    chance_on_enter: 0.2
+    chance_per_tick: 0.0
+    max_level_difference: 2
+  loot_table:
+    - item_id: bone_amulet
+      chance: 0.06
+    - item_id: bone_dust
+      chance: 0.6
+      min_qty: 1
+      max_qty: 2
+    - item_id: leather_cap
+      chance: 0.08
+    - item_id: healing_potion
+      chance: 0.15
+
+- id: grave_lord
+  name: "Grabfürst Valen"
+  level: 5
+  max_hp: 120
+  attack: 16
+  defense: 6
+  xp_reward: 260
+  gold_reward: [30, 60]
+  respawn_seconds: 600
+  regen:
+    delay_seconds: 20
+    hp_per_second: 3.0
+  loot_table:
+    - item_id: valen_ring
+      chance: 0.2
+    - item_id: valen_signet
+      chance: 1.0
+    - item_id: greater_potion
+      chance: 0.3
+    - item_id: valen_blade
+      chance: 0.15
+
+# --- Feuerschlund ---
+
+- id: fire_salamander
+  name: "Feuersalamander"
+  level: 11
+  max_hp: 110
+  attack: 44
+  defense: 18
+  xp_reward: 280
+  gold_reward: [8, 20]
+  respawn_seconds: 120
+  regen:
+    delay_seconds: 15
+    hp_per_second: 3.0
+  ambush:
+    chance_on_enter: 0.25
+    chance_per_tick: 0.06
+    max_level_difference: 2
+  loot_table:
+    - item_id: salamander_scale
+      chance: 0.7
+    - item_id: obsidian_boots
+      chance: 0.04
+
+- id: ash_wraith
+  name: "Aschegeist"
+  level: 11
+  max_hp: 95
+  attack: 46
+  defense: 20
+  xp_reward: 300
+  gold_reward: [10, 24]
+  respawn_seconds: 120
+  # Geister heilen nicht, schlagen aber aus dem Nichts zu
+  ambush:
+    chance_on_enter: 0.3
+    chance_per_tick: 0.1
+    max_level_difference: 2
+  loot_table:
+    - item_id: ember_amulet
+      chance: 0.02
+    - item_id: wraith_ash
+      chance: 0.8
+      min_qty: 1
+      max_qty: 2
+    - item_id: obsidian_helm
+      chance: 0.04
+
+- id: magma_golem
+  name: "Magmagolem"
+  level: 12
+  max_hp: 160
+  attack: 50
+  defense: 26
+  xp_reward: 380
+  gold_reward: [15, 35]
+  respawn_seconds: 180
+  loot_table:
+    - item_id: ember_core
+      chance: 0.7
+    - item_id: obsidian_greaves
+      chance: 0.05
+    - item_id: magma_hammer
+      chance: 0.03
+
+- id: fire_giant
+  name: "Feuerriese"
+  level: 13
+  max_hp: 170
+  attack: 54
+  defense: 26
+  xp_reward: 480
+  gold_reward: [25, 50]
+  respawn_seconds: 240
+  regen:
+    delay_seconds: 20
+    hp_per_second: 4.0
+  ambush:
+    chance_on_enter: 0.15
+    chance_per_tick: 0.0
+    max_level_difference: 2
+  loot_table:
+    - item_id: giant_tooth
+      chance: 0.6
+    - item_id: phoenix_draught
+      chance: 0.08
+    - item_id: ember_plate
+      chance: 0.04
+
+- id: ignaros
+  name: "Glutfürst Ignaros"
+  level: 13
+  max_hp: 520
+  attack: 60
+  defense: 30
+  xp_reward: 1600
+  gold_reward: [150, 300]
+  respawn_seconds: 1200
+  regen:
+    delay_seconds: 20
+    hp_per_second: 8.0
+  loot_table:
+    - item_id: ignaros_ring
+      chance: 0.12
+    - item_id: ignaros_crown
+      chance: 1.0
+    - item_id: phoenix_draught
+      chance: 0.5
+      min_qty: 1
+      max_qty: 2
+    - item_id: flame_sword
+      chance: 0.12
+    - item_id: ember_plate
+      chance: 0.2
+
+# --- Schattenreich ---
+
+- id: shadow_stalker
+  name: "Schattenpirscher"
+  level: 14
+  max_hp: 150
+  attack: 60
+  defense: 30
+  xp_reward: 600
+  gold_reward: [20, 45]
+  respawn_seconds: 150
+  regen:
+    delay_seconds: 15
+    hp_per_second: 5.0
+  ambush:
+    chance_on_enter: 0.3
+    chance_per_tick: 0.1
+    max_level_difference: 2
+  loot_table:
+    - item_id: shadow_pelt
+      chance: 0.7
+    - item_id: starlight_tonic
+      chance: 0.05
+
+- id: void_knight
+  name: "Leerenritter"
+  level: 14
+  max_hp: 200
+  attack: 56
+  defense: 36
+  xp_reward: 680
+  gold_reward: [30, 60]
+  respawn_seconds: 180
+  # Wächter der Brücke: greift nicht von selbst an, heilt sich nicht
+  loot_table:
+    - item_id: void_shard
+      chance: 0.8
+      min_qty: 1
+      max_qty: 2
+    - item_id: voidbreaker
+      chance: 0.02
+
+- id: nightmare
+  name: "Albtraum"
+  level: 15
+  max_hp: 170
+  attack: 66
+  defense: 32
+  xp_reward: 750
+  gold_reward: [25, 55]
+  respawn_seconds: 150
+  regen:
+    delay_seconds: 15
+    hp_per_second: 5.0
+  ambush:
+    chance_on_enter: 0.25
+    chance_per_tick: 0.08
+    max_level_difference: 2
+  loot_table:
+    - item_id: moonstone_amulet
+      chance: 0.02
+    - item_id: nightmare_essence
+      chance: 0.7
+    - item_id: moon_lily
+      chance: 0.3
+
+- id: shadow_warden
+  name: "Schattenwächter"
+  level: 15
+  max_hp: 230
+  attack: 62
+  defense: 38
+  xp_reward: 850
+  gold_reward: [40, 80]
+  respawn_seconds: 240
+  ambush:
+    chance_on_enter: 0.2
+    chance_per_tick: 0.0
+    max_level_difference: 2
+  loot_table:
+    - item_id: warden_sigil
+      chance: 0.6
+    - item_id: starlight_tonic
+      chance: 0.08
+
+- id: morvath
+  name: "Schattenkönig Morvath"
+  level: 15
+  max_hp: 800
+  attack: 64
+  defense: 34
+  xp_reward: 3000
+  gold_reward: [300, 600]
+  respawn_seconds: 1800
+  regen:
+    delay_seconds: 20
+    hp_per_second: 10.0
+  loot_table:
+    - item_id: soul_pendant
+      chance: 0.1
+    - item_id: shadow_ring
+      chance: 0.08
+    - item_id: shadow_crown
+      chance: 1.0
+    - item_id: starlight_tonic
+      chance: 0.6
+      min_qty: 1
+      max_qty: 2
+    - item_id: shadow_blade
+      chance: 0.15
+    - item_id: voidbreaker
       chance: 0.1

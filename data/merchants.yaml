@@ -23,6 +23,8 @@
   buys: listed
   buys_kinds: [weapon, armor]
   sells:
+    - item_id: wooden_shield
+      price: 15
     - item_id: short_sword
       price: 40
     - item_id: leather_armor
@@ -42,6 +44,14 @@
   greeting: "Zwergenstahl ist teuer. Sterben ist teurer."
   buys: all
   sells:
+    - item_id: iron_shield
+      price: 60
+    - item_id: tower_shield
+      price: 150
+    - item_id: amber_amulet
+      price: 90
+    - item_id: silver_ring
+      price: 80
     - item_id: war_axe
       price: 180
     - item_id: iron_helm
@@ -56,3 +66,81 @@
       price: 90
     - item_id: greater_potion
       price: 40
+
+- id: miller
+  name: "Müllerin Grete"
+  room_id: mill
+  greeting: "Hungrig, Kindchen? Setz dich, es ist genug für alle da."
+  buys: listed
+  buys_kinds: [consumable, misc]
+  sells:
+    - item_id: bread
+      price: 3
+    - item_id: cheese
+      price: 5
+    - item_id: apple_pie
+      price: 8
+    - item_id: pitchfork
+      price: 15
+
+- id: crater_scout
+  name: "Kundschafterin Ilva"
+  room_id: crater_camp
+  greeting: "Wer bis hierher kommt, ist entweder mutig oder dumm. Brauchst du Glas oder Tränke?"
+  buys: all
+  sells:
+    - item_id: obsidian_shield
+      price: 260
+    - item_id: ember_amulet
+      price: 250
+    - item_id: ruby_ring
+      price: 220
+    - item_id: obsidian_blade
+      price: 280
+    - item_id: obsidian_helm
+      price: 120
+    - item_id: obsidian_greaves
+      price: 130
+    - item_id: obsidian_boots
+      price: 120
+    - item_id: elixir
+      price: 90
+    - item_id: phoenix_draught
+      price: 160
+
+- id: faceless_merchant
+  name: "Der Händler ohne Gesicht"
+  room_id: last_refuge
+  greeting: "Alles hat seinen Preis. Hier unten ist er nur höher."
+  buys: all
+  sells:
+    - item_id: starsteel_shield
+      price: 450
+    - item_id: moonstone_amulet
+      price: 500
+    - item_id: star_ring
+      price: 480
+    - item_id: starsteel_helm
+      price: 400
+    - item_id: starsteel_greaves
+      price: 420
+    - item_id: starsteel_boots
+      price: 400
+    - item_id: starsteel_plate
+      price: 900
+    - item_id: phoenix_draught
+      price: 160
+    - item_id: starlight_tonic
+      price: 260
+
+- id: goldsmith
+  name: "Goldschmied Aurel"
+  room_id: goldsmith_shop
+  greeting: "Ein Ring für den Mut, ein Amulett fürs Glück. Beides kann man brauchen da draußen."
+  buys: listed
+  buys_kinds: [armor, misc]
+  sells:
+    - item_id: copper_ring
+      price: 20
+    - item_id: bone_amulet
+      price: 25
