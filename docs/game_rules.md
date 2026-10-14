@@ -204,6 +204,7 @@ Viele Händler haben **Aufträge**. Steht ein Auftraggeber im Raum, zeigt das Pa
 - **Besiegen:** Jeder Sieg zählt für alle Mitglieder deiner Gruppe im Raum, die den Auftrag haben – wie Gold und Beute. Seltene Formen zählen für ihre gewöhnliche Form.
 - Belohnungen sind Erfahrung, Gold und Gegenstände; ist im Rucksack kein Platz für die Gegenstände, kannst du noch nicht abgeben.
 - Manche Aufträge setzen eine Stufe oder einen anderen Auftrag voraus, manche lassen sich wiederholen. Höchstens 10 Aufträge gleichzeitig; abbrechen geht jederzeit, der Fortschritt ist dann verloren.
+- **Questketten mit Geschichte:** *Der verschwundene Jäger* (Wirtin Hanne und Fischerin Maren, ab Stufe 4), *Die Halle von Khazdur* (Waffenmeisterin Brunhild, ab Stufe 6) und *Die Laternen der Tiefe* (von Kundschafterin Ilva über Taucher Brack und den Händler ohne Gesicht bis zu Schwester Liora, ab Stufe 11).
 
 | Auftrag | Auftraggeber | ab Stufe | Aufgabe |
 |---|---|---|---|
@@ -245,6 +246,18 @@ Viele Händler haben **Aufträge**. Steht ein Auftraggeber im Raum, zeigt das Pa
 | Das Auge der Tiefe | Taucher Brack | 13 | 1× Der Kraken Ul'thar besiegen (nach „Die Wappen von Aelmar“) |
 | Pelze aus Schatten | Der Händler ohne Gesicht | 14 | 4× Schattenfell bringen |
 | Schlaflose Nächte | Wirtin Hanne | 15 | 3× Albtraum besiegen |
+| Der verschwundene Jäger | Wirtin Hanne | 4 | 1× Rostiger Kompass bringen (nach „Wildbret für den Krug“) |
+| Unter den Ertrunkenen | Fischerin Maren | 5 | 4× Ertrunkener Seemann besiegen (nach „Der verschwundene Jäger“) |
+| Ware ohne Zoll | Fischerin Maren | 6 | 4× Schmuggelware bringen (nach „Unter den Ertrunkenen“) |
+| Heimkehr | Wirtin Hanne | 7 | 6× Schmuggler besiegen (nach „Ware ohne Zoll“) |
+| Wie tief sie graben | Waffenmeisterin Brunhild | 6 | 6× Ghulkralle bringen (nach „Die Mine zurückerobern“) |
+| Gefallene Wächter | Waffenmeisterin Brunhild | 8 | 3× Eisgolem besiegen (nach „Wie tief sie graben“) |
+| Netze vor dem Tor | Waffenmeisterin Brunhild | 8 | 6× Höhlenspinne besiegen (nach „Gefallene Wächter“) |
+| Die Halle von Khazdur | Waffenmeisterin Brunhild | 9 | 1× Giftzahn der Königin bringen (nach „Netze vor dem Tor“) |
+| Die Asche der Kundschafter | Kundschafterin Ilva | 11 | 5× Geisterasche bringen (nach „Asche im Wind“) |
+| Laternen unter Wasser | Taucher Brack | 12 | 4× Ertrunkener Ritter besiegen (nach „Die Asche der Kundschafter“) |
+| Was die Laternen fürchten | Der Händler ohne Gesicht | 14 | 5× Schattenpirscher besiegen (nach „Laternen unter Wasser“) |
+| Das letzte Siegel | Schwester Liora | 15 | 3× Siegel der Wächter bringen (nach „Was die Laternen fürchten“) |
 
 ## Handwerk
 
