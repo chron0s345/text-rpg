@@ -70,6 +70,8 @@ class PlayerSnapshot(BaseModel):
     locked_item_ids: list[UUID] = Field(default_factory=list)
     # quests ever accepted; loaded for players of an action snapshot (else empty)
     quests: list[QuestState] = Field(default_factory=list)
+    achievements: list[str] = Field(default_factory=list)  # earned ids, in the order earned
+    title: str | None = None  # achievement id whose title is shown
 
     def item(self, inventory_item_id: UUID) -> InventoryItemState | None:
         return next((i for i in self.inventory if i.id == inventory_item_id), None)

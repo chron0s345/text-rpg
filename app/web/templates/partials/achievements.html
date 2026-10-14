@@ -1,0 +1,32 @@
+{% set a = view.achievements %}
+{% macro entry(e) %}
+<li class="achievement{% if not e.earned %} locked{% endif %}">
+  <span>
+    <span class="achievement-name">{% if e.earned %}🏆{% else %}○{% endif %} {{ e.name }}</span>
+    <small class="muted">{{ e.description }}{% if e.title %} · Titel: „{{ e.title }}“{% endif %}</small>
+  </span>
+  {% if e.earned and e.title %}
+  {% if e.shown %}
+  <button class="subtle small" hx-post="/ui/actions" hx-vals='{"type": "set_title", "achievement_id": ""}' title="Titel ablegen">Ablegen</button>
+  {% else %}
+  <button class="subtle small" hx-post="/ui/actions" hx-vals='{{ {"type": "set_title", "achievement_id": e.id} | tojson }}'>Titel führen</button>
+  {% endif %}
+  {% endif %}
+</li>
+{% endmacro %}
+<section id="achievements" class="panel achievements" aria-labelledby="achievements-title"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <h2 id="achievements-title">Erfolge <span class="muted">{{ a.earned }}/{{ a.entries | length }}</span></h2>
+  {% set earned = a.entries | selectattr("earned") | list %}
+  {% set open = a.entries | rejectattr("earned") | list %}
+  {% if earned %}
+  <ul class="list achievement-list">{% for e in earned %}{{ entry(e) }}{% endfor %}</ul>
+  {% else %}
+  <p class="muted">Noch keine. Besiege Bosse, erledige Aufträge, steige auf.</p>
+  {% endif %}
+  {% if open %}
+  <details>
+    <summary>Noch offen ({{ open | length }})</summary>
+    <ul class="list achievement-list">{% for e in open %}{{ entry(e) }}{% endfor %}</ul>
+  </details>
+  {% endif %}
+</section>

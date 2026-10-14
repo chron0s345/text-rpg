@@ -70,6 +70,8 @@ def player_snapshot(
         inventory=[inventory_item_state(i) for i in inventory],
         locked_item_ids=list(locked_item_ids),
         quests=[quest_state(q) for q in quests],
+        achievements=list(row.achievements),
+        title=row.title,
     )
 
 

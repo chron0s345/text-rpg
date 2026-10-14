@@ -27,6 +27,7 @@ from app.content.schemas import (
     Rules,
     VisitObjective,
 )
+from app.engine.achievements import grant
 from app.engine.events import ActionResult, QuestDelete, ResultBuilder, rejected
 from app.engine.materials import (
     count_available,
@@ -280,6 +281,7 @@ def resolve_quest_turn_in(
         builder.to_actor("quest.reward", "Belohnung: " + ", ".join(rewards) + ".")
     if quest.reward.xp:
         apply_xp(builder, actor, quest.reward.xp, rules, content.items)
+    grant(builder, actor, content)
     return builder.build()
 
 

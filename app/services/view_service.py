@@ -78,6 +78,7 @@ class PlayerView:
     gold: int
     state: str
     combat_target_id: UUID | None
+    title: str = ""  # chosen achievement title, shown after the name
 
 
 @dataclass(frozen=True)
@@ -118,7 +119,7 @@ class RoomView:
     bank: bool
     exits: list[ExitView]
     monsters: list[MonsterView]
-    players: list[tuple[UUID, str, str]]  # (id, name, state)
+    players: list[tuple[UUID, str, str, str]]  # (id, name, state, title or "")
     merchants: list[str]
     floor_items: list[FloorItemView]
     map: Minimap
@@ -314,6 +315,22 @@ class EquipmentView:
 
 
 @dataclass(frozen=True)
+class AchievementView:
+    id: str
+    name: str
+    description: str
+    title: str  # "" when the achievement brings none
+    earned: bool
+    shown: bool  # its title is the one the character shows
+
+
+@dataclass(frozen=True)
+class AchievementsView:
+    earned: int
+    entries: list[AchievementView]  # earned first (in the order earned), then the rest
+
+
+@dataclass(frozen=True)
 class GameView:
     player: PlayerView
     room: RoomView
@@ -325,6 +342,7 @@ class GameView:
     quests: QuestsView
     recipes: list[RecipeView]  # of the crafters in this room
     equipment: EquipmentView
+    achievements: AchievementsView
 
 
 class ViewService:
@@ -367,7 +385,7 @@ class ViewService:
             ).all()
             others = (
                 await session.execute(
-                    select(col(Player.id), col(Player.name), col(Player.state))
+                    select(col(Player.id), col(Player.name), col(Player.state), col(Player.title))
                     .where(
                         col(Player.current_room_id) == row.current_room_id,
                         col(Player.online),
@@ -413,6 +431,7 @@ class ViewService:
             gold=row.gold,
             state=row.state,
             combat_target_id=row.combat_target_id,
+            title=self._title(row.title),
         )
 
         room = self.content.get_room(row.current_room_id)
@@ -462,7 +481,7 @@ class ViewService:
                 for direction, target in room.exits.items()
             ],
             monsters=monster_views,
-            players=[(pid, name, state) for pid, name, state in others],
+            players=[(pid, name, state, self._title(title)) for pid, name, state, title in others],
             merchants=[m.name for m in self.content.merchants_in_room(room.id)],
             floor_items=floor_views,
             map=minimap(self.content, room.id, self._quest_rooms(snapshot)),
@@ -507,6 +526,7 @@ class ViewService:
             quests=self._quests(snapshot),
             recipes=self._recipes(snapshot),
             equipment=equipment,
+            achievements=self._achievements(snapshot),
         )
 
     def _quest_rooms(self, player: PlayerSnapshot) -> frozenset[str]:
@@ -679,6 +699,29 @@ class ViewService:
             price <= gold,
             item_summary(item),
             compare(player, item.id, self.content),
+        )
+
+    def _title(self, achievement_id: str | None) -> str:
+        achievement = self.content.achievements.get(achievement_id or "")
+        return achievement.title or "" if achievement is not None else ""
+
+    def _achievements(self, player: PlayerSnapshot) -> AchievementsView:
+        templates = self.content.achievements
+        earned = [templates[a] for a in player.achievements if a in templates]
+        rest = [a for a in templates.values() if a.id not in player.achievements]
+        return AchievementsView(
+            earned=len(earned),
+            entries=[
+                AchievementView(
+                    a.id,
+                    a.name,
+                    a.description,
+                    a.title or "",
+                    a in earned,
+                    player.title == a.id,
+                )
+                for a in [*earned, *rest]
+            ],
         )
 
     def _equipment(self, items: list[ItemView], inventory: InventoryView) -> EquipmentView:

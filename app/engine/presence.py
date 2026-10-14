@@ -18,6 +18,7 @@ from typing import Final
 
 from app.content.registry import ContentRegistry
 from app.content.schemas import Rules
+from app.engine.achievements import grant
 from app.engine.death import apply_player_death
 from app.engine.events import ActionResult, ResultBuilder, RoomAudience
 from app.engine.permissions import check_state
@@ -67,6 +68,7 @@ def resolve_login(
         builder.to_actor("player.hint", intro)
     if not already_online:  # entering the world where a visit step leads counts
         count_visit(builder, actor, content)
+        grant(builder, actor, content)  # catches up on achievements added since
     if not already_online:
         builder.event(
             "player.entered_world",

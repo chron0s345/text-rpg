@@ -1,6 +1,6 @@
 {% set p = view.player %}
 <section id="status" class="status" data-state="{{ p.state }}" aria-label="Status"{% if oob %} hx-swap-oob="true"{% endif %}>
-  <strong class="name">{{ p.name }}</strong>
+  <strong class="name">{{ p.name }}{% if p.title %} <span class="title">{{ p.title }}</span>{% endif %}</strong>
   <span>Level {{ p.level }}</span>
   <span class="hp">
     <label for="hp-bar">HP {{ p.hp }}/{{ p.max_hp }}</label>
