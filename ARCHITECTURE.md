@@ -249,7 +249,8 @@ class QuestTemplate(BaseModel):  # quests.yaml (optional)
     giver_id: str  # MerchantTemplate.id
     description: str
     completion_text: str
-    objective: DeliverObjective | KillObjective  # deliver(item, qty) / kill(monster, count)
+    steps: list[Objective]  # deliver(item, qty) / kill(monster, count) / visit(room)
+    # in YAML, `objective: …` is short for a single step
     reward: QuestReward  # xp, gold, items: [RewardItem(item_id, quantity)]
     min_level: PositiveInt = 1
     requires: list[str] = []  # Quest-IDs, die vorher erledigt sein müssen
@@ -643,13 +644,15 @@ Umsetzung (`engine/merchant.py`, Preise in `content/prices.py`, gemeinsam für E
 ### Quests
 
 - Quests sind Content (`quests.yaml`); Auftraggeber ist ein Händler. Annehmen und Abgeben geht nur in dessen Raum und nicht im Kampf, Abbrechen jederzeit.
+- Ein Auftrag hat einen oder mehrere **Schritte** (`steps`), die der Reihe nach erledigt werden. Besiegen- und Besuchsschritte rücken von selbst weiter (`quests._advance`, mit Meldung, was als Nächstes kommt); ein Lieferschritt kann nur der letzte sein und wird beim Abgeben erledigt.
+- **Besuchen** (`visit`): `movement.resolve_move` ruft `quests.count_visit` für den Ziehenden auf. Steht der Charakter schon im Zielraum, wenn der Schritt beginnt (beim Annehmen oder nach dem vorigen Schritt), ist er sofort erledigt.
 - **Liefern** (`deliver`): Beim Abgeben werden die Gegenstände aus freien, nicht ausgerüsteten und nicht im Handel angebotenen Stapeln genommen. Der Fortschritt wird nicht gespeichert, sondern immer aus dem Rucksack gezählt.
 - **Besiegen** (`kill`): `rewards.resolve_kill` ruft `quests.count_kill` für alle Mitglieder der Partei auf, die den Kill gutgeschrieben bekommt und im Raum ist – also dieselben, die Gold und Beute bekommen. Seltene Varianten zählen für ihre Grundform. Mehr als die geforderte Anzahl wird nicht gezählt.
 - Belohnung: XP (mit Stufenaufstieg wie bei Kämpfen), Gold, Gegenstände. Passen die Gegenstände nicht vollständig ins Inventar, wird nicht abgegeben.
 - Voraussetzungen: `min_level` und `requires` (Ketten). Höchstens 10 offene Aufträge gleichzeitig.
-- Zustand: `quest_progress` (`player_id`, `quest_id`, `status` active|completed, `progress`, `times_completed`). Wiederholbare Quests werden beim erneuten Annehmen wieder `active`; Abbrechen löscht die Zeile, bei schon einmal erledigten wiederholbaren Quests stellt es `completed` wieder her.
+- Zustand: `quest_progress` (`player_id`, `quest_id`, `status` active|completed, `step` – aktueller Schritt, `len(steps)` wenn alle Besiegen-/Besuchsschritte erledigt sind –, `progress` – Kills im aktuellen Schritt –, `times_completed`; Migration 0007 fügt `step` hinzu). Wiederholbare Quests werden beim erneuten Annehmen wieder `active`; Abbrechen löscht die Zeile, bei schon einmal erledigten wiederholbaren Quests stellt es `completed` wieder her.
 - Die Zeilen gehören zu Spielern im Aktions-Snapshot und werden mit ihnen geladen und gesperrt (`Repository.lock_quests`). Neue Zeilen entstehen nur für gesperrte Spieler; die Spielersperre serialisiert sie.
-- Validierung beim Laden: Auftraggeber, Items und Monster existieren, Voraussetzungen existieren und bilden keinen Zyklus, Besiegen-Quests nennen die Grundform statt einer seltenen Variante.
+- Validierung beim Laden: Auftraggeber, Items, Monster und Räume existieren, Liefern nur als letzter Schritt, Voraussetzungen existieren und bilden keinen Zyklus, Besiegen-Quests nennen die Grundform statt einer seltenen Variante.
 
 ### Sets
 

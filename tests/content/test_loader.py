@@ -175,13 +175,19 @@ def test_quests_are_validated() -> None:
                 "giver_id": "alchemist",
                 "description": "",
                 "completion_text": "",
-                "objective": {"type": "deliver", "item_id": "goblin_ear"},
+                **(
+                    {}
+                    if "steps" in fields
+                    else {"objective": {"type": "deliver", "item_id": "goblin_ear"}}
+                ),
                 **fields,
             }
         )
 
     def check(*quests: QuestTemplate) -> None:
-        validate_quests({q.id: q for q in quests}, real.monsters, real.items, real.merchants)
+        validate_quests(
+            {q.id: q for q in quests}, real.monsters, real.items, real.merchants, real.rooms
+        )
 
     check(quest())
     with pytest.raises(ContentValidationError, match="unknown giver"):
@@ -194,6 +200,16 @@ def test_quests_are_validated() -> None:
         check(quest(reward={"items": [{"item_id": "nope"}]}))
     with pytest.raises(ContentValidationError, match="requires an unknown quest"):
         check(quest(requires=["missing"]))
+    with pytest.raises(ContentValidationError, match="unknown room"):
+        check(quest(objective={"type": "visit", "room_id": "nowhere"}))
+    deliver_first = [
+        {"type": "deliver", "item_id": "goblin_ear"},
+        {"type": "visit", "room_id": real.rules.town_room_id},
+    ]
+    with pytest.raises(ContentValidationError, match="must be the last step"):
+        check(quest(steps=deliver_first))
+    with pytest.raises(ValueError, match="either objective or steps"):
+        quest(objective=deliver_first[0], steps=deliver_first[::-1])
     with pytest.raises(ContentValidationError, match="form a cycle"):
         check(quest("a", requires=["b"]), quest("b", requires=["a"]))
     variants = [m.rare_variant.monster_id for m in real.monsters.values() if m.rare_variant]

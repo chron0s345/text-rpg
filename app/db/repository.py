@@ -632,6 +632,7 @@ class Repository:
                 row = QuestProgress(player_id=quest.player_id, quest_id=quest.quest_id)
                 session.add(row)
             row.status = quest.status
+            row.step = quest.step
             row.progress = quest.progress
             row.times_completed = quest.times_completed
 

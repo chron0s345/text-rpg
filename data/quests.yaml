@@ -488,3 +488,116 @@
   reward: {xp: 2500, gold: 400, items: [{item_id: moonstone_amulet}]}
   min_level: 15
   requires: [lanterns_shadow]
+
+# --- Mehrstufige Aufträge: Wege gehen, dann kämpfen oder bringen ---
+
+- id: letter_to_the_mill
+  name: "Ein Brief für Grete"
+  giver_id: innkeeper
+  description: "Bring Grete in der Mühle diesen Brief – und wenn du schon da bist: Sie hat Ärger mit Ratten. Hilf ihr mit drei davon, dann komm zurück und erzähl."
+  completion_text: "Sie hat geantwortet? Und die Ratten sind weniger? Dann hast du dir den Kuchen verdient."
+  steps:
+    - {type: visit, room_id: mill}
+    - {type: kill, monster_id: field_rat, count: 3}
+  reward: {xp: 45, gold: 10, items: [{item_id: apple_pie}]}
+
+- id: watch_the_road
+  name: "Wache am Südtor"
+  giver_id: smith
+  description: "Die Torwache meldet Goblins im Wald. Geh zum Südtor, sieh dich um, erschlag drei der Späher und bring mir ihre Ohren – die Wache will Beweise."
+  completion_text: "Drei Ohren, drei Späher weniger. Die Wache gibt einen aus, sagt sie."
+  steps:
+    - {type: visit, room_id: forest_gate}
+    - {type: kill, monster_id: goblin, count: 3}
+    - {type: deliver, item_id: goblin_ear, quantity: 3}
+  reward: {xp: 70, gold: 20, items: [{item_id: wooden_shield}]}
+  min_level: 2
+
+- id: cemetery_vigil
+  name: "Nachtwache"
+  giver_id: priestess
+  description: "Geh auf den alten Friedhof und halte Wache. Gib drei Toten Ruhe und sieh dann nach, ob die Gruft der Valen noch versiegelt ist."
+  completion_text: "Das Siegel ist gebrochen? Dann hat es begonnen, wie ich befürchtet habe. Danke, dass du nachgesehen hast."
+  steps:
+    - {type: visit, room_id: old_cemetery}
+    - {type: kill, monster_id: shambling_corpse, count: 3}
+    - {type: visit, room_id: valen_crypt}
+  reward: {xp: 160, gold: 30, items: [{item_id: holy_water}]}
+  min_level: 3
+
+- id: fire_in_the_bog
+  name: "Das Feuer im Moor"
+  giver_id: alchemist
+  description: "Im Moor brennt ein Lagerfeuer, das nie ausgeht, sagen die Leute. Geh hin, sieh es dir an, und auf dem Rückweg: drei Moorschleicher und vier Bündel Moorkraut für mich."
+  completion_text: "Ein Feuer, das nicht ausgeht … das muss ich mir selbst ansehen. Danke für das Kraut."
+  steps:
+    - {type: visit, room_id: bog_camp}
+    - {type: kill, monster_id: bog_lurker, count: 3}
+    - {type: deliver, item_id: bog_herb, quantity: 4}
+  reward: {xp: 140, gold: 30, items: [{item_id: greater_potion}]}
+  min_level: 3
+
+- id: climb_the_lighthouse
+  name: "Hinauf zum Licht"
+  giver_id: fisherwoman
+  description: "Seit die Hexe fort ist, brennt oben kein Licht mehr. Steig die Treppe hinauf, vertreib drei Sturmgeister und sieh nach, ob die Laterne noch ganz ist."
+  completion_text: "Die Laterne ist ganz? Dann zünden wir sie heute Nacht wieder an. Die Boote werden es dir danken."
+  steps:
+    - {type: visit, room_id: lighthouse_stairs}
+    - {type: kill, monster_id: storm_spirit, count: 3}
+    - {type: visit, room_id: lighthouse_top}
+  reward: {xp: 400, gold: 60, items: [{item_id: smoked_fish, quantity: 3}]}
+  min_level: 7
+  requires: [silence_the_song]
+
+- id: border_patrol
+  name: "Grenzgang"
+  giver_id: elf_ranger
+  description: "Geh die alte Grenze ab: von den Grenzsteinen zum Silberhain. Dort fang drei Irrlichter und bring mir fünf Silberblätter – sie zeigen mir, ob der Hain noch atmet."
+  completion_text: "Die Blätter sind noch silbern. Er atmet. Danke, dass du den Weg gegangen bist, den wir nicht mehr gehen können."
+  steps:
+    - {type: visit, room_id: border_stones}
+    - {type: visit, room_id: silver_grove}
+    - {type: kill, monster_id: will_o_wisp, count: 3}
+    - {type: deliver, item_id: silverleaf, quantity: 5}
+  reward: {xp: 500, gold: 70, items: [{item_id: elven_bread, quantity: 2}]}
+  min_level: 8
+
+- id: crater_survey
+  name: "Vermessung des Kraters"
+  giver_id: crater_scout
+  description: "Meine Karte endet am Lavastrom. Geh weiter: die Basaltstiege hinab, über den Lavastrom bis zur Schmiede der Riesen – und schlag dort zwei von ihnen nieder, damit ich in Ruhe nachkommen kann."
+  completion_text: "Jetzt ist die Karte vollständig, bis auf das Herz des Vulkans. Das zeichne ich, wenn Ignaros fort ist."
+  steps:
+    - {type: visit, room_id: basalt_stairs}
+    - {type: visit, room_id: lava_flow}
+    - {type: visit, room_id: giant_forge}
+    - {type: kill, monster_id: fire_giant, count: 2}
+  reward: {xp: 1100, gold: 140, items: [{item_id: phoenix_draught}]}
+  min_level: 12
+
+- id: map_of_aelmar
+  name: "Karte von Aelmar"
+  giver_id: old_diver
+  description: "Ich kenne Aelmar nur bis zum Platz. Schwimm weiter: durch die Halle der Ritter bis zum Korallenpalast, und bring zwei Wächter zum Schweigen, damit ich die Wände abzeichnen kann."
+  completion_text: "Der Palast steht noch, nach all den Jahren. Ich zeichne ihn heute Nacht – nimm meine Salbe, das Wasser dort unten ist kalt."
+  steps:
+    - {type: visit, room_id: drowned_plaza}
+    - {type: visit, room_id: knights_hall}
+    - {type: visit, room_id: coral_palace}
+    - {type: kill, monster_id: coral_guardian, count: 2}
+  reward: {xp: 1200, gold: 150, items: [{item_id: kelp_salve, quantity: 3}]}
+  min_level: 12
+
+- id: walk_the_dark
+  name: "Durch die Dunkelheit"
+  giver_id: faceless_merchant
+  description: "Du willst wissen, was hinter der Brücke ist? Dann geh. Über den Riss, über die Brücke, bis in die Halle der Stille. Zwei Wächter dort, und du hast gesehen, was ich gesehen habe."
+  completion_text: "Jetzt weißt du es. Hinter der Stille wartet nur noch einer. Du bist bereit – oder du bist es nie."
+  steps:
+    - {type: visit, room_id: shadow_rift}
+    - {type: visit, room_id: void_bridge}
+    - {type: visit, room_id: silent_hall}
+    - {type: kill, monster_id: shadow_warden, count: 2}
+  reward: {xp: 1800, gold: 250, items: [{item_id: starlight_tonic}]}
+  min_level: 14

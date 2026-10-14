@@ -42,7 +42,8 @@ class PlayerRef(BaseModel):
 class QuestState(BaseModel):
     quest_id: str
     status: Literal["active", "completed"]
-    progress: int = 0  # kills so far (kill quests)
+    step: int = 0  # index into QuestTemplate.steps; == len(steps) once all are done
+    progress: int = 0  # kills so far in the current step (kill steps)
     times_completed: int = 0
 
 

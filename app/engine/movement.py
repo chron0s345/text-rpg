@@ -16,6 +16,7 @@ from app.engine.ambush import ambush_candidates, apply_ambush, roll_ambush
 from app.engine.events import ActionResult, ResultBuilder, RoomAudience, rejected
 from app.engine.group_status import report_location
 from app.engine.permissions import check_state
+from app.engine.quests import count_visit
 from app.engine.state import ActionSnapshot
 
 DIRECTION_NAMES: Final[dict[Direction, str]] = {
@@ -69,6 +70,7 @@ def resolve_move(
     )
 
     report_location(builder, actor, destination.name)
+    count_visit(builder, actor, content)
 
     if destination.checkpoint and actor.checkpoint_room_id != destination.id:
         actor.checkpoint_room_id = destination.id

@@ -20,13 +20,13 @@ from app.content.describe import item_summary, modifiers_text
 from app.content.prices import buy_price, sell_price
 from app.content.registry import ContentRegistry
 from app.content.schemas import (
-    DeliverObjective,
     Direction,
     Heal,
     ItemSet,
     MerchantOffer,
     MerchantTemplate,
     QuestTemplate,
+    VisitObjective,
 )
 from app.db.mappers import bank_item_state, player_snapshot
 from app.db.models import (
@@ -45,7 +45,13 @@ from app.db.models import (
 from app.engine.inventory import calculate_inventory_capacity, get_occupied_slots
 from app.engine.materials import count_available, quantity_text
 from app.engine.movement import DIRECTION_NAMES
-from app.engine.quests import objective_progress, quests_offered_here
+from app.engine.quests import (
+    current_step,
+    objective_progress,
+    quests_offered_here,
+    ready_to_turn_in,
+    step_text,
+)
 from app.engine.regeneration import calculate_current_monster_hp
 from app.engine.state import InventoryItemState, PlayerSnapshot
 from app.engine.stats import active_set_effects, stats_of, worn_sets
@@ -245,9 +251,12 @@ class ActiveQuestView:
     id: str
     name: str
     giver: str
-    objective: str
-    done: int
+    objective: str  # the current step (or "Zurück zu …" once all are done)
+    done: int  # of the current step
     needed: int
+    step: int  # 1-based number of the current step
+    steps: int
+    show_count: bool  # done/needed means something (not for visits or when all is done)
     can_turn_in: bool  # complete and the giver stands here
 
 
@@ -495,10 +504,8 @@ class ViewService:
         return views
 
     def _objective_text(self, quest: QuestTemplate) -> str:
-        objective = quest.objective
-        if isinstance(objective, DeliverObjective):
-            return f"Bringe {objective.quantity}× {self.content.get_item(objective.item_id).name}"
-        return f"Besiege {objective.count}× {self.content.get_monster(objective.monster_id).name}"
+        """All steps, e.g. "Gehe zu: Leuchtturm → Besiege 1× Seehexe Morwenna"."""
+        return " → ".join(step_text(step, self.content) for step in quest.steps)
 
     def _reward_text(self, quest: QuestTemplate) -> str:
         parts = [f"{quest.reward.xp} XP"] if quest.reward.xp else []
@@ -527,15 +534,22 @@ class ViewService:
                 continue
             giver = self.content.merchants[quest.giver_id]
             done, needed = objective_progress(quest, state, player)
+            step = current_step(quest, state)
             active.append(
                 ActiveQuestView(
                     id=quest.id,
                     name=quest.name,
                     giver=giver.name,
-                    objective=self._objective_text(quest),
+                    objective=step_text(step, self.content)
+                    if step is not None
+                    else f"Zurück zu {giver.name}",
                     done=done,
                     needed=needed,
-                    can_turn_in=done >= needed and giver.room_id == player.current_room_id,
+                    step=min(state.step, len(quest.steps) - 1) + 1,
+                    steps=len(quest.steps),
+                    show_count=not isinstance(step, VisitObjective) and step is not None,
+                    can_turn_in=ready_to_turn_in(quest, state, player)
+                    and giver.room_id == player.current_room_id,
                 )
             )
         completed = sum(1 for q in player.quests if q.times_completed > 0)
