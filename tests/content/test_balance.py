@@ -5,7 +5,9 @@ after every hit it survives, damage is ``attack - defense`` (at least ``combat.m
 The player has the level of the monster and wears, per slot, the best item worth at most the
 gear budget of the monster's tier: what one can afford by the time one gets there.
 
-- Normal monsters can be beaten alone.
+- Normal monsters can be beaten alone, and a fight costs a noticeable but not ruinous share
+  of the HP (``NORMAL_LOSS``); rare forms cost more (``RARE_LOSS``).
+- Up to level 5 a normal monster can be beaten even without any gear.
 - Bosses cannot (a group or potions are needed), but a full group can.
 """
 
@@ -19,8 +21,11 @@ from app.content.loader import load_content
 from app.content.schemas import MonsterTemplate
 from app.engine.stats import active_set_effects
 
-# (lowest level of the tier, gear budget per item in gold)
-TIERS = [(1, 0), (6, 100), (11, 300)]
+# (lowest level of the tier, gear budget per item in gold): from level 3 the cheap drops and
+# shop pieces (leather, wooden shield, pitchfork), from 6 iron, from 11 obsidian and beyond
+TIERS = [(1, 0), (3, 15), (6, 60), (11, 300)]
+NORMAL_LOSS = (0.15, 0.45)  # share of max HP an even fight costs, normal monsters
+RARE_LOSS = (0.25, 0.65)
 BOSSES = {
     "cave_troll",
     "grave_lord",
@@ -58,11 +63,11 @@ def gear_bonus(stat: str, budget: int) -> int:
     return sum(best.values()) + set_bonus
 
 
-def damage_taken(monster: MonsterTemplate) -> tuple[int, int]:
+def damage_taken(monster: MonsterTemplate, geared: bool = True) -> tuple[int, int]:
     """(damage the player takes until the monster dies, the player's max HP)."""
     rules = CONTENT.rules
     level = rules.level_rule(monster.level)
-    budget = gear_budget(monster.level)
+    budget = gear_budget(monster.level) if geared else 0
     attack = level.attack + gear_bonus("attack", budget)
     defense = level.defense + gear_bonus("defense", budget)
     minimum = rules.combat.min_damage
@@ -88,6 +93,12 @@ def test_monsters_can_be_beaten_and_bosses_need_help(monster: MonsterTemplate) -
     else:
         assert taken < max_hp
         assert taken > 0, "a monster that cannot hurt its own level is no threat"
+        rare = CONTENT.base_monster_id(monster.id) != monster.id
+        low, high = RARE_LOSS if rare else NORMAL_LOSS
+        assert low <= taken / max_hp <= high, f"{taken}/{max_hp} HP"
+        if not rare and monster.level <= 5:
+            bare, bare_max = damage_taken(monster, geared=False)
+            assert bare < bare_max, "early monsters stay beatable without gear"
 
 
 def test_rare_variants_are_worth_the_luck() -> None:
