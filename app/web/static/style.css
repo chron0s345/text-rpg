@@ -124,3 +124,7 @@ button.link.item-name:hover { color: var(--accent); }
 .quest-list li { align-items: flex-start; }
 .log .log-quest-completed, .log .log-quest-accepted { color: var(--accent); }
 .log .log-quest-progress { color: var(--good); }
+.recipe-list li { align-items: flex-start; }
+.recipe-ingredients { display: block; }
+.recipe-ingredients .missing { color: var(--muted); }
+.log .log-craft-done { color: var(--good); }

@@ -185,6 +185,11 @@ class QuestAbandonAction(BaseModel):
     quest_id: str = Field(min_length=1, max_length=64)
 
 
+class CraftAction(BaseModel):
+    type: Literal["craft"] = "craft"
+    recipe_id: str = Field(min_length=1, max_length=64)
+
+
 class InspectAction(BaseModel):
     type: Literal["inspect"] = "inspect"
     item_id: str = Field(min_length=1, max_length=64)
@@ -229,6 +234,7 @@ GameAction = Annotated[
     | QuestAcceptAction
     | QuestTurnInAction
     | QuestAbandonAction
+    | CraftAction
     | InspectAction
     | LogoutAction,
     Field(discriminator="type"),

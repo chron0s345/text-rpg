@@ -14,6 +14,7 @@ from app.content.schemas import (
     MonsterTemplate,
     QuestTemplate,
     RareVariant,
+    RecipeTemplate,
     Regeneration,
     Rules,
     StatModifier,
@@ -148,8 +149,30 @@ def content() -> ContentRegistry:
             }
         ),
     }
+    recipes = {
+        "brew": RecipeTemplate.model_validate(
+            {
+                "id": "brew",
+                "crafter_id": "alchemist",
+                "item_id": "healing_potion",
+                "quantity": 2,
+                "ingredients": [{"item_id": "goblin_ear", "quantity": 2}, {"item_id": "bread"}],
+                "gold": 5,
+            }
+        ),
+        "blade": RecipeTemplate.model_validate(
+            {
+                "id": "blade",
+                "crafter_id": "smith",
+                "item_id": "short_sword",
+                "ingredients": [{"item_id": "goblin_ear", "quantity": 3}],
+                "min_level": 3,
+            }
+        ),
+    }
     return dataclasses.replace(
         real,
+        recipes={**real.recipes, **recipes},
         monsters={
             **real.monsters,
             "dummy": dummy,

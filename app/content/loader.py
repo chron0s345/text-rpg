@@ -15,6 +15,7 @@ from app.content.schemas import (
     MerchantTemplate,
     MonsterTemplate,
     QuestTemplate,
+    RecipeTemplate,
     RoomTemplate,
     Rules,
 )
@@ -70,6 +71,10 @@ def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegist
     merchants = _parse_list(data_dir / "merchants.yaml", MerchantTemplate, lambda m: m.id)
     quests_path = data_dir / "quests.yaml"  # optional: a world without quests is valid
     quests = _parse_list(quests_path, QuestTemplate, lambda q: q.id) if quests_path.exists() else {}
+    recipes_path = data_dir / "recipes.yaml"  # optional as well
+    recipes = (
+        _parse_list(recipes_path, RecipeTemplate, lambda r: r.id) if recipes_path.exists() else {}
+    )
 
     rules_raw = load_yaml_file(data_dir / "rules.yaml")
     if not isinstance(rules_raw, dict):
@@ -94,6 +99,7 @@ def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegist
     validate_content(rooms, monsters, items, merchants, rules)
     validate_rare_variants(rooms, monsters)
     validate_quests(quests, monsters, items, merchants)
+    validate_recipes(recipes, items, merchants)
     if icons_dir is not None:
         validate_icons(items, Path(icons_dir))
 
@@ -103,6 +109,7 @@ def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegist
         items=items,
         merchants=merchants,
         quests=quests,
+        recipes=recipes,
         rules=rules,
     )
 
@@ -183,6 +190,34 @@ def validate_quests(
 
     for quest_id in quests:
         visit(quest_id, ())
+
+
+def validate_recipes(
+    recipes: dict[str, RecipeTemplate],
+    items: dict[str, ItemTemplate],
+    merchants: dict[str, MerchantTemplate],
+) -> None:
+    """Crafters and items exist; a result never needs itself; stacks fit the result."""
+    for recipe in recipes.values():
+        where = f"Recipe '{recipe.id}'"
+        if recipe.crafter_id not in merchants:
+            raise ContentValidationError(f"{where} has an unknown crafter '{recipe.crafter_id}'")
+        if recipe.item_id not in items:
+            raise ContentValidationError(f"{where} makes an unknown item '{recipe.item_id}'")
+        result = items[recipe.item_id]
+        if recipe.quantity > 1 and not result.stackable:
+            raise ContentValidationError(f"{where} makes several of the unstackable '{result.id}'")
+        seen: set[str] = set()
+        for ingredient in recipe.ingredients:
+            if ingredient.item_id not in items:
+                raise ContentValidationError(
+                    f"{where} needs an unknown item '{ingredient.item_id}'"
+                )
+            if ingredient.item_id == recipe.item_id:
+                raise ContentValidationError(f"{where} needs its own result")
+            if ingredient.item_id in seen:
+                raise ContentValidationError(f"{where} lists '{ingredient.item_id}' twice")
+            seen.add(ingredient.item_id)
 
 
 def validate_icons(items: dict[str, ItemTemplate], icons_dir: Path) -> None:

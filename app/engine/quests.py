@@ -16,16 +16,15 @@ from typing import Final
 from app.content.registry import ContentRegistry
 from app.content.schemas import DeliverObjective, QuestTemplate, Rules
 from app.engine.events import ActionResult, QuestDelete, ResultBuilder, rejected
-from app.engine.inventory import add_item_to_inventory, calculate_inventory_capacity
+from app.engine.materials import (
+    count_available,
+    give_all_or_nothing,
+    quantity_text,
+    take_items,
+)
 from app.engine.permissions import check_state
 from app.engine.progression import apply_xp
-from app.engine.state import (
-    ActionSnapshot,
-    InventoryItemState,
-    PlayerSnapshot,
-    QuestState,
-    new_id,
-)
+from app.engine.state import ActionSnapshot, PlayerSnapshot, QuestState
 
 MAX_ACTIVE_QUESTS: Final = 10
 UNKNOWN: Final = "Diesen Auftrag gibt es nicht."
@@ -62,21 +61,13 @@ def quests_offered_here(actor: PlayerSnapshot, content: ContentRegistry) -> list
     ]
 
 
-def _available_items(actor: PlayerSnapshot, item_id: str) -> list[InventoryItemState]:
-    return [
-        i
-        for i in actor.inventory
-        if i.item_id == item_id and i.equipped_slot is None and i.id not in actor.locked_item_ids
-    ]
-
-
 def objective_progress(
     quest: QuestTemplate, state: QuestState, actor: PlayerSnapshot
 ) -> tuple[int, int]:
     """(done, needed) for display and turn-in; deliveries count the backpack right now."""
     objective = quest.objective
     if isinstance(objective, DeliverObjective):
-        have = sum(i.quantity for i in _available_items(actor, objective.item_id))
+        have = count_available(actor, objective.item_id)
         return min(have, objective.quantity), objective.quantity
     return min(state.progress, objective.count), objective.count
 
@@ -148,22 +139,6 @@ def resolve_quest_abandon(
     return builder.build()
 
 
-def _take_items(builder: ResultBuilder, actor: PlayerSnapshot, item_id: str, quantity: int) -> None:
-    """Removes ``quantity`` of ``item_id`` from free, unlocked stacks (caller checked enough)."""
-    remaining = quantity
-    for entry in _available_items(actor, item_id):
-        if remaining == 0:
-            break
-        taken = min(entry.quantity, remaining)
-        remaining -= taken
-        entry.quantity -= taken
-        if entry.quantity == 0:
-            actor.inventory = [i for i in actor.inventory if i.id != entry.id]
-            builder.changes.inventory_delete.append(entry.id)
-        else:
-            builder.upsert_inventory(actor.id, [entry])
-
-
 def resolve_quest_turn_in(
     snapshot: ActionSnapshot,
     content: ContentRegistry,
@@ -189,26 +164,12 @@ def resolve_quest_turn_in(
     builder = ResultBuilder(actor_id=actor.id)
     objective = quest.objective
     if isinstance(objective, DeliverObjective):
-        _take_items(builder, actor, objective.item_id, objective.quantity)
+        take_items(builder, actor, objective.item_id, objective.quantity)
 
     # reward items must fit completely, otherwise nothing happens
-    capacity = calculate_inventory_capacity(rules.inventory.slots, actor.inventory, content.items)
-    trial = [i.model_copy() for i in actor.inventory]
-    for reward in quest.reward.items:
-        added, _ = add_item_to_inventory(
-            trial, content.get_item(reward.item_id), reward.quantity, capacity, lambda: new_id(rng)
-        )
-        if added < reward.quantity:
-            return rejected("Für die Belohnung ist kein Platz im Inventar.")
-    for reward in quest.reward.items:
-        _, touched = add_item_to_inventory(
-            actor.inventory,
-            content.get_item(reward.item_id),
-            reward.quantity,
-            capacity,
-            lambda: new_id(rng),
-        )
-        builder.upsert_inventory(actor.id, touched)
+    rewards_in = [(r.item_id, r.quantity) for r in quest.reward.items]
+    if not give_all_or_nothing(builder, actor, rewards_in, content, rules, rng):
+        return rejected("Für die Belohnung ist kein Platz im Inventar.")
 
     finished = state.model_copy(
         update={"status": "completed", "progress": 0, "times_completed": state.times_completed + 1}
@@ -224,12 +185,7 @@ def resolve_quest_turn_in(
         actor.gold += quest.reward.gold
         builder.update_player(actor.id, gold=actor.gold)
     rewards = [f"{quest.reward.gold} Gold"] if quest.reward.gold else []
-    rewards += [
-        f"{r.quantity}× {content.get_item(r.item_id).name}"
-        if r.quantity > 1
-        else content.get_item(r.item_id).name
-        for r in quest.reward.items
-    ]
+    rewards += [quantity_text(content, r.item_id, r.quantity) for r in quest.reward.items]
     if rewards:
         builder.to_actor("quest.reward", "Belohnung: " + ", ".join(rewards) + ".")
     if quest.reward.xp:
