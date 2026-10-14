@@ -4,6 +4,50 @@
 
 # --- Oakhaven und Umgebung (Stufe 1–5) ---
 
+
+# --- Einstieg für Neulinge (Hauptmann Rowan, Marktplatz): erklärt Wege, Kampf, Rasten, Beute ---
+
+- id: intro_first_steps
+  name: "Willkommen in Oakhaven"
+  giver_id: captain
+  description: "Erst einmal: Lern die Stadt kennen. Unter „Ausgänge“ gehst du in eine Richtung, die Karte zeigt dir die Umgebung. Im Osten steht Alchemistin Elira am Kaufmannsstand – Tränke, Brot, und sie kauft dir deine Beute ab. Im Westen schmiedet Brandt Waffen und Rüstungen. Schau dir beide an und komm zurück."
+  completion_text: "Gut. Nimm diesen Dolch – im Inventar auf „Anlegen“ drücken, dann triffst du härter. Was ein Gegenstand bringt, steht unter seinem Namen; ein Klick auf den Namen erzählt dir mehr."
+  steps:
+    - {type: visit, room_id: town_market}
+    - {type: visit, room_id: town_smithy}
+  reward: {xp: 20, gold: 10, items: [{item_id: rusty_dagger}]}
+
+- id: intro_rats
+  name: "Ratten am Feldweg"
+  giver_id: captain
+  description: "Hinter dem Kaufmannsstand, Richtung Osten, liegt der Feldweg. Die Ratten dort sind lästig, aber harmlos. Besieg zwei: Bei einem Gegner auf „Angreifen“, dann schlägst du jede Runde zu und er zurück. Wird es eng, flieh. Und merk dir: Deine Wunden heilen da draußen nicht von selbst."
+  completion_text: "Du blutest ja. Hier auf dem Marktplatz und an jedem anderen sicheren Ort kannst du rasten – das heilt dich vollständig, kostenlos. Draußen helfen nur Tränke und Essen. Nimm zwei Heiltränke für den Notfall."
+  steps:
+    - {type: kill, monster_id: field_rat, count: 2}
+  reward: {xp: 40, gold: 10, items: [{item_id: healing_potion, quantity: 2}]}
+  requires: [intro_first_steps]
+
+- id: intro_loot
+  name: "Beute zu Gold"
+  giver_id: captain
+  description: "Was Monster fallen lassen, landet in deinem Rucksack. Die Bauern zahlen Kopfgeld für Rattenschwänze – bring mir drei. Was du sonst findest und nicht trägst, verkauf bei Elira."
+  completion_text: "Drei Schwänze, drei Ratten weniger. Mit dem Gold kaufst du bei Brandt bessere Ausrüstung – Rüstung zählt da draußen bald mehr als Mut. Die Kappe hier ist ein Anfang."
+  steps:
+    - {type: deliver, item_id: rat_tail, quantity: 3}
+  reward: {xp: 50, gold: 15, items: [{item_id: leather_cap}]}
+  requires: [intro_rats]
+
+- id: intro_into_the_world
+  name: "Hinaus in die Welt"
+  giver_id: captain
+  description: "Zeit für echte Gegner. Geh durchs Südtor in den Dunklen Wald und besieg zwei Goblin-Späher. Rasten vorher schadet nicht."
+  completion_text: "Du bist bereit. Die Leute hier haben Aufträge für dich – Elira, Brandt, Grete in der Mühle, Hanne im Gasthaus und Schwester Liora im Tempel. Das Panel „Aufträge“ zeigt dir, was sie wollen, und die Sterne auf der Karte, wohin es geht. Viel Glück."
+  steps:
+    - {type: visit, room_id: forest_gate}
+    - {type: kill, monster_id: goblin, count: 2}
+  reward: {xp: 80, gold: 20, items: [{item_id: wooden_shield}]}
+  requires: [intro_loot]
+
 - id: rat_plague
   name: "Rattenplage"
   giver_id: miller

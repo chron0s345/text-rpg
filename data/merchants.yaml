@@ -219,3 +219,10 @@
       price: 15
     - item_id: light_charm
       price: 40
+
+- id: captain
+  name: "Hauptmann Rowan"
+  room_id: town_square
+  greeting: "Neu in Oakhaven? Dann hör gut zu – da draußen wartet niemand auf dich, bis du so weit bist."
+  buys: none  # handelt nicht, vergibt nur die Lernaufträge
+  sells: []
