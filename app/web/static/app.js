@@ -15,6 +15,8 @@
     const el = e.detail.elt;
     if (el instanceof HTMLButtonElement) el.disabled = false;
     if (el instanceof HTMLFormElement) el.querySelectorAll("button").forEach((b) => { b.disabled = false; });
+    // chat and invite fields empty themselves once sent (no inline handlers: see the CSP)
+    if (el instanceof HTMLFormElement && el.hasAttribute("data-reset-on-success") && e.detail.successful) el.reset();
   });
 
   // Newest log entries stay visible; keep the log short in long sessions.

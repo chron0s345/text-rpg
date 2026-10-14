@@ -33,7 +33,7 @@
   {% endfor %}
 
   {% if g.can_invite and p.state != 'dead' %}
-  <form class="invite-form" hx-post="/ui/actions" hx-on::after-request="if (event.detail.successful) this.reset()">
+  <form class="invite-form" hx-post="/ui/actions" data-reset-on-success>
     <input type="hidden" name="type" value="group_invite">
     <label class="visually-hidden" for="invite-name">Name</label>
     <input id="invite-name" name="player_name" maxlength="20" autocomplete="off" placeholder="Name einladen …" required>
