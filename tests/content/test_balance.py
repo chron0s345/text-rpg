@@ -94,3 +94,9 @@ def test_rare_variants_are_worth_the_luck() -> None:
         assert rare.xp_reward > base.xp_reward, rare.id
         assert any(entry.chance == 1.0 for entry in rare.loot_table), rare.id
         assert base.rare_variant.chance <= 0.1, "rare means rare"
+
+
+def test_lore_items_are_story_not_money() -> None:
+    lore = [i for i in CONTENT.items.values() if i.icon == "scroll"]
+    assert len(lore) >= 10
+    assert all(not item.sellable and item.value == 0 for item in lore)

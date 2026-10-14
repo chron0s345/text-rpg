@@ -24,6 +24,8 @@ Neue Charaktere starten auf Stufe 1 auf dem **Marktplatz von Oakhaven**.
 | Bank von Oakhaven (nördlich) | sicher, Bank |
 | Goldschmiede (östlich der Bank) | sicher, Goldschmied Aurel (Ringe und Amulette für Einsteiger) |
 | Kaufmannsstand (östlich) | sicher, Alchemistin Elira (Tränke, Proviant, Taschen) |
+| Gasthaus »Zum Goldenen Krug« (nördlich des Kaufmannsstands) | sicher, Wirtin Hanne (Eintopf, Met), Gerüchte am Tresen |
+| Tempel des Lichts (südlich des Kaufmannsstands) | sicher, Checkpoint, Schwester Liora (Geweihtes Wasser, Lichtamulett) |
 | Schmiede (westlich) | sicher, Schmied Brandt (Waffen und Rüstung) |
 | Südtor zum Wald (südlich) | Übergang in die Wildnis |
 | Dunkler Wald | Goblin-Späher und Hungriger Wolf |

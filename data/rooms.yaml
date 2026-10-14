@@ -36,6 +36,8 @@
   exits:
     west: town_square
     east: farm_road
+    north: tavern
+    south: temple
   spawns: []
   items: []
 
@@ -868,3 +870,33 @@
     - monster_id: kraken
       count: 1
   items: []
+
+# --- Oakhaven: Gasthaus und Tempel (am Kaufmannsstand) ---
+
+- id: tavern
+  name: "Gasthaus »Zum Goldenen Krug«"
+  description: "Rauch, Lachen und der Duft von Eintopf. Am Kamin erzählt ein alter Söldner von Drachen, an der Theke wischt die Wirtin dasselbe Glas zum zehnten Mal. Wer zuhört, erfährt mehr als in jeder Bibliothek."
+  safe: true
+  checkpoint: false
+  bank: false
+  exits:
+    south: town_market
+  spawns: []
+  items:
+    - item_id: tavern_rumors
+      quantity: 1
+      respawn_seconds: 900
+
+- id: temple
+  name: "Tempel des Lichts"
+  description: "Ein stiller Raum aus hellem Stein, in dem hundert Kerzen brennen. Eine Priesterin kniet vor dem Altar. Auf einer Tafel stehen die Namen derer, die nicht zurückkamen – die Liste ist lang."
+  safe: true
+  checkpoint: true
+  bank: false
+  exits:
+    north: town_market
+  spawns: []
+  items:
+    - item_id: temple_prayer
+      quantity: 1
+      respawn_seconds: 900
