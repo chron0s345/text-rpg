@@ -1603,3 +1603,148 @@
   value: 2
   sellable: true
   stackable: false
+
+# --- Versunkene Stadt Aelmar (Stufe 11–13) ---
+
+- id: diver_helm
+  name: "Taucherhelm"
+  description: "Ein Messinghelm mit runden Bullaugen. Schwer, aber er hält mehr ab als Wasser."
+  kind: armor
+  slot: head
+  icon: "armor"
+  value: 160
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 3
+    - type: stat
+      stat: max_hp
+      amount: 10
+
+- id: pearl_necklace
+  name: "Perlenkette"
+  description: "Drei Reihen schwarzer Perlen aus Aelmars Schatzkammern."
+  kind: armor
+  slot: neck
+  icon: "amulet"
+  value: 230
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: max_hp
+      amount: 25
+    - type: stat
+      stat: defense
+      amount: 1
+
+- id: nacre_shield
+  name: "Perlmuttschild"
+  description: "Ein Schild aus schimmerndem Perlmutt, leichter als Holz und härter als Stahl."
+  kind: armor
+  slot: offhand
+  icon: "shield"
+  value: 480
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 5
+    - type: stat
+      stat: max_hp
+      amount: 10
+
+- id: aelmar_trident
+  name: "Dreizack von Aelmar"
+  description: "Die Waffe der Könige von Aelmar. Wo er trifft, schäumt das Wasser."
+  kind: weapon
+  slot: weapon
+  icon: "sword"
+  value: 560
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 12
+    - type: stat
+      stat: max_hp
+      amount: 10
+
+- id: sea_kelp
+  name: "Seetang"
+  description: "Salzig, zäh und erstaunlich sättigend. Stellt 18 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "herb"
+  value: 4
+  sellable: true
+  stackable: true
+  max_stack: 10
+  effects:
+    - type: heal
+      amount: 18
+
+- id: kelp_salve
+  name: "Seetangsalbe"
+  description: "Eine grüne Paste, die Wunden in Sekunden schließt. Stellt 45 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "potion"
+  value: 30
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - type: heal
+      amount: 45
+
+- id: raider_hook
+  name: "Enterhaken"
+  description: "Rostig, aber noch immer scharf. Ein Andenken an jemanden, der weniger Glück hatte."
+  kind: misc
+  icon: "trophy"
+  value: 20
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: knight_crest
+  name: "Wappen von Aelmar"
+  description: "Ein emailliertes Wappen mit einer Welle und einer Krone."
+  kind: misc
+  icon: "trophy"
+  value: 30
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: coral_shard
+  name: "Lebende Koralle"
+  description: "Ein Korallenstück, das in der Hand langsam weiterwächst."
+  kind: misc
+  icon: "trophy"
+  value: 32
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: kraken_eye
+  name: "Auge des Kraken"
+  description: "Groß wie ein Kopf und noch immer feucht. Es scheint dir zu folgen."
+  kind: misc
+  icon: "trophy"
+  value: 130
+  sellable: true
+  stackable: true
+  max_stack: 5
+
+- id: aelmar_chronicle
+  name: "Letzter Eintrag der Chronik von Aelmar"
+  description: "»Die Seherin vom Leuchtturm warnte uns: Der Schatten unter der Mine sucht einen Weg ans Meer. Wir lachten. Dann kam das grüne Licht, dann das Lied, dann der Kraken. Aelmar geht nicht unter, sagten wir. Ich schreibe dies, während das Wasser steigt.«"
+  kind: misc
+  icon: "scroll"
+  value: 2
+  sellable: true
+  stackable: false

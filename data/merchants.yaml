@@ -176,3 +176,18 @@
       price: 22
     - item_id: elixir
       price: 90
+
+- id: old_diver
+  name: "Taucher Brack"
+  room_id: air_pocket
+  greeting: "Blubb. Verzeihung, alte Gewohnheit. Was ich vom Grund hole, verkauf ich – solange der Kraken schläft."
+  buys: all
+  sells:
+    - item_id: diver_helm
+      price: 160
+    - item_id: pearl_necklace
+      price: 230
+    - item_id: kelp_salve
+      price: 30
+    - item_id: phoenix_draught
+      price: 160

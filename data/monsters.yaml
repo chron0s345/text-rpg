@@ -1126,3 +1126,87 @@
       chance: 0.15
     - item_id: elixir
       chance: 0.3
+
+# --- Versunkene Stadt Aelmar ---
+
+- id: deep_raider
+  name: "Tiefseeräuber"
+  level: 11
+  max_hp: 115
+  attack: 48
+  defense: 19
+  xp_reward: 290
+  gold_reward: [10, 25]
+  respawn_seconds: 120
+  regen:
+    delay_seconds: 15
+    hp_per_second: 3.0
+  # Plünderer, keine Jäger: greifen nur an, wenn man sie stört
+  loot_table:
+    - item_id: raider_hook
+      chance: 0.7
+    - item_id: sea_kelp
+      chance: 0.3
+
+- id: drowned_knight
+  name: "Ertrunkener Ritter"
+  level: 12
+  max_hp: 170
+  attack: 52
+  defense: 26
+  xp_reward: 390
+  gold_reward: [20, 40]
+  respawn_seconds: 180
+  ambush:
+    chance_on_enter: 0.25
+    chance_per_tick: 0.0
+    max_level_difference: 2
+  loot_table:
+    - item_id: knight_crest
+      chance: 0.6
+    - item_id: pearl_necklace
+      chance: 0.03
+
+- id: coral_guardian
+  name: "Korallenwächter"
+  level: 13
+  max_hp: 190
+  attack: 56
+  defense: 28
+  xp_reward: 490
+  gold_reward: [20, 45]
+  respawn_seconds: 180
+  regen:
+    delay_seconds: 20
+    hp_per_second: 4.0
+  ambush:
+    chance_on_enter: 0.2
+    chance_per_tick: 0.05
+    max_level_difference: 2
+  loot_table:
+    - item_id: coral_shard
+      chance: 0.7
+    - item_id: nacre_shield
+      chance: 0.04
+
+- id: kraken
+  name: "Der Kraken Ul'thar"
+  level: 13
+  max_hp: 600
+  attack: 64
+  defense: 28
+  xp_reward: 1700
+  gold_reward: [160, 320]
+  respawn_seconds: 1200
+  regen:
+    delay_seconds: 20
+    hp_per_second: 8.0
+  loot_table:
+    - item_id: kraken_eye
+      chance: 1.0
+    - item_id: aelmar_trident
+      chance: 0.12
+    - item_id: nacre_shield
+      chance: 0.15
+    - item_id: phoenix_draught
+      chance: 0.5
