@@ -72,3 +72,41 @@
       price: 8
     - item_id: pitchfork
       price: 15
+
+- id: crater_scout
+  name: "Kundschafterin Ilva"
+  room_id: crater_camp
+  greeting: "Wer bis hierher kommt, ist entweder mutig oder dumm. Brauchst du Glas oder Tränke?"
+  buys: all
+  sells:
+    - item_id: obsidian_blade
+      price: 280
+    - item_id: obsidian_helm
+      price: 120
+    - item_id: obsidian_greaves
+      price: 130
+    - item_id: obsidian_boots
+      price: 120
+    - item_id: elixir
+      price: 90
+    - item_id: phoenix_draught
+      price: 160
+
+- id: faceless_merchant
+  name: "Der Händler ohne Gesicht"
+  room_id: last_refuge
+  greeting: "Alles hat seinen Preis. Hier unten ist er nur höher."
+  buys: all
+  sells:
+    - item_id: starsteel_helm
+      price: 400
+    - item_id: starsteel_greaves
+      price: 420
+    - item_id: starsteel_boots
+      price: 400
+    - item_id: starsteel_plate
+      price: 900
+    - item_id: phoenix_draught
+      price: 160
+    - item_id: starlight_tonic
+      price: 260

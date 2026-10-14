@@ -192,6 +192,7 @@
   exits:
     south: mountain_trail
     east: frost_gorge
+    north: basalt_stairs
   spawns: []
   items: []
 
@@ -289,6 +290,7 @@
   bank: false
   exits:
     up: spider_grotto
+    down: shadow_rift
   spawns:
     - monster_id: spider_queen
       count: 1
@@ -391,5 +393,177 @@
     south: valen_crypt
   spawns:
     - monster_id: grave_lord
+      count: 1
+  items: []
+
+# --- Feuerschlund (Stufe 11–13), nördlich des Zwergenpostens ---
+
+- id: basalt_stairs
+  name: "Basaltstiege"
+  description: "Schwarze Säulen bilden eine Treppe ins Glühen. Zwischen den Steinen huschen Echsen mit brennenden Rücken."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    south: dwarf_outpost
+    north: crater_camp
+  spawns:
+    - monster_id: fire_salamander
+      count: 2
+  items: []
+
+- id: crater_camp
+  name: "Rastplatz am Kraterrand"
+  description: "Ein paar Zelte im Windschatten eines Felsens, mit Asche bestäubt. Von hier sieht man den Krater rot pulsieren."
+  safe: true
+  checkpoint: true
+  bank: false
+  exits:
+    south: basalt_stairs
+    west: ash_fields
+    east: lava_flow
+  spawns: []
+  items: []
+
+- id: ash_fields
+  name: "Aschefelder"
+  description: "Graue Asche, knöcheltief und still. Nur zwischen verkohlten Stämmen wachsen glühend orangefarbene Blüten."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    east: crater_camp
+  spawns:
+    - monster_id: ash_wraith
+      count: 2
+  items:
+    - item_id: fire_blossom
+      quantity: 2
+      respawn_seconds: 240
+
+- id: lava_flow
+  name: "Lavastrom"
+  description: "Ein Fluss aus flüssigem Gestein wälzt sich durch die Schlucht. Die Hitze lässt die Luft flimmern – und manche Felsen stehen auf."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    west: crater_camp
+    north: giant_forge
+  spawns:
+    - monster_id: magma_golem
+      count: 2
+  items: []
+
+- id: giant_forge
+  name: "Schmiede der Feuerriesen"
+  description: "Ambosse so groß wie Häuser, Hämmer aus ganzen Felsblöcken. Die Riesen, die hier arbeiten, mögen keine Zuschauer."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    south: lava_flow
+    up: caldera
+  spawns:
+    - monster_id: fire_giant
+      count: 2
+  items: []
+
+- id: caldera
+  name: "Herz des Vulkans"
+  description: "Eine Insel aus Basalt inmitten eines Lavasees. Auf einem Thron aus Glut erhebt sich eine Gestalt aus Flammen und Stein."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    down: giant_forge
+  spawns:
+    - monster_id: ignaros
+      count: 1
+  items: []
+
+# --- Schattenreich (Stufe 14–15), durch einen Riss unter dem Spinnennest ---
+
+- id: shadow_rift
+  name: "Schattenriss"
+  description: "Unter dem Nest klafft ein Spalt, aus dem Dunkelheit wie Wasser sickert. Dahinter gibt es kein Oben und kein Unten mehr."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    up: spider_nest
+    north: void_bridge
+  spawns:
+    - monster_id: shadow_stalker
+      count: 2
+  items: []
+
+- id: void_bridge
+  name: "Brücke über das Nichts"
+  description: "Ein Steg aus schwarzem Stein, links und rechts nur Leere. Gerüstete Gestalten halten Wache, ohne zu atmen."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    south: shadow_rift
+    north: last_refuge
+  spawns:
+    - monster_id: void_knight
+      count: 2
+  items: []
+
+- id: last_refuge
+  name: "Letzte Zuflucht"
+  description: "Ein Kreis aus Laternen, deren Licht die Schatten nicht überschreiten. Ein Händler ohne Gesicht wartet hier, als hätte er immer gewartet."
+  safe: true
+  checkpoint: true
+  bank: true
+  exits:
+    south: void_bridge
+    west: withered_garden
+    north: silent_hall
+  spawns: []
+  items: []
+
+- id: withered_garden
+  name: "Verdorrter Garten"
+  description: "Schwarze Bäume tragen keine Blätter, nur silberne Lilien, die im Dunkeln leuchten. Etwas Großes schleicht zwischen den Stämmen."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    east: last_refuge
+  spawns:
+    - monster_id: nightmare
+      count: 2
+  items:
+    - item_id: moon_lily
+      quantity: 2
+      respawn_seconds: 300
+
+- id: silent_hall
+  name: "Halle der Stille"
+  description: "Kein Schritt hallt, kein Atem ist zu hören. Reihen steinerner Wächter säumen den Weg zu einem Tor aus Nacht."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    south: last_refuge
+    north: shadow_throne
+  spawns:
+    - monster_id: shadow_warden
+      count: 2
+  items: []
+
+- id: shadow_throne
+  name: "Thron der Schatten"
+  description: "Ein Saal ohne Wände unter einem Himmel ohne Sterne. Auf dem Thron sitzt ein König, dessen Krone das Licht frisst."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    south: silent_hall
+  spawns:
+    - monster_id: morvath
       count: 1
   items: []
