@@ -301,3 +301,18 @@ class LogEntry(SQLModel, table=True):
     created_at: datetime = Field(sa_type=DateTime(timezone=True))
     kind: str
     text: str
+
+
+class LoginThrottle(SQLModel, table=True):
+    """Counts login/registration attempts per key ("user:<name>", "ip:<address>", ...) across all
+    server processes (services/login_guard.py). ``expires_at``: after it the row is irrelevant
+    and the world ticker deletes it."""
+
+    __tablename__ = "login_throttle"
+    __table_args__ = (CheckConstraint("attempts >= 0", name="attempts"),)
+
+    key: str = Field(primary_key=True, max_length=200)
+    attempts: int = 0
+    window_started_at: datetime = Field(sa_type=DateTime(timezone=True))
+    locked_until: datetime | None = timestamp()
+    expires_at: datetime = Field(sa_type=DateTime(timezone=True), index=True)

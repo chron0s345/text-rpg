@@ -6,7 +6,7 @@
 3. expired floor items
 4. expired disconnect grace periods (logout; death in combat)
 5. ambush rolls for players idling in a room
-6. expired group invites and trade requests
+6. expired group invites, trade requests and login throttle rows
 7. offline characters still in a group leave it (normally done right after the logout)
 8. active trades whose traders are no longer both here and free end (normally done right after
    the action that broke them)
@@ -60,6 +60,7 @@ from app.services.action_service import (
 from app.services.events import EventPublisher
 from app.services.log import write_log
 from app.services.log_retention import purge_log
+from app.services.login_guard import LoginGuard
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +81,7 @@ class TickReport:
     trade_requests_removed: int = 0
     offline_members_removed: int = 0
     trades_ended: int = 0
+    login_throttles_removed: int = 0
     log_entries_removed: int = 0
 
 
@@ -94,9 +96,11 @@ class WorldTicker:
         *,
         clock: Callable[[], datetime] = utc_now,
         rng_factory: Callable[[], random.Random] = random.SystemRandom,
+        login_guard: LoginGuard | None = None,
         log_retention: timedelta | None = None,
     ) -> None:
         self.engine = engine
+        self.login_guard = login_guard
         self.sessions = sessions
         self.content = content
         self.actions = actions
@@ -343,7 +347,7 @@ class WorldTicker:
             return False
         return outcome.changed
 
-    # 6. invites & trade requests
+    # 6. invites, trade requests, login throttle
 
     async def _remove_expired_requests(self, now: datetime, report: TickReport) -> None:
         async with self.sessions() as session, session.begin():
@@ -359,6 +363,8 @@ class WorldTicker:
                 .returning(col(Trade.id))
             )
             report.trade_requests_removed = len(trades.all())
+        if self.login_guard is not None:
+            report.login_throttles_removed = await self.login_guard.purge(now)
 
     # 7. offline group members
 
