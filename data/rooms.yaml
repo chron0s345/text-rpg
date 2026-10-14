@@ -649,6 +649,7 @@
   exits:
     up: coast_path
     west: smugglers_den
+    down: sunken_steps
   spawns:
     - monster_id: drowned_sailor
       count: 2
@@ -778,5 +779,92 @@
     south: thorn_heart
   spawns:
     - monster_id: corrupted_warden
+      count: 1
+  items: []
+
+# --- Versunkene Stadt Aelmar (Stufe 11–13), unter den Gezeitenhöhlen ---
+
+- id: sunken_steps
+  name: "Gesunkene Treppe"
+  description: "Breite Marmorstufen führen hinab ins grüne Halbdunkel. Die Luft ist dick und salzig, Wasser steht knöcheltief. Auf einem Torbogen steht in alter Schrift: »Aelmar, die Stadt, die nicht unterging.« Jemand hat darunter geritzt: »Doch.«"
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    up: tidal_caves
+    down: drowned_plaza
+  spawns: []
+  items:
+    - item_id: aelmar_chronicle
+      quantity: 1
+      respawn_seconds: 900
+
+- id: drowned_plaza
+  name: "Versunkener Platz"
+  description: "Ein Marktplatz unter dem Meer, in einer riesigen Luftblase gefangen. Statuen tragen Seepocken wie Kronen, zwischen den Ständen wiegt sich Seetang."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    up: sunken_steps
+    east: air_pocket
+    west: knights_hall
+  spawns:
+    - monster_id: deep_raider
+      count: 2
+  items:
+    - item_id: sea_kelp
+      quantity: 2
+      respawn_seconds: 240
+
+- id: air_pocket
+  name: "Luftkammer des Tauchers"
+  description: "Eine trockene Kammer, deren Tür mit Pech abgedichtet ist. Ein alter Taucher im Messinghelm hat sich hier eingerichtet und verkauft, was er vom Meeresgrund holt."
+  safe: true
+  checkpoint: true
+  bank: false
+  exits:
+    west: drowned_plaza
+  spawns: []
+  items: []
+
+- id: knights_hall
+  name: "Halle der Ertrunkenen Ritter"
+  description: "Rüstungen stehen in Reih und Glied, Wasser tropft aus ihren Visieren. Als du eintrittst, drehen sich die Helme zu dir."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    east: drowned_plaza
+    down: coral_palace
+  spawns:
+    - monster_id: drowned_knight
+      count: 2
+  items: []
+
+- id: coral_palace
+  name: "Korallenpalast"
+  description: "Ein Thronsaal, den die Korallen zurückerobert haben. Rote und weiße Äste wachsen wie Säulen bis zur Decke, und einige davon bewegen sich."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    up: knights_hall
+    down: kraken_maw
+  spawns:
+    - monster_id: coral_guardian
+      count: 2
+  items: []
+
+- id: kraken_maw
+  name: "Schlund des Kraken"
+  description: "Hier endet die Luftblase. Vor dir liegt schwarzes Wasser, und aus der Tiefe tasten Arme, dick wie Säulen, nach dem Rand."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    up: coral_palace
+  spawns:
+    - monster_id: kraken
       count: 1
   items: []

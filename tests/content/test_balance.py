@@ -28,6 +28,7 @@ BOSSES = {
     "spider_queen",
     "ice_drake",
     "ignaros",
+    "kraken",
     "morvath",
 }
 
