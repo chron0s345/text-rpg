@@ -313,6 +313,8 @@ def resolve_trade_confirm(
     theirs = "partner_confirmed" if mine == "initiator_confirmed" else "initiator_confirmed"
     if getattr(trade, mine):
         return rejected("Du hast bereits bestätigt.")
+    if not trade.offers and trade.initiator_gold == 0 and trade.partner_gold == 0:
+        return rejected("Es gibt noch nichts zu handeln. Legt zuerst etwas ins Angebot.")
 
     builder = ResultBuilder(actor_id=actor.id)
     if not getattr(trade, theirs):
