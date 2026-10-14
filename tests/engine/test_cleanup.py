@@ -71,7 +71,7 @@ def test_expired_floor_items() -> None:
 def test_ticker_respawn_tells_only_the_room(content: ContentRegistry) -> None:
     dead = make_monster(hp=0, alive=False, respawn_at=NOW)
     waiting = make_monster(hp=0, alive=False, respawn_at=NOW + timedelta(seconds=5))
-    result = respawn_monsters([dead, waiting], content, NOW)
+    result = respawn_monsters([dead, waiting], content, NOW, random.Random(1))
     assert [m.monster_instance_id for m in result.changes.monsters] == [dead.id]
     [event] = result.events
     assert (event.audience.kind, event.exclude_player_ids) == ("room", [])

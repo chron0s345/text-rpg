@@ -89,6 +89,7 @@ def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegist
                 )
 
     validate_content(rooms, monsters, items, merchants, rules)
+    validate_rare_variants(rooms, monsters)
     if icons_dir is not None:
         validate_icons(items, Path(icons_dir))
 
@@ -99,6 +100,40 @@ def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegist
         merchants=merchants,
         rules=rules,
     )
+
+
+def validate_rare_variants(
+    rooms: dict[str, RoomTemplate], monsters: dict[str, MonsterTemplate]
+) -> None:
+    """A rare variant is a known monster of its own, belongs to exactly one base, has no
+    variant itself and never spawns directly (it only appears in place of its base)."""
+    owners: dict[str, str] = {}
+    for monster in monsters.values():
+        if monster.rare_variant is None:
+            continue
+        variant_id = monster.rare_variant.monster_id
+        variant = monsters.get(variant_id)
+        if variant is None or variant_id == monster.id:
+            raise ContentValidationError(
+                f"Monster '{monster.id}' has an unknown rare variant '{variant_id}'"
+            )
+        if variant.rare_variant is not None:
+            raise ContentValidationError(
+                f"Rare variant '{variant_id}' must not have a rare variant itself"
+            )
+        if variant_id in owners:
+            raise ContentValidationError(
+                f"Rare variant '{variant_id}' belongs to both '{owners[variant_id]}' "
+                f"and '{monster.id}'"
+            )
+        owners[variant_id] = monster.id
+    for room in rooms.values():
+        for spawn in room.spawns:
+            if spawn.monster_id in owners:
+                raise ContentValidationError(
+                    f"Room '{room.id}' spawns the rare variant '{spawn.monster_id}' directly; "
+                    f"spawn '{owners[spawn.monster_id]}' instead"
+                )
 
 
 def validate_icons(items: dict[str, ItemTemplate], icons_dir: Path) -> None:

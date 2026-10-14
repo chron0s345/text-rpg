@@ -71,6 +71,10 @@ Ein **Stufenaufstieg** heilt vollständig (inklusive der HP aus Ausrüstung). Re
 - **Regeneration:** Monster, die eine Weile nicht im Kampf waren, heilen sich langsam (z. B. der Goblin-Späher 1 HP pro Sekunde nach 10 Sekunden Ruhe). Wer ein Monster angeschlagen stehen lässt, findet es später wieder gesund vor.
 - Ein besiegtes Monster **erscheint nach seiner Respawn-Zeit wieder** (Goblin-Späher 60 s, Hungriger Wolf 90 s).
 
+### Seltene Monster
+
+Manche Monster haben eine **seltene Form**, etwa einen besonders starken oder reichen Verwandten. Jedes Mal, wenn ein solches Monster wieder auftaucht, besteht eine kleine Chance, dass stattdessen die seltene Form erscheint; das Log meldet dann „… taucht auf – ein seltener Anblick!“. Seltene Formen sind stärker und lassen bessere Beute fallen. Nach ihrem Tod kommt meist wieder die gewöhnliche Form.
+
 ### Überfälle
 
 Manche Monster greifen **von selbst** an: beim Betreten ihres Raums oder während du dort verweilst. Das Monster schlägt zuerst zu, und du bist im Kampf. Nie in sicheren Räumen, nie gegen Tote oder Ausgeloggte, und Monster greifen keine Charaktere an, die ihnen um mehr als einige Stufen überlegen sind. Ein Monster, das bereits kämpft, überfällt niemanden sonst.

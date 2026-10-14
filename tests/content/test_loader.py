@@ -105,3 +105,57 @@ def test_infinite_money_loop_detection(rules: Rules) -> None:
     }
     with pytest.raises(ContentValidationError, match="Infinite money loop detected"):
         validate_content(rooms, {}, items, merchants, rules)
+
+
+def _monster(monster_id: str, **fields: object) -> MonsterTemplate:
+    return MonsterTemplate.model_validate(
+        {
+            "id": monster_id,
+            "name": monster_id,
+            "max_hp": 10,
+            "attack": 2,
+            "defense": 1,
+            "xp_reward": 10,
+            "respawn_seconds": 30,
+            **fields,
+        }
+    )
+
+
+def test_rare_variants_are_validated() -> None:
+    from app.content.loader import validate_rare_variants
+
+    def variant(monster_id: str, chance: float = 0.1) -> dict[str, object]:
+        return {"rare_variant": {"monster_id": monster_id, "chance": chance}}
+
+    golden = _monster("golden")
+    ok = {"rat": _monster("rat", **variant("golden")), "golden": golden}
+    room = RoomTemplate(
+        id="field", name="Feld", description="", spawns=[SpawnRule(monster_id="rat")]
+    )
+    validate_rare_variants({"field": room}, ok)
+
+    with pytest.raises(ContentValidationError, match="unknown rare variant"):
+        validate_rare_variants({}, {"rat": _monster("rat", **variant("nope"))})
+    with pytest.raises(ContentValidationError, match="must not have a rare variant itself"):
+        validate_rare_variants(
+            {},
+            {
+                "rat": _monster("rat", **variant("golden")),
+                "golden": _monster("golden", **variant("rat")),
+            },
+        )
+    with pytest.raises(ContentValidationError, match="belongs to both"):
+        validate_rare_variants(
+            {},
+            {
+                "rat": _monster("rat", **variant("golden")),
+                "mouse": _monster("mouse", **variant("golden")),
+                "golden": golden,
+            },
+        )
+    direct = RoomTemplate(
+        id="vault", name="Gewölbe", description="", spawns=[SpawnRule(monster_id="golden")]
+    )
+    with pytest.raises(ContentValidationError, match="spawns the rare variant 'golden' directly"):
+        validate_rare_variants({"vault": direct}, ok)
