@@ -6,7 +6,7 @@ from __future__ import annotations
 import random
 from datetime import datetime
 
-from app.content.describe import item_summary
+from app.content.describe import item_summary, set_bonuses_text
 from app.content.registry import ContentRegistry
 from app.content.schemas import Rules
 from app.engine.events import (
@@ -139,6 +139,9 @@ def resolve_inspect(
         return rejected("So etwas kennst du nicht.")
     summary = item_summary(item)
     text = f"{item.name}: {item.description}" + (f" ({summary})" if summary else "")
+    if item.item_set is not None:
+        pieces = ", ".join(content.get_item(i).name for i in item.item_set.items)
+        text += f" Set-Teile: {pieces}. Boni: {set_bonuses_text(item.item_set)}."
     builder = ResultBuilder(actor_id=actor.id)
     builder.to_actor("item.inspected", text, item_id=item.id)
     return builder.build()

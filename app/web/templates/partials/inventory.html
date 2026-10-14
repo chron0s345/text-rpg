@@ -13,6 +13,9 @@
     </li>
     {% endfor %}
   </ul>
+  {% for s in inv.sets %}
+  <p class="set-line"><strong>{{ s.name }}</strong> <span class="muted">{{ s.worn }}/{{ s.total }}</span>{% if s.active %} · {{ s.active }}{% endif %}{% if s.next %} <span class="muted">({{ s.next }})</span>{% endif %}</p>
+  {% endfor %}
   {% endif %}
   <h3>Rucksack</h3>
   {% if inv.carried %}

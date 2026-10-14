@@ -1,0 +1,82 @@
+# Ausrüstungssets (ARCHITECTURE.md, "Sets"): je getragenem Teil zählt das Set hoch, Boni
+# addieren sich ab der jeweiligen Teilezahl. Ein Teil gehört höchstens zu einem Set.
+
+- id: leather
+  name: "Jägerleder"
+  items: [leather_cap, leather_armor, leather_leggings, leather_boots]
+  bonuses:
+    - {pieces: 2, effects: [{stat: max_hp, amount: 4}]}
+    - {pieces: 4, effects: [{stat: defense, amount: 1}, {stat: max_hp, amount: 4}]}
+
+- id: dwarven_iron
+  name: "Zwergeneisen"
+  items: [iron_helm, iron_greaves, iron_boots, iron_shield, dwarven_plate]
+  bonuses:
+    - {pieces: 2, effects: [{stat: max_hp, amount: 5}]}
+    - {pieces: 3, effects: [{stat: defense, amount: 1}]}
+    - {pieces: 5, effects: [{stat: defense, amount: 1}, {stat: max_hp, amount: 10}]}
+
+- id: valen
+  name: "Erbe der Valen"
+  items: [valen_blade, valen_ring]
+  bonuses:
+    - {pieces: 2, effects: [{stat: attack, amount: 1}, {stat: max_hp, amount: 5}]}
+
+- id: tidecaller
+  name: "Ruf der Gezeiten"
+  items: [witch_trident, coral_amulet, oilskin_coat, pearl_ring]
+  bonuses:
+    - {pieces: 2, effects: [{stat: max_hp, amount: 5}]}
+    - {pieces: 3, effects: [{stat: attack, amount: 1}, {stat: defense, amount: 1}]}
+
+- id: winter
+  name: "Winterwacht"
+  items: [frost_cloak, drake_helm, winter_heart, frost_blade, drake_shield]
+  bonuses:
+    - {pieces: 2, effects: [{stat: defense, amount: 1}]}
+    - {pieces: 3, effects: [{stat: max_hp, amount: 15}]}
+    - {pieces: 5, effects: [{stat: attack, amount: 1}, {stat: defense, amount: 2}]}
+
+- id: silverwood
+  name: "Silberhain"
+  items: [elven_bow, elven_cloak, leaf_ring, bark_shield]
+  bonuses:
+    - {pieces: 2, effects: [{stat: attack, amount: 1}]}
+    - {pieces: 4, effects: [{stat: attack, amount: 1}, {stat: max_hp, amount: 15}]}
+
+- id: obsidian
+  name: "Obsidian"
+  items: [obsidian_helm, obsidian_greaves, obsidian_boots, obsidian_shield, obsidian_blade]
+  bonuses:
+    - {pieces: 2, effects: [{stat: defense, amount: 1}]}
+    - {pieces: 4, effects: [{stat: max_hp, amount: 20}]}
+    - {pieces: 5, effects: [{stat: attack, amount: 1}, {stat: defense, amount: 1}]}
+
+- id: ember_lord
+  name: "Glut des Fürsten"
+  items: [flame_sword, ember_plate, ember_amulet, ignaros_ring]
+  bonuses:
+    - {pieces: 2, effects: [{stat: attack, amount: 1}]}
+    - {pieces: 4, effects: [{stat: attack, amount: 1}, {stat: defense, amount: 1}, {stat: max_hp, amount: 20}]}
+
+- id: aelmar
+  name: "Wacht von Aelmar"
+  items: [aelmar_trident, nacre_shield, pearl_necklace, diver_helm]
+  bonuses:
+    - {pieces: 2, effects: [{stat: max_hp, amount: 10}]}
+    - {pieces: 4, effects: [{stat: attack, amount: 1}, {stat: defense, amount: 2}]}
+
+- id: starsteel
+  name: "Sternenstahl"
+  items: [starsteel_helm, starsteel_plate, starsteel_greaves, starsteel_boots, starsteel_shield]
+  bonuses:
+    - {pieces: 2, effects: [{stat: defense, amount: 1}]}
+    - {pieces: 3, effects: [{stat: max_hp, amount: 15}]}
+    - {pieces: 5, effects: [{stat: attack, amount: 2}, {stat: defense, amount: 2}]}
+
+- id: shadow_king
+  name: "Krone der Schatten"
+  items: [shadow_blade, shadow_ring, soul_pendant]
+  bonuses:
+    - {pieces: 2, effects: [{stat: attack, amount: 1}]}
+    - {pieces: 3, effects: [{stat: attack, amount: 1}, {stat: max_hp, amount: 20}]}

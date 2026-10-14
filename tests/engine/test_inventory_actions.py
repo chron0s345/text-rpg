@@ -112,8 +112,8 @@ def test_every_slot_is_worn_at_once_and_adds_up(content: ContentRegistry, rules:
     stats = stats_of(actor, content.items)
     base = (actor.base_max_hp, actor.base_attack, actor.base_defense)
     # dagger +2 / ring +3 attack; cap 1, leather 2, boots 1, buckler 2 defense;
-    # amulet +5 / ring +4 max HP
-    assert (stats.max_hp, stats.attack, stats.defense) == (base[0] + 9, base[1] + 5, base[2] + 6)
+    # amulet +5 / ring +4 max HP, +4 max HP for 3 of 4 pieces of the "Jägerleder" set
+    assert (stats.max_hp, stats.attack, stats.defense) == (base[0] + 13, base[1] + 5, base[2] + 6)
 
 
 def test_equip_one_of_a_stack_splits_it(content: ContentRegistry, rules: Rules) -> None:

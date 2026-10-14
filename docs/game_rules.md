@@ -282,6 +282,24 @@ Manche Händler sind auch **Handwerker**. Steht einer im Raum, zeigt das Panel �
 | Sternenlichttonikum | Der Händler ohne Gesicht | 14 | 2× Mondlilie, Albtraumessenz | 60 |
 | Leerenschneide | Der Händler ohne Gesicht | 15 | Leerenbrecher, 6× Leerensplitter, 2× Albtraumessenz | 200 |
 
+## Sets
+
+Manche Ausrüstungsstücke gehören zu einem **Set**; das steht unter dem Namen (z. B. „Set „Obsidian““). Je mehr Teile eines Sets du gleichzeitig **trägst**, desto mehr Boni bekommst du – sie addieren sich. Das Inventar zeigt unter „Ausgerüstet“, wie viele Teile du trägst und was der nächste Bonus bringt; „Ansehen“ listet alle Teile und Boni.
+
+| Set | Teile | Boni |
+|---|---|---|
+| Jägerleder | Lederkappe, Lederrüstung, Lederbeinlinge, Lederstiefel | 2 Teile: +4 max. HP; 4 Teile: +1 Verteidigung, +4 max. HP |
+| Zwergeneisen | Eisenhelm, Eiserne Beinschienen, Eisenbeschlagene Stiefel, Eisenschild, Zwergischer Plattenpanzer | 2 Teile: +5 max. HP; 3 Teile: +1 Verteidigung; 5 Teile: +1 Verteidigung, +10 max. HP |
+| Erbe der Valen | Valens Klinge, Ring des Grabfürsten | 2 Teile: +1 Angriff, +5 max. HP |
+| Ruf der Gezeiten | Dreizack der Seehexe, Korallenamulett, Ölzeug, Perlenring | 2 Teile: +5 max. HP; 3 Teile: +1 Angriff, +1 Verteidigung |
+| Winterwacht | Frostpelzmantel, Drachenschuppenhelm, Herz des Winters, Frostklinge, Drachenschuppenschild | 2 Teile: +1 Verteidigung; 3 Teile: +15 max. HP; 5 Teile: +1 Angriff, +2 Verteidigung |
+| Silberhain | Elfenbogen, Elfenmantel, Blattring, Rindenschild | 2 Teile: +1 Angriff; 4 Teile: +1 Angriff, +15 max. HP |
+| Obsidian | Obsidianhelm, Obsidianbeinschienen, Obsidianstiefel, Obsidianschild, Obsidianklinge | 2 Teile: +1 Verteidigung; 4 Teile: +20 max. HP; 5 Teile: +1 Angriff, +1 Verteidigung |
+| Glut des Fürsten | Flammenschwert, Glutpanzer, Glutsteinamulett, Siegel des Glutfürsten | 2 Teile: +1 Angriff; 4 Teile: +1 Angriff, +1 Verteidigung, +20 max. HP |
+| Wacht von Aelmar | Dreizack von Aelmar, Perlmuttschild, Perlenkette, Taucherhelm | 2 Teile: +10 max. HP; 4 Teile: +1 Angriff, +2 Verteidigung |
+| Sternenstahl | Sternenstahlhelm, Sternenstahlharnisch, Sternenstahlbeinschienen, Sternenstahlstiefel, Sternenstahlschild | 2 Teile: +1 Verteidigung; 3 Teile: +15 max. HP; 5 Teile: +2 Angriff, +2 Verteidigung |
+| Krone der Schatten | Schattenklinge, Schattenring, Seelenanhänger | 2 Teile: +1 Angriff; 3 Teile: +1 Angriff, +20 max. HP |
+
 ## Händler & Bank
 
 - **Elira** (Kaufmannsstand) verkauft Heiltränke, Brot und Kleine Taschen und kauft alles Verkaufbare an.

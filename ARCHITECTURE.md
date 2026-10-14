@@ -651,6 +651,13 @@ Umsetzung (`engine/merchant.py`, Preise in `content/prices.py`, gemeinsam für E
 - Die Zeilen gehören zu Spielern im Aktions-Snapshot und werden mit ihnen geladen und gesperrt (`Repository.lock_quests`). Neue Zeilen entstehen nur für gesperrte Spieler; die Spielersperre serialisiert sie.
 - Validierung beim Laden: Auftraggeber, Items und Monster existieren, Voraussetzungen existieren und bilden keinen Zyklus, Besiegen-Quests nennen die Grundform statt einer seltenen Variante.
 
+### Sets
+
+- Sets sind Content (`sets.yaml`): Name, Teile (je Ausrüstungsplatz höchstens eins) und Boni ab einer Teilezahl. Boni addieren sich: Wer 4 Teile trägt, bekommt die Boni für 2 und für 4.
+- Der Loader hängt jedem Teil sein Set an (`ItemTemplate.item_set`, nie in `items.yaml`). So rechnet `stats.calculate_effective_stats` die Boni aus den Item-Templates allein, ohne neue Parameter.
+- Nur ausgerüstete Teile zählen. Wie alle Werte werden Set-Boni nie gespeichert, sondern immer abgeleitet.
+- Validierung beim Laden: Teile existieren, sind ausrüstbar (keine Taschen), belegen verschiedene Plätze und gehören zu höchstens einem Set; jede Teilezahl hat höchstens einen Bonus, keiner braucht mehr Teile als das Set hat. Der Balance-Test rechnet den besten erreichbaren Set-Bonus mit ein.
+
 ### Handwerk
 
 - Rezepte sind Content (`recipes.yaml`); Handwerker ist ein Händler. Herstellen (`craft`) geht nur in dessen Raum und nicht im Kampf (`app/engine/crafting.py`).

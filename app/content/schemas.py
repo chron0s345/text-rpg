@@ -97,6 +97,18 @@ class Heal(BaseModel):
 Effect = Annotated[StatModifier | Heal, Field(discriminator="type")]
 
 
+class SetBonus(BaseModel):
+    pieces: int = Field(ge=2)  # from this many equipped pieces on (bonuses add up)
+    effects: list[StatModifier] = Field(min_length=1)
+
+
+class ItemSet(BaseModel):  # sets.yaml
+    id: str
+    name: str
+    items: list[str] = Field(min_length=2)  # one per equipment slot
+    bonuses: list[SetBonus] = Field(min_length=1)
+
+
 class ItemTemplate(BaseModel):
     id: str
     name: str
@@ -112,6 +124,7 @@ class ItemTemplate(BaseModel):
     tradable: bool = True  # Quest-Items u. Ä. nicht handelbar
     icon: str | None = None  # Dateiname (ohne .svg) in app/web/static/icons/
     effects: list[Effect] = Field(default_factory=list)
+    item_set: ItemSet | None = None  # filled in by the loader from sets.yaml, never in items.yaml
 
 
 class MerchantOffer(BaseModel):

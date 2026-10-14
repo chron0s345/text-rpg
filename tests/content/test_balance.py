@@ -17,6 +17,7 @@ import pytest
 
 from app.content.loader import load_content
 from app.content.schemas import MonsterTemplate
+from app.engine.stats import active_set_effects
 
 # (lowest level of the tier, gear budget per item in gold)
 TIERS = [(1, 0), (6, 100), (11, 300)]
@@ -40,15 +41,21 @@ def gear_budget(level: int) -> int:
 
 
 def gear_bonus(stat: str, budget: int) -> int:
-    """Per slot the best value of ``stat`` among affordable items (a slight overestimate when
-    the best attack and the best defense of a slot sit on different items)."""
+    """Per slot the best value of ``stat`` among affordable items, plus the best set bonus the
+    affordable pieces of one set reach. An overestimate: the best attack and the best defense
+    of a slot may sit on different items, and set pieces are rarely the best in every slot."""
     best: dict[str, int] = {}
     for item in CONTENT.items.values():
         if item.slot is None or item.slot == "bag" or item.value > budget:
             continue
         amount = sum(e.amount for e in item.effects if e.type == "stat" and e.stat == stat)
         best[item.slot] = max(best.get(item.slot, 0), amount)
-    return sum(best.values())
+    set_bonus = 0
+    for item_set in CONTENT.item_sets.values():
+        pieces = sum(1 for i in item_set.items if CONTENT.items[i].value <= budget)
+        effects = active_set_effects(item_set, pieces)
+        set_bonus = max(set_bonus, sum(e.amount for e in effects if e.stat == stat))
+    return sum(best.values()) + set_bonus
 
 
 def damage_taken(monster: MonsterTemplate) -> tuple[int, int]:
