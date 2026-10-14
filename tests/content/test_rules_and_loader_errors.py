@@ -114,7 +114,7 @@ def test_death_gold_loss_full_range_allowed() -> None:
 def test_real_content_with_icons_loads() -> None:
     registry = load_content(DATA_DIR, icons_dir=ICONS_DIR)
     assert [m.id for m in registry.merchants_in_room("town_market")] == ["alchemist"]
-    assert registry.merchants_in_room("town_square") == []
+    assert [m.id for m in registry.merchants_in_room("town_square")] == ["captain"]
 
 
 def test_invalid_yaml_raises(data_dir: Path) -> None:
@@ -171,6 +171,23 @@ def test_merchant_listed_without_kinds_rejected(data_dir: Path) -> None:
     merchants[0]["buys_kinds"] = []
     _write(data_dir / "merchants.yaml", merchants)
     with pytest.raises(ContentValidationError, match="buys: listed but no buys_kinds"):
+        load_content(data_dir)
+
+
+def test_quest_giver_without_trade_must_not_list_kinds(data_dir: Path) -> None:
+    merchants = _read(data_dir / "merchants.yaml")
+    merchants[0]["buys"] = "none"
+    merchants[0]["buys_kinds"] = ["misc"]
+    _write(data_dir / "merchants.yaml", merchants)
+    with pytest.raises(ContentValidationError, match="buys: none but lists buys_kinds"):
+        load_content(data_dir)
+
+
+def test_intro_quest_must_exist(data_dir: Path) -> None:
+    raw = _read(data_dir / "rules.yaml")
+    raw["intro_quest_id"] = "nope"
+    _write(data_dir / "rules.yaml", raw)
+    with pytest.raises(ContentValidationError, match="intro_quest_id 'nope'"):
         load_content(data_dir)
 
 

@@ -1,5 +1,6 @@
 start_room_id: town_square
 town_room_id: town_square
+intro_quest_id: intro_first_steps  # Lernauftrag für Neulinge, beim Einloggen auf Stufe 1 empfohlen
 max_characters_per_account: 5
 max_group_size: 4
 

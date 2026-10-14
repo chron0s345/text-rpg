@@ -3,6 +3,7 @@
   {% for shop in view.shops %}
   <h2>{{ shop.name }}</h2>
   <p class="description">„{{ shop.greeting }}“</p>
+  {% if shop.offers %}
   <ul class="list">
     {% for o in shop.offers %}
     <li title="{{ o.description }}" class="{% if not o.affordable %}unaffordable{% endif %}">
@@ -13,5 +14,6 @@
     </li>
     {% endfor %}
   </ul>
+  {% endif %}
   {% endfor %}
 </section>

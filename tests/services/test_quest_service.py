@@ -146,3 +146,19 @@ async def test_the_current_step_is_stored(harness: ServiceHarness, giver_room: s
     assert texts[-1].startswith("Zwei Wege: ")  # the first visit is done at once: we stand here
     row = await quest_row(h, anna.id, "q_steps")
     assert row is not None and (row.status, row.step) == ("active", 1)
+
+
+async def test_login_hint_disappears_once_the_intro_is_accepted(harness: ServiceHarness) -> None:
+    h = harness
+    newcomer = await player(h, h.scratch_room())
+    intro = h.content.rules.intro_quest_id
+    assert intro is not None
+
+    first = [e.text for e in (await h.service.login(newcomer.id)).events]
+    assert any(text.startswith("Neu hier?") for text in first)
+
+    async with h.committed.session() as db, db.begin():
+        db.add(QuestProgress(player_id=newcomer.id, quest_id=intro, status="active"))
+    h.clock.advance(seconds=1)
+    again = [e.text for e in (await h.service.login(newcomer.id)).events]
+    assert not any(text.startswith("Neu hier?") for text in again)

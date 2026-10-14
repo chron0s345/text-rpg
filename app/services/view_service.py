@@ -258,7 +258,7 @@ class ActiveQuestView:
     id: str
     name: str
     giver: str
-    objective: str  # the current step (or "Zurück zu …" once all are done)
+    objective: str  # the current step (or "Erledigt – abgeben" once all are done)
     done: int  # of the current step
     needed: int
     step: int  # 1-based number of the current step
@@ -575,7 +575,7 @@ class ViewService:
                     giver=giver.name,
                     objective=step_text(step, self.content)
                     if step is not None
-                    else f"Zurück zu {giver.name}",
+                    else "Erledigt – abgeben",
                     done=done,
                     needed=needed,
                     step=min(state.step, len(quest.steps) - 1) + 1,

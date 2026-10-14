@@ -21,11 +21,21 @@ from app.content.schemas import Rules
 from app.engine.death import apply_player_death
 from app.engine.events import ActionResult, ResultBuilder, RoomAudience
 from app.engine.permissions import check_state
-from app.engine.state import ActionSnapshot
+from app.engine.state import ActionSnapshot, PlayerSnapshot
 
 LOGGED_IN: Final = "session.logged_in"
 LOGGED_OUT: Final = "session.logged_out"
 CONFIRM_REQUIRED: Final = "session.confirm_death"
+
+
+def _intro_hint(actor: PlayerSnapshot, content: ContentRegistry, rules: Rules) -> str | None:
+    """Newcomers (level 1, intro quest never accepted) are told where their first quest is."""
+    if rules.intro_quest_id is None or actor.level > 1 or actor.quest(rules.intro_quest_id):
+        return None
+    quest = content.get_quest(rules.intro_quest_id)
+    giver = content.merchants[quest.giver_id]
+    where = content.get_room(giver.room_id).name
+    return f"Neu hier? {giver.name} hat in {where} einen ersten Auftrag für dich: „{quest.name}“."
 
 
 def resolve_login(
@@ -52,6 +62,8 @@ def resolve_login(
     else:
         text = f"Willkommen, {actor.name}. Du bist in {room.name}."
     builder.to_actor(LOGGED_IN, text, room_id=room.id, state=actor.state)
+    if (intro := _intro_hint(actor, content, rules)) is not None:
+        builder.to_actor("player.hint", intro)
     if not already_online:
         builder.event(
             "player.entered_world",

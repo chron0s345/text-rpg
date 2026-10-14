@@ -210,10 +210,15 @@ Viele Händler haben **Aufträge**. Steht ein Auftraggeber im Raum, zeigt das Pa
 - **Besiegen:** Jeder Sieg zählt für alle Mitglieder deiner Gruppe im Raum, die den Auftrag haben – wie Gold und Beute. Seltene Formen zählen für ihre gewöhnliche Form.
 - Belohnungen sind Erfahrung, Gold und Gegenstände; ist im Rucksack kein Platz für die Gegenstände, kannst du noch nicht abgeben.
 - Manche Aufträge setzen eine Stufe oder einen anderen Auftrag voraus, manche lassen sich wiederholen. Höchstens 10 Aufträge gleichzeitig; abbrechen geht jederzeit, der Fortschritt ist dann verloren.
+- **Einstieg:** Hauptmann Rowan auf dem Marktplatz führt Neulinge mit vier kurzen Aufträgen durch das Wichtigste: Wege und Händler, der erste Kampf, Rasten, Beute verkaufen, Ausrüstung. Wer auf Stufe 1 einloggt und den ersten noch nicht angenommen hat, bekommt einen Hinweis im Log. Der Hauptmann handelt nicht.
 - **Questketten mit Geschichte:** *Der verschwundene Jäger* (Wirtin Hanne und Fischerin Maren, ab Stufe 4), *Die Halle von Khazdur* (Waffenmeisterin Brunhild, ab Stufe 6) und *Die Laternen der Tiefe* (von Kundschafterin Ilva über Taucher Brack und den Händler ohne Gesicht bis zu Schwester Liora, ab Stufe 11).
 
 | Auftrag | Auftraggeber | ab Stufe | Aufgabe |
 |---|---|---|---|
+| Willkommen in Oakhaven | Hauptmann Rowan | 1 | Gehe zu: Kaufmannsstand → Gehe zu: Schmiede |
+| Ratten am Feldweg | Hauptmann Rowan | 1 | Besiege 2× Feldratte (nach „Willkommen in Oakhaven“) |
+| Beute zu Gold | Hauptmann Rowan | 1 | Bringe 3× Rattenschwanz (nach „Ratten am Feldweg“) |
+| Hinaus in die Welt | Hauptmann Rowan | 1 | Gehe zu: Südtor zum Wald → Besiege 2× Goblin-Späher (nach „Beute zu Gold“) |
 | Rattenplage | Müllerin Grete | 1 | 5× Rattenschwanz bringen |
 | Wildbret für den Krug | Wirtin Hanne | 1 | 3× Wildschweinkeule bringen |
 | Ohren für die Wissenschaft | Alchemistin Elira | 1 | 6× Goblinohr bringen |

@@ -139,7 +139,7 @@ class MerchantTemplate(BaseModel):
     room_id: str
     greeting: str
     sells: list[MerchantOffer] = Field(default_factory=list)  # Sortiment, unbegrenzter Vorrat
-    buys: Literal["all", "listed"] = "all"
+    buys: Literal["all", "listed", "none"] = "all"  # "none": vergibt nur Aufträge
     buys_kinds: list[ItemKind] = Field(default_factory=list)  # bei "listed": nur diese Item-Arten
     sell_ratio: Probability | None = None  # überschreibt rules.merchant.sell_ratio
 
@@ -300,6 +300,7 @@ class LevelRule(BaseModel):
 class Rules(BaseModel):
     start_room_id: str
     town_room_id: str
+    intro_quest_id: str | None  # first quest for newcomers: pointed out on login at level 1
     max_characters_per_account: PositiveInt
     max_group_size: PositiveInt
     inventory: InventoryRules

@@ -13,7 +13,13 @@ from app.engine.presence import (
     resolve_login,
     resolve_logout,
 )
-from app.engine.state import ActionSnapshot, InventoryItemState, ParticipationSnapshot
+from app.engine.state import (
+    ActionSnapshot,
+    InventoryItemState,
+    ParticipationSnapshot,
+    PlayerSnapshot,
+    QuestState,
+)
 from tests.engine.factories import (
     NOW,
     ROOM,
@@ -48,7 +54,11 @@ def test_login_puts_character_online_and_announces_it(
         "online": True,
         "disconnected_at": None,
     }
-    assert kinds(result) == [(LOGGED_IN, "actor"), ("player.entered_world", "room")]
+    assert kinds(result) == [
+        (LOGGED_IN, "actor"),
+        ("player.hint", "actor"),  # a newcomer: see test_newcomers_are_pointed_to_the_intro
+        ("player.entered_world", "room"),
+    ]
     [room_event] = [e for e in result.events if e.audience.kind == "room"]
     assert room_event.text == "Anna betritt die Welt."
     assert room_event.exclude_player_ids == [actor.id]
@@ -66,7 +76,7 @@ def test_login_of_online_character_is_silent_for_the_room(
         random.Random(RNG_SEED),
         already_online=True,
     )
-    assert kinds(result) == [(LOGGED_IN, "actor")]
+    assert kinds(result) == [(LOGGED_IN, "actor"), ("player.hint", "actor")]
     assert player_update(result, actor.id)["disconnected_at"] is None
 
 
@@ -81,7 +91,33 @@ def test_login_while_dead_points_to_the_checkpoint(content: ContentRegistry, rul
         random.Random(RNG_SEED),
         already_online=False,
     )
-    assert actor_texts(result) == ["Willkommen, Anna. Du bist tot – erwache am Checkpoint."]
+    assert actor_texts(result)[0] == "Willkommen, Anna. Du bist tot – erwache am Checkpoint."
+
+
+def test_newcomers_are_pointed_to_the_intro(content: ContentRegistry, rules: Rules) -> None:
+    def login_texts(actor: PlayerSnapshot) -> list[str]:
+        result = resolve_login(
+            ActionSnapshot(actor=actor),
+            content,
+            rules,
+            NOW,
+            random.Random(RNG_SEED),
+            already_online=False,
+        )
+        return actor_texts(result)
+
+    newcomer = make_player()
+    assert login_texts(newcomer) == [
+        f"Willkommen, Anna. Du bist in {content.get_room(ROOM).name}.",
+        "Neu hier? Hauptmann Rowan hat in Marktplatz von Oakhaven einen ersten Auftrag für dich:"
+        " „Willkommen in Oakhaven“.",
+    ]
+    started = make_player()
+    started.quests = [QuestState(quest_id="intro_first_steps", status="active")]
+    assert len(login_texts(started)) == 1
+    veteran = make_player()
+    veteran.level = 2
+    assert len(login_texts(veteran)) == 1
 
 
 def test_logout_returns_to_town(content: ContentRegistry, rules: Rules) -> None:
