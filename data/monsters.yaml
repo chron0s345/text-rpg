@@ -439,3 +439,114 @@
       chance: 0.3
     - item_id: valen_blade
       chance: 0.15
+
+# --- Feuerschlund ---
+
+- id: fire_salamander
+  name: "Feuersalamander"
+  level: 11
+  max_hp: 110
+  attack: 44
+  defense: 18
+  xp_reward: 280
+  gold_reward: [8, 20]
+  respawn_seconds: 120
+  regen:
+    delay_seconds: 15
+    hp_per_second: 3.0
+  ambush:
+    chance_on_enter: 0.25
+    chance_per_tick: 0.06
+    max_level_difference: 2
+  loot_table:
+    - item_id: salamander_scale
+      chance: 0.7
+    - item_id: obsidian_boots
+      chance: 0.04
+
+- id: ash_wraith
+  name: "Aschegeist"
+  level: 11
+  max_hp: 95
+  attack: 46
+  defense: 20
+  xp_reward: 300
+  gold_reward: [10, 24]
+  respawn_seconds: 120
+  # Geister heilen nicht, schlagen aber aus dem Nichts zu
+  ambush:
+    chance_on_enter: 0.3
+    chance_per_tick: 0.1
+    max_level_difference: 2
+  loot_table:
+    - item_id: wraith_ash
+      chance: 0.8
+      min_qty: 1
+      max_qty: 2
+    - item_id: obsidian_helm
+      chance: 0.04
+
+- id: magma_golem
+  name: "Magmagolem"
+  level: 12
+  max_hp: 160
+  attack: 50
+  defense: 26
+  xp_reward: 380
+  gold_reward: [15, 35]
+  respawn_seconds: 180
+  loot_table:
+    - item_id: ember_core
+      chance: 0.7
+    - item_id: obsidian_greaves
+      chance: 0.05
+    - item_id: magma_hammer
+      chance: 0.03
+
+- id: fire_giant
+  name: "Feuerriese"
+  level: 13
+  max_hp: 170
+  attack: 54
+  defense: 26
+  xp_reward: 480
+  gold_reward: [25, 50]
+  respawn_seconds: 240
+  regen:
+    delay_seconds: 20
+    hp_per_second: 4.0
+  ambush:
+    chance_on_enter: 0.15
+    chance_per_tick: 0.0
+    max_level_difference: 2
+  loot_table:
+    - item_id: giant_tooth
+      chance: 0.6
+    - item_id: phoenix_draught
+      chance: 0.08
+    - item_id: ember_plate
+      chance: 0.04
+
+- id: ignaros
+  name: "Glutfürst Ignaros"
+  level: 13
+  max_hp: 520
+  attack: 60
+  defense: 30
+  xp_reward: 1600
+  gold_reward: [150, 300]
+  respawn_seconds: 1200
+  regen:
+    delay_seconds: 20
+    hp_per_second: 8.0
+  loot_table:
+    - item_id: ignaros_crown
+      chance: 1.0
+    - item_id: phoenix_draught
+      chance: 0.5
+      min_qty: 1
+      max_qty: 2
+    - item_id: flame_sword
+      chance: 0.12
+    - item_id: ember_plate
+      chance: 0.2

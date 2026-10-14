@@ -531,3 +531,179 @@
   sellable: true
   stackable: true
   max_stack: 5
+
+# --- Feuerschlund (Stufe 11–13) ---
+
+- id: obsidian_helm
+  name: "Obsidianhelm"
+  description: "Aus vulkanischem Glas geschliffen, leicht und härter als Stahl."
+  kind: armor
+  slot: head
+  icon: "armor"
+  value: 120
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 3
+
+- id: obsidian_greaves
+  name: "Obsidianbeinschienen"
+  description: "Schwarze Platten, die bei jedem Schritt leise klirren."
+  kind: armor
+  slot: legs
+  icon: "armor"
+  value: 130
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 3
+
+- id: obsidian_boots
+  name: "Obsidianstiefel"
+  description: "Ihre Sohlen halten selbst glühender Asche stand."
+  kind: armor
+  slot: feet
+  icon: "armor"
+  value: 120
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 3
+
+- id: obsidian_blade
+  name: "Obsidianklinge"
+  description: "Eine Klinge aus Vulkanglas, scharf genug, um Licht zu schneiden."
+  kind: weapon
+  slot: weapon
+  icon: "sword"
+  value: 280
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 9
+
+- id: magma_hammer
+  name: "Magmahammer"
+  description: "Der Kopf ist ein Klumpen erstarrter Lava, in dessen Rissen es noch glüht."
+  kind: weapon
+  slot: weapon
+  icon: "axe"
+  value: 450
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 11
+
+- id: flame_sword
+  name: "Flammenschwert"
+  description: "Die Klinge brennt, ohne zu verbrennen. Ignaros trug es tausend Jahre."
+  kind: weapon
+  slot: weapon
+  icon: "sword"
+  value: 600
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 13
+
+- id: ember_plate
+  name: "Glutpanzer"
+  description: "Ein Brustpanzer aus der Schmiede der Riesen, innen warm wie ein Ofen."
+  kind: armor
+  slot: chest
+  icon: "armor"
+  value: 480
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 8
+
+- id: fire_blossom
+  name: "Feuerblüte"
+  description: "Eine glühende Blume aus den Aschefeldern. Gegessen stellt sie 20 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "flame"
+  value: 6
+  sellable: true
+  stackable: true
+  max_stack: 10
+  effects:
+    - type: heal
+      amount: 20
+
+- id: phoenix_draught
+  name: "Phönixtrank"
+  description: "Ein Trank, der im Glas leise knistert. Stellt sofort 100 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "potion"
+  value: 160
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - type: heal
+      amount: 100
+
+- id: salamander_scale
+  name: "Salamanderschuppe"
+  description: "Eine Schuppe, die noch Stunden nach dem Kampf warm bleibt."
+  kind: misc
+  icon: "trophy"
+  value: 18
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: wraith_ash
+  name: "Geisterasche"
+  description: "Asche, die sich in der Hand bewegt, als wollte sie fliehen."
+  kind: misc
+  icon: "trophy"
+  value: 15
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: ember_core
+  name: "Glutkern"
+  description: "Das Herz eines Magmagolems. Zwergenschmiede zahlen ein Vermögen dafür."
+  kind: misc
+  icon: "flame"
+  value: 25
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: giant_tooth
+  name: "Riesenzahn"
+  description: "Ein Backenzahn so groß wie eine Faust."
+  kind: misc
+  icon: "trophy"
+  value: 35
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: ignaros_crown
+  name: "Krone des Glutfürsten"
+  description: "Ein Reif aus erstarrter Lava, in dem noch ein Funke glimmt."
+  kind: misc
+  icon: "trophy"
+  value: 120
+  sellable: true
+  stackable: true
+  max_stack: 5

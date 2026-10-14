@@ -72,3 +72,22 @@
       price: 8
     - item_id: pitchfork
       price: 15
+
+- id: crater_scout
+  name: "Kundschafterin Ilva"
+  room_id: crater_camp
+  greeting: "Wer bis hierher kommt, ist entweder mutig oder dumm. Brauchst du Glas oder Tränke?"
+  buys: all
+  sells:
+    - item_id: obsidian_blade
+      price: 280
+    - item_id: obsidian_helm
+      price: 120
+    - item_id: obsidian_greaves
+      price: 130
+    - item_id: obsidian_boots
+      price: 120
+    - item_id: elixir
+      price: 90
+    - item_id: phoenix_draught
+      price: 160

@@ -44,8 +44,14 @@ Neue Charaktere starten auf Stufe 1 auf dem **Marktplatz von Oakhaven**.
 | Tiefe Stollen (östlich der Grubenwache) | zwei Grubenghule |
 | Spinnengrotte | drei Höhlenspinnen |
 | Nest der Spinnenkönigin (unter der Grotte) | Spinnenkönigin Ysvara – nur für Gruppen |
+| Basaltstiege (nördlich des Zwergenpostens) | zwei Feuersalamander |
+| Rastplatz am Kraterrand (nördlich der Stiege) | sicher, Checkpoint, Kundschafterin Ilva (Obsidian, Phönixtränke) |
+| Aschefelder (westlich des Rastplatzes) | zwei Aschegeister, Feuerblüten wachsen in der Asche |
+| Lavastrom (östlich des Rastplatzes) | zwei Magmagolems |
+| Schmiede der Feuerriesen (nördlich des Lavastroms) | zwei Feuerriesen |
+| Herz des Vulkans (über der Schmiede) | Glutfürst Ignaros – nur für Gruppen |
 
-Die Welt wird nach außen gefährlicher: Rund um Oakhaven, im Wald und in den **Kornfeldern** östlich der Stadt kommt man mit Stufe 1–3 zurecht; Moor, Ruine, Mine und die Gruft unter dem Alten Friedhof sind für Stufe 3–5. Das **Grauzahn-Gebirge** östlich des Moors und **die Tiefen** unter der Mine sind für Stufe 6–10; die beiden Bosse dort (Spinnenkönigin, Eisdrache) schafft man nur in der Gruppe oder mit vielen Tränken. Im Zwergenposten gibt es eine zweite Bank.
+Die Welt wird nach außen gefährlicher: Rund um Oakhaven, im Wald und in den **Kornfeldern** östlich der Stadt kommt man mit Stufe 1–3 zurecht; Moor, Ruine, Mine und die Gruft unter dem Alten Friedhof sind für Stufe 3–5. Das **Grauzahn-Gebirge** östlich des Moors und **die Tiefen** unter der Mine sind für Stufe 6–10; die beiden Bosse dort (Spinnenkönigin, Eisdrache) schafft man nur in der Gruppe oder mit vielen Tränken. Im Zwergenposten gibt es eine zweite Bank. Nördlich des Zwergenpostens liegt der **Feuerschlund** für Stufe 11–13, mit dem Glutfürsten Ignaros im Herzen des Vulkans.
 
 In **sicheren Räumen** wird nicht gekämpft und niemand wird überfallen. Betrittst du einen **Checkpoint**, merkt sich dein Charakter diesen Ort; dort erwachst du nach dem Tod.
 
@@ -65,6 +71,9 @@ Jeder Charakter hat **Lebenspunkte (HP)**, **Angriff** und **Verteidigung**. Die
 | 8 | 2800 | 88 | 24 | 11 |
 | 9 | 3800 | 102 | 27 | 12 |
 | 10 | 5000 | 118 | 31 | 14 |
+| 11 | 6500 | 135 | 35 | 16 |
+| 12 | 8200 | 153 | 39 | 18 |
+| 13 | 10200 | 172 | 43 | 20 |
 
 Ein **Stufenaufstieg** heilt vollständig (inklusive der HP aus Ausrüstung). Reicht die Erfahrung für mehrere Stufen auf einmal, steigst du direkt bis zur höchsten erreichten auf.
 

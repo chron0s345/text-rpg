@@ -192,6 +192,7 @@
   exits:
     south: mountain_trail
     east: frost_gorge
+    north: basalt_stairs
   spawns: []
   items: []
 
@@ -391,5 +392,91 @@
     south: valen_crypt
   spawns:
     - monster_id: grave_lord
+      count: 1
+  items: []
+
+# --- Feuerschlund (Stufe 11–13), nördlich des Zwergenpostens ---
+
+- id: basalt_stairs
+  name: "Basaltstiege"
+  description: "Schwarze Säulen bilden eine Treppe ins Glühen. Zwischen den Steinen huschen Echsen mit brennenden Rücken."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    south: dwarf_outpost
+    north: crater_camp
+  spawns:
+    - monster_id: fire_salamander
+      count: 2
+  items: []
+
+- id: crater_camp
+  name: "Rastplatz am Kraterrand"
+  description: "Ein paar Zelte im Windschatten eines Felsens, mit Asche bestäubt. Von hier sieht man den Krater rot pulsieren."
+  safe: true
+  checkpoint: true
+  bank: false
+  exits:
+    south: basalt_stairs
+    west: ash_fields
+    east: lava_flow
+  spawns: []
+  items: []
+
+- id: ash_fields
+  name: "Aschefelder"
+  description: "Graue Asche, knöcheltief und still. Nur zwischen verkohlten Stämmen wachsen glühend orangefarbene Blüten."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    east: crater_camp
+  spawns:
+    - monster_id: ash_wraith
+      count: 2
+  items:
+    - item_id: fire_blossom
+      quantity: 2
+      respawn_seconds: 240
+
+- id: lava_flow
+  name: "Lavastrom"
+  description: "Ein Fluss aus flüssigem Gestein wälzt sich durch die Schlucht. Die Hitze lässt die Luft flimmern – und manche Felsen stehen auf."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    west: crater_camp
+    north: giant_forge
+  spawns:
+    - monster_id: magma_golem
+      count: 2
+  items: []
+
+- id: giant_forge
+  name: "Schmiede der Feuerriesen"
+  description: "Ambosse so groß wie Häuser, Hämmer aus ganzen Felsblöcken. Die Riesen, die hier arbeiten, mögen keine Zuschauer."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    south: lava_flow
+    up: caldera
+  spawns:
+    - monster_id: fire_giant
+      count: 2
+  items: []
+
+- id: caldera
+  name: "Herz des Vulkans"
+  description: "Eine Insel aus Basalt inmitten eines Lavasees. Auf einem Thron aus Glut erhebt sich eine Gestalt aus Flammen und Stein."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    down: giant_forge
+  spawns:
+    - monster_id: ignaros
       count: 1
   items: []
