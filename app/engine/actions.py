@@ -1,4 +1,5 @@
-"""Simple actions without their own module: ``say``, ``look``, ``respawn``."""
+"""Simple actions without their own module: chat (``say``, ``group_say``, ``whisper``),
+``look``, ``respawn``."""
 
 from __future__ import annotations
 
@@ -7,12 +8,19 @@ from datetime import datetime
 
 from app.content.registry import ContentRegistry
 from app.content.schemas import Rules
-from app.engine.events import ActionResult, ResultBuilder, RoomAudience, rejected
+from app.engine.events import (
+    ActionResult,
+    GroupAudience,
+    PlayersAudience,
+    ResultBuilder,
+    RoomAudience,
+    rejected,
+)
 from app.engine.group_status import report_hp, report_location
 from app.engine.movement import DIRECTION_NAMES
 from app.engine.permissions import check_state
 from app.engine.regeneration import calculate_current_monster_hp
-from app.engine.state import ActionSnapshot
+from app.engine.state import ActionSnapshot, PlayerRef
 from app.engine.stats import stats_of
 
 
@@ -40,6 +48,73 @@ def resolve_say(
         f"{actor.name} sagt: {message}",
         exclude=[actor.id],
         player_id=str(actor.id),
+        message=message,
+    )
+    return builder.build()
+
+
+def resolve_group_say(
+    snapshot: ActionSnapshot,
+    content: ContentRegistry,
+    rules: Rules,
+    now: datetime,
+    rng: random.Random,
+    text: str,
+) -> ActionResult:
+    """Group chat: reaches every member, in whatever room."""
+    actor = snapshot.actor
+    if denied := check_state("group_say", actor):
+        return denied
+    if actor.group_id is None:
+        return rejected("Du bist in keiner Gruppe.")
+    message = " ".join(text.split())
+    if not message:
+        return rejected("Was möchtest du sagen?")
+
+    builder = ResultBuilder(actor_id=actor.id)
+    builder.to_actor("chat.group", f"[Gruppe] Du: {message}", message=message)
+    builder.event(
+        "chat.group",
+        GroupAudience(group_id=actor.group_id),
+        f"[Gruppe] {actor.name}: {message}",
+        exclude=[actor.id],
+        player_id=str(actor.id),
+        message=message,
+    )
+    return builder.build()
+
+
+def resolve_whisper(
+    snapshot: ActionSnapshot,
+    content: ContentRegistry,
+    rules: Rules,
+    now: datetime,
+    rng: random.Random,
+    recipient: PlayerRef | None,
+    text: str,
+) -> ActionResult:
+    """A private message to one online character anywhere. ``recipient``: looked up by name
+    by the caller, None if nobody of that name is online."""
+    actor = snapshot.actor
+    if denied := check_state("whisper", actor):
+        return denied
+    if recipient is None:
+        return rejected("Niemand mit diesem Namen ist gerade im Spiel.")
+    if recipient.id == actor.id:
+        return rejected("Du murmelst etwas vor dich hin.")
+    message = " ".join(text.split())
+    if not message:
+        return rejected("Was möchtest du flüstern?")
+
+    builder = ResultBuilder(actor_id=actor.id)
+    builder.to_actor(
+        "chat.whisper", f"Du flüsterst {recipient.name} zu: {message}", message=message
+    )
+    builder.event(
+        "chat.whisper",
+        PlayersAudience(player_ids=[recipient.id]),
+        f"{actor.name} flüstert dir zu: {message}",
+        from_name=actor.name,
         message=message,
     )
     return builder.build()

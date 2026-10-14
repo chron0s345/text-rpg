@@ -43,6 +43,7 @@ from app.api.schemas import (
     GroupInviteAction,
     GroupKickAction,
     GroupLeaveAction,
+    GroupSayAction,
     InventoryAction,
     LogoutAction,
     LookAction,
@@ -60,11 +61,18 @@ from app.api.schemas import (
     TradeRequestAction,
     UnequipAction,
     UseItemAction,
+    WhisperAction,
 )
 from app.content.registry import ContentRegistry
 from app.db.models import Player, Trade
 from app.db.repository import Repository, SnapshotChangedError, UnknownPlayerError
-from app.engine.actions import resolve_look, resolve_respawn, resolve_say
+from app.engine.actions import (
+    resolve_group_say,
+    resolve_look,
+    resolve_respawn,
+    resolve_say,
+    resolve_whisper,
+)
 from app.engine.ambush import resolve_idle_ambush
 from app.engine.bank import resolve_bank_deposit, resolve_bank_withdraw
 from app.engine.combat import resolve_attack, resolve_flee
@@ -94,7 +102,7 @@ from app.engine.presence import (
     resolve_logout,
 )
 from app.engine.respawn import respawn_due_monsters
-from app.engine.state import ActionSnapshot, GroupActionSnapshot, TradeActionSnapshot
+from app.engine.state import ActionSnapshot, GroupActionSnapshot, PlayerRef, TradeActionSnapshot
 from app.engine.trade import (
     resolve_trade_accept,
     resolve_trade_cancel,
@@ -219,9 +227,18 @@ class ActionService:
         if isinstance(action, TRADE_ACTIONS):
             return await self._trade_action(player_id, action)
 
+        recipient = (
+            await self._online_player(action.player_name)
+            if isinstance(action, WhisperAction)
+            else None
+        )
+
         def resolve(
             snapshot: ActionSnapshot, _actor: Player, now: datetime, rng: random.Random
         ) -> ActionResult:
+            if isinstance(action, WhisperAction):
+                args = (snapshot, self.content, self.content.rules, now, rng)
+                return resolve_whisper(*args, recipient, action.text)
             return self._dispatch(action, snapshot, now, rng)
 
         outcome = await self._run(
@@ -294,6 +311,21 @@ class ActionService:
             return resolve_group_leave(snapshot, self.content, self.content.rules, now, rng)
 
         return await self._run(player_id, self._group_loader(), resolve, CLEANUP)
+
+    async def _online_player(self, name: str) -> PlayerRef | None:
+        """An online character by name (case-insensitive). Unlocked: a whisper changes no
+        state, and one that reaches somebody just logging out only ends up in their log."""
+        async with self.sessions() as session:
+            row = (
+                await session.execute(
+                    select(col(Player.id), col(Player.name)).where(
+                        func.lower(col(Player.name)) == name.strip().lower(),
+                        col(Player.online),
+                        col(Player.deleted_at).is_(None),
+                    )
+                )
+            ).first()
+        return PlayerRef(id=row.id, name=row.name) if row is not None else None
 
     async def _leave_group_quietly(self, player_id: UUID) -> None:
         """Best effort after a logout; the world ticker removes offline members it missed."""
@@ -606,6 +638,8 @@ class ActionService:
                 return resolve_flee(*args)
             case SayAction():
                 return resolve_say(*args, action.text)
+            case GroupSayAction():
+                return resolve_group_say(*args, action.text)
             case LookAction():
                 return resolve_look(*args)
             case RespawnAction():

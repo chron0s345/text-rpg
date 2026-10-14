@@ -32,6 +32,13 @@ class InventoryItemState(BaseModel):
     equipped_slot: EquipSlot | None = None
 
 
+class PlayerRef(BaseModel):
+    """Another character known only by id and name (e.g. the recipient of a whisper)."""
+
+    id: UUID
+    name: str
+
+
 class PlayerSnapshot(BaseModel):
     id: UUID
     account_id: UUID

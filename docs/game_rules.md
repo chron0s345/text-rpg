@@ -86,6 +86,16 @@ Danach kannst du nur noch **am Checkpoint erwachen** – mit vollen HP.
 - Verlässt die Leitung die Gruppe, übernimmt das am längsten dabeiseiende Mitglied. Bleibt nur eine Person übrig, löst sich die Gruppe auf.
 - Im Gruppenpanel siehst du HP und Aufenthaltsort der anderen. Beim Ausloggen verlässt du die Gruppe.
 
+## Chat
+
+Im Chatfeld unter dem Log:
+
+- **Text** sagst du im Raum, alle Anwesenden hören es.
+- **`/g Text`** geht an deine Gruppe, egal wo die anderen gerade sind.
+- **`/w Name Text`** flüstert einem Charakter, der gerade im Spiel ist, egal wo. Nur ihr beide seht es.
+
+Gruppenchat und Flüstern gehen auch, wenn du tot bist. Chatten zählt wie jede Aktion gegen den Mindestabstand zwischen Aktionen.
+
 ## Handel
 
 - **Anfrage** an jemanden im selben Raum; sie läuft nach `trade.request_ttl_seconds` Sekunden ab. Nicht zwischen Charakteren desselben Accounts.
