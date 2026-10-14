@@ -759,6 +759,10 @@ Umsetzung (`engine/groups.py`, `Repository.load_group_snapshot`):
 - Kill-Credit bleibt bei der markierenden Partei: Wird eine markierende Gruppe mitten im Kampf aufgelöst, zählen ihre ehemaligen Mitglieder, die gegen dieses Monster gekämpft haben (Kampfteilnahme mit diesem `party_key`), weiter als Partei. Wer eine bestehende Gruppe mitten im Kampf verlässt, bekommt von deren Beute nichts mehr (XP nach Schaden aber schon).
 - DB-Regel: Mitglieder haben ein `group_joined_at` (Migration `0002`: `group_id IS NULL OR group_joined_at IS NOT NULL`). Die frühere Regel „beide oder keins“ ließ das `ON DELETE SET NULL` beim Löschen einer Gruppe auf Datenbankebene scheitern.
 
+### Rasten
+
+- Spieler regenerieren nicht. `actions.resolve_rest` heilt in sicheren Räumen (`RoomTemplate.safe`) auf die effektiven max. HP, kostenlos und nur außerhalb des Kampfes; anderswo wird abgelehnt. Unterwegs heilen nur Verbrauchsgegenstände, Stufenaufstieg und Erwachen.
+
 ### Tod & Checkpoint
 
 - Betritt ein Charakter einen Raum mit `checkpoint: true`, wird `checkpoint_room_id` automatisch gesetzt, mit einer Log-Meldung ("Du fühlst dich mit diesem Ort verbunden.").
@@ -1139,6 +1143,23 @@ Umsetzung (`app/api/views.py`, `app/web/`, `app/services/view_service.py`):
 | API | Auth, Charakterauswahl, Logout-Bestätigung, Rate Limit | `httpx.AsyncClient` |
 
 Der Content-Test läuft in CI, damit kaputte YAML-Dateien nie gemerged werden.
+
+### Progressions-Simulation
+
+`app/sim/progression.py` lässt einen Bot einen Charakter von Stufe 1 bis zur höchsten Stufe spielen, mit der echten Engine und den echten Daten. Die Kämpfe laufen über `resolve_attack`, also mit Schaden, XP, Stufenaufstieg, Beute und Tod; das Rasten über `resolve_rest`. Drumherum steht ein einfaches, gieriges Spielermodell:
+
+- Der Bot jagt gewöhnliche Monster der höchsten Stufe, die er hat; seltene Formen kommen mit ihrer echten Chance.
+- Unter 60 % HP rastet er.
+- Er verkauft alles, was er nicht trägt, und kauft pro Platz die Ausrüstung mit dem besten Zugewinn pro Gold.
+- Wege kosten nichts, Aufträge und Handwerk bleiben außen vor. Das Ergebnis ist also die reine Jagd-Untergrenze.
+
+- `python -m app.sim [--seed N] [--runs N]` gibt pro Stufe Kämpfe, Tode, HP-Verlust pro Kampf, Rasten und Gold aus.
+- `tests/sim/test_progression.py` prüft mit drei Seeds:
+  - Die höchste Stufe wird in 150–450 Kämpfen erreicht.
+  - Es gibt höchstens 5 Tode.
+  - Keine Stufe ist eine Wand: höchstens 70 % HP pro Kampf, höchstens 40 Kämpfe pro Stufe.
+  - Gold wird tatsächlich zu Ausrüstung.
+- Der Balance-Test rechnet mit angenommener Ausrüstung; die Simulation prüft, ob man sie sich auch leisten kann.
 
 Nebenläufigkeitsfälle ohne eigenen Platz in den Feature-Tests stehen in `tests/services/test_concurrency_cases.py`. Jeder Fall läuft in beiden Reihenfolgen: Eine dritte Transaktion hält die umkämpfte Zeile, beide Operationen reihen sich in die Sperrwarteschlange ein, dann wird freigegeben. PostgreSQL vergibt Zeilensperren in Warteschlangenreihenfolge, daher wird pro Reihenfolge das exakte serielle Ergebnis geprüft. Betreffen beide Operationen denselben Charakter (z. B. Überfall durch den Ticker und `move`), wartet die zweite nicht, sondern wird über den Claim pro Spieler abgewiesen (`BUSY`); der Ticker würfelt beim nächsten Tick erneut.
 

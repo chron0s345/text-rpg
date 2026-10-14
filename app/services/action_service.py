@@ -55,6 +55,7 @@ from app.api.schemas import (
     QuestAcceptAction,
     QuestTurnInAction,
     RespawnAction,
+    RestAction,
     SayAction,
     SellAction,
     TradeAcceptAction,
@@ -76,6 +77,7 @@ from app.engine.actions import (
     resolve_inspect,
     resolve_look,
     resolve_respawn,
+    resolve_rest,
     resolve_say,
     resolve_whisper,
 )
@@ -650,6 +652,8 @@ class ActionService:
                 return resolve_group_say(*args, action.text)
             case LookAction():
                 return resolve_look(*args)
+            case RestAction():
+                return resolve_rest(*args)
             case RespawnAction():
                 return resolve_respawn(*args)
             case InspectAction():

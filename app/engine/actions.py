@@ -147,6 +147,32 @@ def resolve_inspect(
     return builder.build()
 
 
+def resolve_rest(
+    snapshot: ActionSnapshot,
+    content: ContentRegistry,
+    rules: Rules,
+    now: datetime,
+    rng: random.Random,
+) -> ActionResult:
+    """Players do not regenerate; in a safe room (town, camps, refuges) resting heals fully,
+    for free. Out in the wild only food and potions heal."""
+    actor = snapshot.actor
+    if denied := check_state("rest", actor):
+        return denied
+    room = content.get_room(actor.current_room_id)
+    if not room.safe:
+        return rejected("Rasten kannst du nur an einem sicheren Ort.")
+    max_hp = stats_of(actor, content.items).max_hp
+    if actor.hp >= max_hp:
+        return rejected("Du bist schon bei vollen Kräften.")
+    actor.hp = max_hp
+    builder = ResultBuilder(actor_id=actor.id)
+    builder.update_player(actor.id, hp=max_hp)
+    builder.to_actor("player.rested", f"Du rastest in {room.name} und kommst wieder zu Kräften.")
+    report_hp(builder, actor)
+    return builder.build()
+
+
 def resolve_look(
     snapshot: ActionSnapshot,
     content: ContentRegistry,

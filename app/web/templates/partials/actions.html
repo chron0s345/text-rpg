@@ -8,6 +8,9 @@
     {% endfor %}
     <button hx-post="/ui/actions" hx-vals='{"type": "flee"}'>Fliehen</button>
   {% endif %}
+  {% if p.state == 'exploring' and view.room.safe and p.hp < p.max_hp %}
+  <button class="primary" hx-post="/ui/actions" hx-vals='{"type": "rest"}'>Rasten</button>
+  {% endif %}
   <button hx-post="/ui/actions" hx-vals='{"type": "look"}'>Umsehen</button>
   {% if p.state == 'in_combat' %}
   <button class="danger subtle" hx-post="/ui/actions" hx-vals='{"type": "logout", "confirm_death": "true"}'

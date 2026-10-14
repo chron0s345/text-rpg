@@ -483,7 +483,7 @@
   name: "Feuersalamander"
   level: 11
   max_hp: 110
-  attack: 61
+  attack: 55
   defense: 18
   xp_reward: 280
   gold_reward: [8, 20]
@@ -505,7 +505,7 @@
   name: "Aschegeist"
   level: 11
   max_hp: 95
-  attack: 61
+  attack: 55
   defense: 20
   xp_reward: 300
   gold_reward: [10, 24]
@@ -1141,7 +1141,7 @@
   name: "Tiefseeräuber"
   level: 11
   max_hp: 115
-  attack: 61
+  attack: 55
   defense: 19
   xp_reward: 290
   gold_reward: [10, 25]

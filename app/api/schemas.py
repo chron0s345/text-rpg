@@ -166,6 +166,10 @@ class LookAction(BaseModel):
     type: Literal["look"] = "look"
 
 
+class RestAction(BaseModel):
+    type: Literal["rest"] = "rest"
+
+
 class InventoryAction(BaseModel):
     type: Literal["inventory"] = "inventory"
 
@@ -230,6 +234,7 @@ GameAction = Annotated[
     | SellAction
     | RespawnAction
     | LookAction
+    | RestAction
     | InventoryAction
     | QuestAcceptAction
     | QuestTurnInAction

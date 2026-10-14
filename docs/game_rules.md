@@ -95,22 +95,24 @@ Jeder Charakter hat **Lebenspunkte (HP)**, **Angriff** und **Verteidigung**. Die
 | Stufe | Erfahrung (XP) ab | Max. HP | Angriff | Verteidigung |
 |---|---|---|---|---|
 | 1 | 0 | 20 | 5 | 2 |
-| 2 | 100 | 26 | 7 | 3 |
-| 3 | 250 | 33 | 9 | 4 |
-| 4 | 500 | 42 | 12 | 5 |
-| 5 | 900 | 52 | 15 | 7 |
-| 6 | 1400 | 63 | 18 | 8 |
-| 7 | 2000 | 75 | 21 | 9 |
-| 8 | 2800 | 88 | 24 | 11 |
-| 9 | 3800 | 102 | 27 | 12 |
-| 10 | 5000 | 118 | 31 | 14 |
-| 11 | 6500 | 135 | 35 | 16 |
-| 12 | 8200 | 153 | 39 | 18 |
-| 13 | 10200 | 172 | 43 | 20 |
-| 14 | 12500 | 192 | 47 | 22 |
-| 15 | 15000 | 215 | 52 | 25 |
+| 2 | 300 | 26 | 7 | 3 |
+| 3 | 750 | 33 | 9 | 4 |
+| 4 | 1500 | 42 | 12 | 5 |
+| 5 | 2700 | 52 | 15 | 7 |
+| 6 | 4200 | 63 | 18 | 8 |
+| 7 | 6000 | 75 | 21 | 9 |
+| 8 | 8400 | 88 | 24 | 11 |
+| 9 | 11400 | 102 | 27 | 12 |
+| 10 | 15000 | 118 | 31 | 14 |
+| 11 | 19500 | 135 | 35 | 16 |
+| 12 | 24600 | 153 | 39 | 18 |
+| 13 | 30600 | 172 | 43 | 20 |
+| 14 | 37500 | 192 | 47 | 22 |
+| 15 | 45000 | 215 | 52 | 25 |
 
 Ein **Stufenaufstieg** heilt vollständig (inklusive der HP aus Ausrüstung). Reicht die Erfahrung für mehrere Stufen auf einmal, steigst du direkt bis zur höchsten erreichten auf.
+
+**Heilen:** Deine HP kommen nicht von selbst zurück. An einem **sicheren Ort** (Oakhaven, Lager, Zuflucht – auf der Karte grün umrandet) kannst du **rasten** und bist sofort wieder bei vollen Kräften, kostenlos. Unterwegs helfen nur Essen und Tränke. Stufenaufstieg und Erwachen nach dem Tod heilen ebenfalls vollständig.
 
 ## Kampf
 
