@@ -41,7 +41,7 @@
   <ul class="list">
     {% for f in r.floor_items %}
     <li>
-      <span>{% if f.icon %}<img src="/static/icons/{{ f.icon }}.svg" alt="" class="icon">{% endif %}{% if f.quantity != 1 %}{{ f.quantity }}× {% endif %}{{ f.name }}</span>
+      <span>{% if f.icon %}<img src="/static/icons/{{ f.icon }}.svg" alt="" class="icon">{% endif %}{% if f.quantity != 1 %}{{ f.quantity }}× {% endif %}<button class="link item-name" hx-post="/ui/actions" hx-vals='{{ {"type": "inspect", "item_id": f.item_id} | tojson }}' title="Ansehen">{{ f.name }}</button></span>
       {% if p.state == 'exploring' %}
       <button hx-post="/ui/actions" hx-vals='{{ {"type": "pick_up", "floor_item_id": f.id | string} | tojson }}'>Aufheben</button>
       {% endif %}

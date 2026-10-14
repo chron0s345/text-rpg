@@ -147,7 +147,7 @@ Danach kannst du nur noch **am Checkpoint erwachen** – mit vollen HP.
 
 - `inventory.slots` Plätze. Jeder nicht ausgerüstete Stapel belegt einen Platz, egal wie viele Stück er enthält. Ausgerüstetes belegt keinen Platz, Gold auch nicht.
 - Stapelbare Gegenstände füllen zuerst vorhandene Stapel auf (bis zur Stapelgrenze des Gegenstands, z. B. 5 Heiltränke).
-- **Ausrüstung** trägst du an acht Plätzen gleichzeitig: Waffe, Schild, Kopf, Brust, Beine, Füße, Amulett und Ring, je ein Stück. Ein neues Stück ersetzt das alte am selben Platz, das alte wandert in den Rucksack. Was ein Gegenstand bringt (z. B. „Waffe · +3 Angriff“, „heilt 15“), steht im Inventar, in der Bank und beim Händler unter seinem Namen.
+- **Ausrüstung** trägst du an acht Plätzen gleichzeitig: Waffe, Schild, Kopf, Brust, Beine, Füße, Amulett und Ring, je ein Stück. Ein neues Stück ersetzt das alte am selben Platz, das alte wandert in den Rucksack. Was ein Gegenstand bringt (z. B. „Waffe · +3 Angriff“, „heilt 15“), steht im Inventar, in der Bank und beim Händler unter seinem Namen. Ein Klick auf den Namen (auch am Boden und im Laden) schreibt die ganze Beschreibung ins Log.
 - **Schilde, Amulette und Ringe** gibt es bei jedem Ausrüstungshändler entlang des Weges (Brandt, Brunhild, Ilva, der Händler ohne Gesicht) und beim Goldschmied in Oakhaven. Die besten Stücke lassen nur die Bosse fallen.
 - **Taschen** werden ausgerüstet (bis zu `inventory.bag_slots` gleichzeitig) und geben zusätzliche Plätze (Kleine Tasche: +2). Eine Tasche ablegen geht nur, wenn danach noch alles passt.
 - Passt beim Aufheben nicht alles, nimmst du so viel, wie passt; der Rest bleibt liegen.

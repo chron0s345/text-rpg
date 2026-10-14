@@ -169,6 +169,12 @@ async def test_shop_and_bank_views(api: Api) -> None:
         assert '<small class="item-summary">heilt 15</small>' in page  # potion offer
         assert '<small class="item-summary">Tasche · +2 Plätze</small>' in page  # small bag
         assert '<small class="item-summary">heilt 6</small>' in bought.text  # bread carried
+        # every item name can be inspected: description and numbers go into the log
+        assert '{"item_id": "healing_potion", "type": "inspect"}' in page  # shop offer
+        api.clock.advance(seconds=1)
+        inspected = await client.post("/ui/actions", data={"type": "inspect", "item_id": "bread"})
+        assert '<li class="log-item-inspected">Frisches Brot: ' in inspected.text
+        assert "(heilt 6)</li>" in inspected.text
 
         async with api.committed.session() as db, db.begin():
             await db.execute(

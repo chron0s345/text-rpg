@@ -495,7 +495,7 @@ Unabhängig davon ist ein Charakter `online` oder offline.
 | buy / sell | ✓ (nur beim Händler im Raum) | ✗ | ✗ |
 | respawn | ✗ | ✗ | ✓ |
 | logout | ✓ | ✓ (mit Bestätigung → Tod) | ✓ |
-| look / inventory | ✓ | ✓ | ✓ |
+| look / inventory / inspect | ✓ | ✓ | ✓ |
 
 ### Engine-Schnittstelle
 
@@ -926,7 +926,7 @@ class DropAction(BaseModel):
     quantity: PositiveInt | None = None  # None = ganzer Stapel
 
 
-# ... flee, use_item, equip, unequip, inventory,
+# ... flee, use_item, equip, unequip, inventory, inspect (item_id: Beschreibung + Werte ins Log),
 #     group_leave, group_kick, respawn, look,
 #     trade_request, trade_accept, trade_offer_gold, trade_remove_item, trade_cancel,
 #     bank_deposit, bank_withdraw, buy, sell
