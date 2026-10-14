@@ -422,6 +422,14 @@ class LogEntry(SQLModel, table=True):
     created_at: datetime
     kind: str
     text: str
+
+
+class LoginThrottle(SQLModel, table=True):  # Login-Limit, siehe "Fehler & Schutz"
+    key: str  # "user:<name>", "ip:<adresse>", "register:<adresse>"
+    attempts: int
+    window_started_at: datetime
+    locked_until: datetime | None
+    expires_at: datetime  # danach irrelevant, der World-Ticker löscht die Zeile
 ```
 
 Ein Seed-Befehl erzeugt `MonsterInstance`- und Spawn-`FloorItem`-Einträge aus den Templates und gleicht bei Content-Änderungen fehlende Instanzen ab, ohne bestehende anzufassen.
@@ -692,7 +700,7 @@ Ein Hintergrund-Task läuft alle `ticker_interval_seconds` und erledigt in getre
 3. Floor-Items aufräumen
 4. Abgelaufene Disconnect-Fristen verarbeiten
 5. Überfall-Würfe für verweilende Spieler
-6. Abgelaufene Gruppeneinladungen und Handelsanfragen löschen
+6. Abgelaufene Gruppeneinladungen, Handelsanfragen und nicht mehr relevante Login-Zähler löschen
 
 Bei mehreren Server-Prozessen holt sich der Ticker vorher ein PostgreSQL Advisory Lock (`pg_try_advisory_lock`), sodass nur ein Prozess tickt. Die Entscheidungen ("ist fällig", "wird überfallen") liegen in der Engine; der Ticker orchestriert nur.
 
@@ -904,6 +912,8 @@ Action = Annotated[
 - Aktion im aktuellen Zustand nicht erlaubt → kein HTTP-Fehler, sondern Log-Meldung.
 - `logout` im Kampf ohne `confirm_death` → Antwort mit Bestätigungsdialog.
 - Rate Limit über `min_action_interval_ms`.
+- **Login- und Registrierungs-Limit** (`services/login_guard.py`, Tabelle `login_throttle`): Jeder Login-Versuch zählt gegen den Benutzernamen (ohne Groß-/Kleinschreibung) und gegen die Client-Adresse, jede Registrierung gegen die Adresse. Wer sein Kontingent pro Zeitfenster aufgebraucht hat, wird für die Sperrzeit abgewiesen: `429` mit `Retry-After` (Formular: Hinweis auf der Seite). Abgewiesen wird **vor** dem argon2-Hash, sodass Versuche weder Passwörter testen noch CPU binden. Die Zähler liegen in der Datenbank (für alle Worker gemeinsam); jeder Versuch reserviert unter Zeilensperre, daher kommen auch viele parallele Anfragen nicht über das Limit. Ein erfolgreicher Login setzt den Namen zurück und gibt der Adresse den Versuch zurück. Bekannter Kompromiss: Wer absichtlich falsch rät, sperrt einen fremden Namen für die (kurze) Sperrzeit. Einstellungen (Umgebung): `LOGIN_ATTEMPTS_PER_USER` (5), `LOGIN_ATTEMPTS_PER_ADDRESS` (30), `REGISTRATIONS_PER_ADDRESS` (10), `LOGIN_WINDOW_SECONDS` (900), `LOGIN_LOCKOUT_SECONDS` (900).
+- CSRF: Das Session-Cookie ist `SameSite=Lax`, Browser senden es also nicht bei Formular-POSTs von fremden Seiten; die JSON-Routen erzwingen bei fremden Origins zusätzlich einen CORS-Preflight.
 - `say`-Texte und Charakternamen werden beim Rendern escaped (Jinja-Autoescape). Charakternamen werden zusätzlich auf erlaubte Zeichen beschränkt.
 
 ## Frontend
@@ -962,6 +972,7 @@ Nebenläufigkeitsfälle ohne eigenen Platz in den Feature-Tests stehen in `tests
 
 - Ein Container für die App (uvicorn, mehrere Worker möglich), ein Container für PostgreSQL.
 - Reverse Proxy (z. B. Caddy oder nginx) muss für `/stream` Buffering deaktivieren und lange Verbindungen erlauben.
+- Hinter dem Proxy uvicorn mit `--proxy-headers --forwarded-allow-ips <Proxy-IP>` starten, sonst haben alle Clients die Adresse des Proxys und teilen sich ein Login-Limit.
 - Content-Änderungen erfordern einen Neustart; danach Seed-Befehl ausführen.
 
 ## Offene Entscheidungen

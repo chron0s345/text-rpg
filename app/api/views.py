@@ -15,6 +15,7 @@ from fastapi import APIRouter, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from pydantic import TypeAdapter, ValidationError
 
+from app.api.auth import client_address
 from app.api.deps import Services, ServicesDep, session_player_id
 from app.api.schemas import GameAction, LogoutAction
 from app.engine.events import GameEvent
@@ -25,6 +26,7 @@ from app.services.account_service import (
     CharacterOnlineError,
 )
 from app.services.action_service import NotPlayingError, RetryLimitExceededError
+from app.services.login_guard import TooManyAttemptsError
 from app.services.session_service import ConfirmDeathRequiredError, SessionConflictError
 from app.web.render import log_line, templates
 
@@ -65,11 +67,27 @@ async def _form(request: Request) -> dict[str, str]:
     return {key: value for key, value in form.items() if isinstance(value, str)}
 
 
+def _too_many(request: Request, exc: TooManyAttemptsError, username: str) -> Response:
+    response = templates.TemplateResponse(
+        request,
+        "welcome.html",
+        {"error": exc.message, "username": username},
+        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+    )
+    response.headers["Retry-After"] = str(max(1, int(exc.retry_after.total_seconds())))
+    return response
+
+
 @router.post("/welcome/login")
 async def welcome_login(request: Request, services: ServicesDep) -> Response:
     form = await _form(request)
     username = form.get("username", "")[:32]
-    account = await services.accounts.authenticate(username, form.get("password", "")[:128])
+    try:
+        account = await services.accounts.login(
+            username, form.get("password", "")[:128], address=client_address(request)
+        )
+    except TooManyAttemptsError as exc:
+        return _too_many(request, exc, username)
     if account is None:
         return templates.TemplateResponse(
             request,
@@ -87,8 +105,12 @@ async def welcome_register(request: Request, services: ServicesDep) -> Response:
     form = await _form(request)
     try:
         account = await services.accounts.register(
-            form.get("username", "")[:32], form.get("password", "")[:128]
+            form.get("username", "")[:32],
+            form.get("password", "")[:128],
+            address=client_address(request),
         )
+    except TooManyAttemptsError as exc:
+        return _too_many(request, exc, "")
     except AccountError as exc:
         return templates.TemplateResponse(
             request, "welcome.html", {"error": str(exc)}, status_code=status.HTTP_400_BAD_REQUEST

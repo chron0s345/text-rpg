@@ -24,6 +24,7 @@ from sqlmodel import col
 from app.content.registry import ContentRegistry
 from app.db.models import Account, Player
 from app.services.action_service import utc_now
+from app.services.login_guard import LoginGuard
 
 # Letters only (incl. German umlauts): names show up in every room and chat line.
 CHARACTER_NAME: Final = re.compile(r"[A-Za-zÄÖÜäöüß]{3,20}")
@@ -89,9 +90,12 @@ class AccountService:
         *,
         hasher: PasswordHasher | None = None,
         clock: Callable[[], datetime] = utc_now,
+        guard: LoginGuard | None = None,
     ) -> None:
         self.sessions = sessions
         self.content = content
+        # limits login/registration attempts (None: unlimited, e.g. in service tests)
+        self.guard = guard
         self.hasher = hasher or PasswordHasher()
         self.clock = clock
         # verified against when the username does not exist: same cost, no user enumeration
@@ -99,13 +103,18 @@ class AccountService:
 
     # --- accounts ---------------------------------------------------------------------------
 
-    async def register(self, username: str, password: str) -> Account:
+    async def register(
+        self, username: str, password: str, *, address: str | None = None
+    ) -> Account:
+        """``address``: the client, for the registration limit per address."""
         if not USERNAME.fullmatch(username):
             raise InvalidInputError("Benutzername: 3–32 Zeichen, nur Buchstaben, Ziffern und _ . -")
         if not MIN_PASSWORD_LENGTH <= len(password) <= MAX_PASSWORD_LENGTH:
             raise InvalidInputError(
                 f"Passwort: {MIN_PASSWORD_LENGTH}–{MAX_PASSWORD_LENGTH} Zeichen."
             )
+        if self.guard is not None:
+            await self.guard.registration_attempt(address)  # before the expensive hash
         password_hash = await asyncio.to_thread(self.hasher.hash, password)
         account = Account(username=username, password_hash=password_hash, created_at=self.clock())
         try:
@@ -113,6 +122,18 @@ class AccountService:
                 session.add(account)
         except IntegrityError as exc:  # unique, case-insensitive
             raise UsernameTakenError("Dieser Benutzername ist vergeben.") from exc
+        return account
+
+    async def login(
+        self, username: str, password: str, *, address: str | None = None
+    ) -> Account | None:
+        """``authenticate`` behind the attempt limit; raises ``TooManyAttemptsError`` before
+        any hashing when the user name or the client address ran out of attempts."""
+        if self.guard is not None:
+            await self.guard.login_attempt(username, address)
+        account = await self.authenticate(username, password)
+        if account is not None and self.guard is not None:
+            await self.guard.login_succeeded(username, address)
         return account
 
     async def authenticate(self, username: str, password: str) -> Account | None:
