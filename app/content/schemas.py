@@ -13,7 +13,7 @@ from pydantic import (
 
 Direction = Literal["north", "south", "east", "west", "up", "down"]
 ItemKind = Literal["weapon", "armor", "consumable", "bag", "misc"]
-EquipSlot = Literal["weapon", "head", "chest", "legs", "feet", "bag"]
+EquipSlot = Literal["weapon", "offhand", "head", "chest", "legs", "feet", "neck", "ring", "bag"]
 PlayerState = Literal["exploring", "in_combat", "dead"]
 Probability = Annotated[float, Field(ge=0.0, le=1.0)]
 

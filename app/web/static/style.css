@@ -116,3 +116,4 @@ details.card[open] summary { margin-bottom: .75rem; }
   .game { height: auto; grid-template-columns: 1fr; grid-template-areas: "status" "center" "left" "right"; }
   .log { min-height: 50vh; max-height: 60vh; }
 }
+.item-summary { display: block; color: var(--muted); font-size: .8rem; }

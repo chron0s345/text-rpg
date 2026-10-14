@@ -21,6 +21,7 @@ from app.engine.state import (
     InventoryItemState,
     PlayerSnapshot,
 )
+from app.engine.stats import stats_of
 from tests.engine.factories import (
     NOW,
     ROOM,
@@ -93,6 +94,26 @@ def test_equip_swaps_with_item_in_same_slot(content: ContentRegistry, rules: Rul
         "Du legst Rostiger Dolch ab.",
         "Du rüstest Rostiger Dolch aus.",
     ]
+
+
+def test_every_slot_is_worn_at_once_and_adds_up(content: ContentRegistry, rules: Rules) -> None:
+    actor = make_player()
+    worn = [
+        give(actor, item)
+        for item in ("rusty_dagger", "leather_cap", "leather_armor", "leather_boots")
+        + ("buckler", "amulet", "ring")
+    ]
+    for entry in worn:
+        result = resolve_equip(ActionSnapshot(actor=actor), content, rules, NOW, RNG, entry.id)
+        assert actor_texts(result)[-1].startswith("Du rüstest"), actor_texts(result)
+
+    slots = sorted(i.equipped_slot or "" for i in actor.inventory)
+    assert slots == sorted(["weapon", "head", "chest", "feet", "offhand", "neck", "ring"])
+    stats = stats_of(actor, content.items)
+    base = (actor.base_max_hp, actor.base_attack, actor.base_defense)
+    # dagger +2 / ring +3 attack; cap 1, leather 2, boots 1, buckler 2 defense;
+    # amulet +5 / ring +4 max HP
+    assert (stats.max_hp, stats.attack, stats.defense) == (base[0] + 9, base[1] + 5, base[2] + 6)
 
 
 def test_equip_one_of_a_stack_splits_it(content: ContentRegistry, rules: Rules) -> None:
@@ -200,7 +221,7 @@ def test_unequip_bag_only_when_everything_still_fits(
 
 def test_unequip_caps_hp_to_new_maximum(content: ContentRegistry, rules: Rules) -> None:
     actor = make_player(hp=25)
-    amulet = give(actor, "amulet", slot="head")
+    amulet = give(actor, "amulet", slot="neck")
 
     result = resolve_unequip(ActionSnapshot(actor=actor), content, rules, NOW, RNG, amulet.id)
 
