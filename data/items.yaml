@@ -199,3 +199,213 @@
   sellable: true
   stackable: true
   max_stack: 5
+
+# --- Grauzahn-Gebirge & Tiefen (Stufe 6–10) ---
+
+- id: leather_leggings
+  name: "Lederbeinlinge"
+  description: "Weiche Lederhosen mit eingenähten Polstern."
+  kind: armor
+  slot: legs
+  icon: "armor"
+  value: 15
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 1
+
+- id: iron_greaves
+  name: "Eiserne Beinschienen"
+  description: "Zwergische Schienen, die Knie und Schienbeine schützen."
+  kind: armor
+  slot: legs
+  icon: "armor"
+  value: 50
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 2
+
+- id: iron_helm
+  name: "Eisenhelm"
+  description: "Ein schwerer Helm mit Nasenschutz, geschmiedet in Khazdur."
+  kind: armor
+  slot: head
+  icon: "armor"
+  value: 45
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 2
+
+- id: iron_boots
+  name: "Eisenbeschlagene Stiefel"
+  description: "Stiefel mit Stahlkappen. Schwer, aber nichts dringt durch."
+  kind: armor
+  slot: feet
+  icon: "armor"
+  value: 45
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 2
+
+- id: dwarven_plate
+  name: "Zwergischer Plattenpanzer"
+  description: "Ineinandergreifende Stahlplatten, so fein gearbeitet, dass sie kaum klirren."
+  kind: armor
+  slot: chest
+  icon: "armor"
+  value: 260
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 6
+
+- id: war_axe
+  name: "Kriegsaxt"
+  description: "Eine zweischneidige Axt mit Eichenstiel. Die Klinge trägt zwergische Runen."
+  kind: weapon
+  slot: weapon
+  icon: "axe"
+  value: 180
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 8
+
+- id: runed_hammer
+  name: "Runenhammer"
+  description: "Ein Hammer, dessen Runen bei jedem Schlag kurz aufglühen."
+  kind: weapon
+  slot: weapon
+  icon: "axe"
+  value: 320
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 10
+
+- id: frost_blade
+  name: "Frostklinge"
+  description: "Aus einer Kralle des Eisdrachen geschmiedet. Die Klinge ist immer kalt wie der Gletscher."
+  kind: weapon
+  slot: weapon
+  icon: "sword"
+  value: 500
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 12
+
+- id: elixir
+  name: "Elixier des Lebens"
+  description: "Golden schimmernd und schwer wie Honig. Stellt sofort 60 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "potion"
+  value: 90
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - type: heal
+      amount: 60
+
+- id: frost_berries
+  name: "Frostbeeren"
+  description: "Leuchtend rote Beeren, die im Eis reifen. Stellen 8 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "herb"
+  value: 3
+  sellable: true
+  stackable: true
+  max_stack: 10
+  effects:
+    - type: heal
+      amount: 8
+
+- id: harpy_feather
+  name: "Harpyienfeder"
+  description: "Eine lange, stahlgraue Schwungfeder. Pfeilmacher zahlen gut dafür."
+  kind: misc
+  icon: "trophy"
+  value: 8
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: frost_pelt
+  name: "Frostwolfpelz"
+  description: "Dichtes, silbrig weißes Fell. Wärmt selbst im Gletscherwind."
+  kind: misc
+  icon: "trophy"
+  value: 14
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: ice_shard
+  name: "Ewiges Eis"
+  description: "Ein Splitter, der nicht schmilzt, egal wie warm es ist."
+  kind: misc
+  icon: "trophy"
+  value: 12
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: drake_scale
+  name: "Drachenschuppe"
+  description: "Eine handtellergroße Schuppe, hart wie Stahl und blau wie Gletschereis."
+  kind: misc
+  icon: "trophy"
+  value: 60
+  sellable: true
+  stackable: true
+  max_stack: 5
+
+- id: ghoul_claw
+  name: "Ghulkralle"
+  description: "Schwarz, gekrümmt und unangenehm scharf."
+  kind: misc
+  icon: "trophy"
+  value: 10
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: spider_silk
+  name: "Spinnenseide"
+  description: "Ein Strang reißfester Seide. Schneider in Oakhaven reißen sich darum."
+  kind: misc
+  icon: "trophy"
+  value: 9
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: queen_fang
+  name: "Giftzahn der Königin"
+  description: "Ein Giftzahn so lang wie ein Dolch. Er glänzt noch feucht."
+  kind: misc
+  icon: "trophy"
+  value: 45
+  sellable: true
+  stackable: true
+  max_stack: 5

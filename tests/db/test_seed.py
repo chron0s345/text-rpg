@@ -26,6 +26,14 @@ def wanted_monsters(content: ContentRegistry) -> Counter[tuple[str, str]]:
     return wanted
 
 
+def wanted_items(content: ContentRegistry) -> list[tuple[str, str, int]]:
+    return [
+        (room.id, rule.item_id, rule.quantity)
+        for room in content.rooms.values()
+        for rule in room.items
+    ]
+
+
 # --- pure planning (no database) ---------------------------------------------------------
 
 
@@ -34,13 +42,13 @@ def test_plan_on_empty_world(content: ContentRegistry) -> None:
     created = Counter((m.room_id, m.monster_id) for m in plan.monsters)
     assert created == wanted_monsters(content)
     assert all(m.hp == content.get_monster(m.monster_id).max_hp and m.alive for m in plan.monsters)
+    items = wanted_items(content)
+    assert len(items) >= 2
     assert {(f.room_id, f.item_id, f.quantity, f.source) for f in plan.floor_items} == {
-        ("goblin_camp", "bread", 2, "spawn"),
-        ("bog_path", "bog_herb", 2, "spawn"),
+        (*item, "spawn") for item in items
     }
     assert [(s.room_id, s.item_id) for s in plan.spawn_states] == [
-        ("goblin_camp", "bread"),
-        ("bog_path", "bog_herb"),
+        (room, item) for room, item, _ in items
     ]
 
 
@@ -48,7 +56,7 @@ def test_plan_only_fills_gaps(content: ContentRegistry) -> None:
     existing = dict(wanted_monsters(content))
     existing[("goblin_camp", "goblin")] = 1  # one of two goblins missing
     existing[("dark_forest", "wolf")] = 5  # more than wanted: never removed
-    plan = plan_seed(content, existing, {("goblin_camp", "bread"), ("bog_path", "bog_herb")})
+    plan = plan_seed(content, existing, {(room, item) for room, item, _ in wanted_items(content)})
     assert [(m.room_id, m.monster_id) for m in plan.monsters] == [("goblin_camp", "goblin")]
     assert plan.floor_items == [] and plan.spawn_states == []
 

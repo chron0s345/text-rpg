@@ -159,3 +159,161 @@
       chance: 0.1
       min_qty: 1
       max_qty: 1
+
+# --- Grauzahn-Gebirge ---
+
+- id: mountain_harpy
+  name: "Felsharpyie"
+  level: 6
+  max_hp: 48
+  attack: 19
+  defense: 7
+  xp_reward: 110
+  gold_reward: [5, 14]
+  respawn_seconds: 120
+  regen:
+    delay_seconds: 15
+    hp_per_second: 2.0
+  ambush:
+    chance_on_enter: 0.2
+    chance_per_tick: 0.05
+    max_level_difference: 2
+  loot_table:
+    - item_id: harpy_feather
+      chance: 0.7
+      min_qty: 1
+      max_qty: 2
+    - item_id: leather_leggings
+      chance: 0.06
+
+- id: frost_wolf
+  name: "Frostwolf"
+  level: 7
+  max_hp: 58
+  attack: 22
+  defense: 9
+  xp_reward: 150
+  gold_reward: [0, 0]
+  respawn_seconds: 120
+  regen:
+    delay_seconds: 15
+    hp_per_second: 2.5
+  ambush:
+    chance_on_enter: 0.25
+    chance_per_tick: 0.08
+    max_level_difference: 2
+  loot_table:
+    - item_id: frost_pelt
+      chance: 0.6
+    - item_id: iron_boots
+      chance: 0.05
+
+- id: ice_golem
+  name: "Eisgolem"
+  level: 8
+  max_hp: 90
+  attack: 25
+  defense: 13
+  xp_reward: 230
+  gold_reward: [10, 25]
+  respawn_seconds: 180
+  # langsam und stur: greift nicht von selbst an, heilt sich aber auch nicht
+  loot_table:
+    - item_id: ice_shard
+      chance: 0.8
+      min_qty: 1
+      max_qty: 2
+    - item_id: iron_helm
+      chance: 0.06
+    - item_id: runed_hammer
+      chance: 0.03
+
+- id: ice_drake
+  name: "Eisdrache Hrimfang"
+  level: 10
+  max_hp: 260
+  attack: 36
+  defense: 16
+  xp_reward: 900
+  gold_reward: [80, 160]
+  respawn_seconds: 900
+  regen:
+    delay_seconds: 20
+    hp_per_second: 5.0
+  loot_table:
+    - item_id: drake_scale
+      chance: 1.0
+    - item_id: elixir
+      chance: 0.5
+      min_qty: 1
+      max_qty: 2
+    - item_id: frost_blade
+      chance: 0.12
+
+# --- Die Tiefen ---
+
+- id: mine_ghoul
+  name: "Grubenghul"
+  level: 6
+  max_hp: 52
+  attack: 20
+  defense: 8
+  xp_reward: 120
+  gold_reward: [3, 10]
+  respawn_seconds: 120
+  regen:
+    delay_seconds: 15
+    hp_per_second: 2.0
+  ambush:
+    chance_on_enter: 0.2
+    chance_per_tick: 0.06
+    max_level_difference: 2
+  loot_table:
+    - item_id: ghoul_claw
+      chance: 0.6
+    - item_id: iron_greaves
+      chance: 0.05
+
+- id: cave_spider
+  name: "Höhlenspinne"
+  level: 7
+  max_hp: 50
+  attack: 23
+  defense: 8
+  xp_reward: 140
+  gold_reward: [0, 0]
+  respawn_seconds: 90
+  regen:
+    delay_seconds: 10
+    hp_per_second: 2.0
+  ambush:
+    chance_on_enter: 0.3
+    chance_per_tick: 0.1
+    max_level_difference: 2
+  loot_table:
+    - item_id: spider_silk
+      chance: 0.8
+      min_qty: 1
+      max_qty: 3
+    - item_id: greater_potion
+      chance: 0.08
+
+- id: spider_queen
+  name: "Spinnenkönigin Ysvara"
+  level: 9
+  max_hp: 190
+  attack: 34
+  defense: 13
+  xp_reward: 650
+  gold_reward: [40, 90]
+  respawn_seconds: 600
+  regen:
+    delay_seconds: 20
+    hp_per_second: 4.0
+  loot_table:
+    - item_id: queen_fang
+      chance: 1.0
+    - item_id: elixir
+      chance: 0.3
+    - item_id: war_axe
+      chance: 0.1

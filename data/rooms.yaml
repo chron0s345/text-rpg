@@ -120,6 +120,7 @@
   bank: false
   exits:
     west: bog_path
+    east: mountain_trail
   spawns: []
   items: []
 
@@ -159,7 +160,135 @@
   bank: false
   exits:
     up: ruins_hall
+    down: mine_watch
   spawns:
     - monster_id: cave_troll
+      count: 1
+  items: []
+
+# --- Grauzahn-Gebirge (Stufe 6–10), östlich des Lagerfeuers ---
+
+- id: mountain_trail
+  name: "Steiler Anstieg"
+  description: "Ein schmaler Pfad windet sich zwischen Felsblöcken nach oben. Über dir kreisen Schatten mit ledrigen Schwingen."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    west: bog_camp
+    north: dwarf_outpost
+  spawns:
+    - monster_id: mountain_harpy
+      count: 2
+  items: []
+
+- id: dwarf_outpost
+  name: "Zwergenposten Khazdur"
+  description: "Eine in den Fels gehauene Feste mit glühenden Kohlebecken. Zwerge in schweren Rüstungen nicken dir knapp zu."
+  safe: true
+  checkpoint: true
+  bank: true
+  exits:
+    south: mountain_trail
+    east: frost_gorge
+  spawns: []
+  items: []
+
+- id: frost_gorge
+  name: "Frostklamm"
+  description: "Eisige Winde heulen durch die enge Schlucht. Zwischen vereisten Felsen leuchten rote Beeren."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    west: dwarf_outpost
+    up: glacier_slope
+  spawns:
+    - monster_id: frost_wolf
+      count: 2
+  items:
+    - item_id: frost_berries
+      quantity: 3
+      respawn_seconds: 240
+
+- id: glacier_slope
+  name: "Gletscherhang"
+  description: "Blankes Eis, so weit das Auge reicht. Manche der Eisblöcke stehen auffällig aufrecht – und bewegen sich."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    down: frost_gorge
+    north: drake_lair
+  spawns:
+    - monster_id: ice_golem
+      count: 2
+  items: []
+
+- id: drake_lair
+  name: "Hort des Eisdrachen"
+  description: "Eine gewaltige Eishöhle, übersät mit Knochen und gefrorenem Gold. Aus der Tiefe dringt ein kalter, langsamer Atem."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    south: glacier_slope
+  spawns:
+    - monster_id: ice_drake
+      count: 1
+  items: []
+
+# --- Die Tiefen (Stufe 6–9), unter der Alten Mine ---
+
+- id: mine_watch
+  name: "Verlassene Grubenwache"
+  description: "Eine verbarrikadierte Kammer mit Pritschen und einer erloschenen Laterne. Hier ist man vor dem, was in den Stollen haust, sicher."
+  safe: true
+  checkpoint: true
+  bank: false
+  exits:
+    up: old_mine
+    east: deep_tunnels
+  spawns: []
+  items: []
+
+- id: deep_tunnels
+  name: "Tiefe Stollen"
+  description: "Die Stützbalken sind zersplittert, der Boden klebrig. Irgendwo schabt etwas mit langen Krallen über Stein."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    west: mine_watch
+    east: spider_grotto
+  spawns:
+    - monster_id: mine_ghoul
+      count: 2
+  items: []
+
+- id: spider_grotto
+  name: "Spinnengrotte"
+  description: "Dicke Seidenstränge spannen sich von Wand zu Wand. In den Netzen hängen eingesponnene Bündel, manche zucken noch."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    west: deep_tunnels
+    down: spider_nest
+  spawns:
+    - monster_id: cave_spider
+      count: 3
+  items: []
+
+- id: spider_nest
+  name: "Nest der Spinnenkönigin"
+  description: "Eine Kuppel aus Seide und Knochen. In ihrer Mitte thront ein Leib so groß wie ein Fuhrwerk, umgeben von glänzenden Augen."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    up: spider_grotto
+  spawns:
+    - monster_id: spider_queen
       count: 1
   items: []

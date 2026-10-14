@@ -28,6 +28,17 @@ Neue Charaktere starten auf Stufe 1 auf dem **Marktplatz von Oakhaven**.
 | Eingestürztes Tor (südlich des Moorpfads) | ein Skelettwächter |
 | Halle der Ruine | zwei Skelettwächter, eine Treppe führt hinab |
 | Alte Mine (unter der Halle) | der Höhlentroll |
+| Steiler Anstieg (östlich des Lagerfeuers) | zwei Felsharpyien |
+| Zwergenposten Khazdur (nördlich des Anstiegs) | sicher, Checkpoint, Bank, Waffenmeisterin Brunhild (Zwergenstahl, Elixiere) |
+| Frostklamm (östlich des Postens) | zwei Frostwölfe, Frostbeeren wachsen im Eis |
+| Gletscherhang (oberhalb der Klamm) | zwei Eisgolems |
+| Hort des Eisdrachen (nördlich des Hangs) | Eisdrache Hrimfang – nur für Gruppen |
+| Verlassene Grubenwache (unter der Mine) | sicher, Checkpoint |
+| Tiefe Stollen (östlich der Grubenwache) | zwei Grubenghule |
+| Spinnengrotte | drei Höhlenspinnen |
+| Nest der Spinnenkönigin (unter der Grotte) | Spinnenkönigin Ysvara – nur für Gruppen |
+
+Die Welt wird nach außen gefährlicher: Rund um Oakhaven und im Wald kommt man mit Stufe 1–3 zurecht, Moor, Ruine und Mine sind für Stufe 3–5. Das **Grauzahn-Gebirge** östlich des Moors und **die Tiefen** unter der Mine sind für Stufe 6–10; die beiden Bosse dort (Spinnenkönigin, Eisdrache) schafft man nur in der Gruppe oder mit vielen Tränken. Im Zwergenposten gibt es eine zweite Bank.
 
 In **sicheren Räumen** wird nicht gekämpft und niemand wird überfallen. Betrittst du einen **Checkpoint**, merkt sich dein Charakter diesen Ort; dort erwachst du nach dem Tod.
 
@@ -42,6 +53,11 @@ Jeder Charakter hat **Lebenspunkte (HP)**, **Angriff** und **Verteidigung**. Die
 | 3 | 250 | 33 | 9 | 4 |
 | 4 | 500 | 42 | 12 | 5 |
 | 5 | 900 | 52 | 15 | 7 |
+| 6 | 1400 | 63 | 18 | 8 |
+| 7 | 2000 | 75 | 21 | 9 |
+| 8 | 2800 | 88 | 24 | 11 |
+| 9 | 3800 | 102 | 27 | 12 |
+| 10 | 5000 | 118 | 31 | 14 |
 
 Ein **Stufenaufstieg** heilt vollständig (inklusive der HP aus Ausrüstung). Reicht die Erfahrung für mehrere Stufen auf einmal, steigst du direkt bis zur höchsten erreichten auf.
 

@@ -33,3 +33,26 @@
       price: 12
     - item_id: chain_mail
       price: 90
+    - item_id: leather_leggings
+      price: 15
+
+- id: dwarf_armorer
+  name: "Waffenmeisterin Brunhild"
+  room_id: dwarf_outpost
+  greeting: "Zwergenstahl ist teuer. Sterben ist teurer."
+  buys: all
+  sells:
+    - item_id: war_axe
+      price: 180
+    - item_id: iron_helm
+      price: 45
+    - item_id: iron_greaves
+      price: 50
+    - item_id: iron_boots
+      price: 45
+    - item_id: dwarven_plate
+      price: 260
+    - item_id: elixir
+      price: 90
+    - item_id: greater_potion
+      price: 40
