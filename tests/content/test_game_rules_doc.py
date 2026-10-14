@@ -81,3 +81,16 @@ def test_recipe_table_lists_every_recipe() -> None:
 
     assert len(documented) == len(recipes)
     assert documented == [str(recipe.get("min_level", 1)) for recipe in recipes]
+
+
+def test_set_table_lists_every_set() -> None:
+    lines = DOC.read_text().splitlines()
+    start = lines.index("| Set | Teile | Boni |") + 2
+    documented = []
+    for line in lines[start:]:
+        if not line.startswith("|"):
+            break
+        documented.append(line.split("|")[1].strip())
+    item_sets = yaml.safe_load((DOC.parents[1] / "data" / "sets.yaml").read_text())
+
+    assert documented == [item_set["name"] for item_set in item_sets]

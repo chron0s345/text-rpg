@@ -128,3 +128,4 @@ button.link.item-name:hover { color: var(--accent); }
 .recipe-ingredients { display: block; }
 .recipe-ingredients .missing { color: var(--muted); }
 .log .log-craft-done { color: var(--good); }
+.set-line { margin: .3rem 0; font-size: .9em; }

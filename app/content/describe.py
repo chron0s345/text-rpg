@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from app.content.schemas import EquipSlot, Heal, ItemTemplate, StatModifier
+from app.content.schemas import EquipSlot, Heal, ItemSet, ItemTemplate, StatModifier
 
 SLOT_NAMES: Final[dict[EquipSlot, str]] = {
     "weapon": "Waffe",
@@ -40,4 +40,25 @@ def item_summary(item: ItemTemplate) -> str:
     numbers = ", ".join(parts)
     if item.slot is None:
         return numbers
-    return f"{SLOT_NAMES[item.slot]} · {numbers}" if numbers else SLOT_NAMES[item.slot]
+    summary = f"{SLOT_NAMES[item.slot]} · {numbers}" if numbers else SLOT_NAMES[item.slot]
+    return summary + (f" · Set „{item.item_set.name}“" if item.item_set else "")
+
+
+def modifiers_text(effects: list[StatModifier], combine: bool = False) -> str:
+    """E.g. "+1 Verteidigung, +4 max. HP"; ``combine`` adds up modifiers of the same stat."""
+    if combine:
+        totals: dict[str, int] = {}
+        for e in effects:
+            totals[e.stat] = totals.get(e.stat, 0) + e.amount
+        return ", ".join(
+            f"{_signed(totals[stat])} {name}" for stat, name in STAT_NAMES.items() if stat in totals
+        )
+    return ", ".join(f"{_signed(e.amount)} {STAT_NAMES[e.stat]}" for e in effects)
+
+
+def set_bonuses_text(item_set: ItemSet) -> str:
+    """E.g. "2 Teile: +1 Verteidigung; 4 Teile: +2 Verteidigung, +20 max. HP"."""
+    return "; ".join(
+        f"{bonus.pieces} Teile: {modifiers_text(bonus.effects)}"
+        for bonus in sorted(item_set.bonuses, key=lambda b: b.pieces)
+    )

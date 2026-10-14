@@ -11,6 +11,7 @@ from pydantic import BaseModel, ValidationError
 from app.content.prices import buy_price, sell_price
 from app.content.registry import ContentRegistry
 from app.content.schemas import (
+    ItemSet,
     ItemTemplate,
     MerchantTemplate,
     MonsterTemplate,
@@ -71,6 +72,13 @@ def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegist
     merchants = _parse_list(data_dir / "merchants.yaml", MerchantTemplate, lambda m: m.id)
     quests_path = data_dir / "quests.yaml"  # optional: a world without quests is valid
     quests = _parse_list(quests_path, QuestTemplate, lambda q: q.id) if quests_path.exists() else {}
+    for item in items.values():
+        if item.item_set is not None:
+            raise ContentValidationError(f"Item '{item.id}': sets belong in sets.yaml")
+    sets_path = data_dir / "sets.yaml"  # optional
+    item_sets = _parse_list(sets_path, ItemSet, lambda s: s.id) if sets_path.exists() else {}
+    validate_sets(item_sets, items)
+    items = attach_sets(item_sets, items)
     recipes_path = data_dir / "recipes.yaml"  # optional as well
     recipes = (
         _parse_list(recipes_path, RecipeTemplate, lambda r: r.id) if recipes_path.exists() else {}
@@ -110,6 +118,7 @@ def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegist
         merchants=merchants,
         quests=quests,
         recipes=recipes,
+        item_sets=item_sets,
         rules=rules,
     )
 
@@ -190,6 +199,47 @@ def validate_quests(
 
     for quest_id in quests:
         visit(quest_id, ())
+
+
+def validate_sets(item_sets: dict[str, ItemSet], items: dict[str, ItemTemplate]) -> None:
+    """Pieces exist, are equipment (no bags), sit in different slots and belong to one set;
+    bonuses need between two and all pieces, each count once."""
+    owner: dict[str, str] = {}
+    for item_set in item_sets.values():
+        where = f"Set '{item_set.id}'"
+        slots: set[str] = set()
+        for item_id in item_set.items:
+            item = items.get(item_id)
+            if item is None:
+                raise ContentValidationError(f"{where} has an unknown item '{item_id}'")
+            if item.slot is None or item.slot == "bag":
+                raise ContentValidationError(f"{where}: '{item_id}' cannot be equipped")
+            if item.slot in slots:
+                raise ContentValidationError(f"{where} has two pieces for the slot '{item.slot}'")
+            slots.add(item.slot)
+            if item_id in owner:
+                raise ContentValidationError(
+                    f"{where}: '{item_id}' already belongs to set '{owner[item_id]}'"
+                )
+            owner[item_id] = item_set.id
+        counts = [bonus.pieces for bonus in item_set.bonuses]
+        if len(set(counts)) != len(counts):
+            raise ContentValidationError(f"{where} has two bonuses for the same piece count")
+        if max(counts) > len(item_set.items):
+            raise ContentValidationError(f"{where} has a bonus for more pieces than it has")
+
+
+def attach_sets(
+    item_sets: dict[str, ItemSet], items: dict[str, ItemTemplate]
+) -> dict[str, ItemTemplate]:
+    """Every piece knows its set, so stats need nothing but the item templates."""
+    pieces = {item_id: s for s in item_sets.values() for item_id in s.items}
+    return {
+        item_id: item.model_copy(update={"item_set": pieces[item_id]})
+        if item_id in pieces
+        else item
+        for item_id, item in items.items()
+    }
 
 
 def validate_recipes(

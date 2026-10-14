@@ -16,13 +16,14 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlmodel import col
 
-from app.content.describe import item_summary
+from app.content.describe import item_summary, modifiers_text
 from app.content.prices import buy_price, sell_price
 from app.content.registry import ContentRegistry
 from app.content.schemas import (
     DeliverObjective,
     Direction,
     Heal,
+    ItemSet,
     MerchantOffer,
     MerchantTemplate,
     QuestTemplate,
@@ -47,7 +48,7 @@ from app.engine.movement import DIRECTION_NAMES
 from app.engine.quests import objective_progress, quests_offered_here
 from app.engine.regeneration import calculate_current_monster_hp
 from app.engine.state import InventoryItemState, PlayerSnapshot
-from app.engine.stats import stats_of
+from app.engine.stats import active_set_effects, stats_of, worn_sets
 from app.services.action_service import utc_now
 
 LOG_LINES = 50
@@ -176,6 +177,15 @@ class BankView:
 
 
 @dataclass(frozen=True)
+class SetView:
+    name: str
+    worn: int
+    total: int
+    active: str  # the bonuses reached so far, e.g. "+1 Verteidigung"; "" if none yet
+    next: str  # the next bonus, e.g. "bei 4: +20 max. HP"; "" when complete
+
+
+@dataclass(frozen=True)
 class InventoryView:
     used: int
     capacity: int
@@ -183,6 +193,7 @@ class InventoryView:
     bag_slots: int
     carried: list[ItemView]
     equipped: list[ItemView]
+    sets: list[SetView]  # sets with at least one piece equipped
 
 
 @dataclass(frozen=True)
@@ -416,6 +427,10 @@ class ViewService:
             bag_slots=rules.inventory.bag_slots,
             carried=[i for i in items if i.equipped_slot is None],
             equipped=[i for i in items if i.equipped_slot is not None],
+            sets=[
+                self._set(item_set, worn)
+                for item_set, worn in worn_sets(snapshot.inventory, self.content.items)
+            ],
         )
         group_view = await self._group(row, now)
         shops = [
@@ -438,6 +453,18 @@ class ViewService:
             trade=trade_view,
             quests=self._quests(snapshot),
             recipes=self._recipes(snapshot),
+        )
+
+    def _set(self, item_set: ItemSet, worn: int) -> SetView:
+        upcoming = sorted((b for b in item_set.bonuses if b.pieces > worn), key=lambda b: b.pieces)
+        return SetView(
+            name=item_set.name,
+            worn=worn,
+            total=len(item_set.items),
+            active=modifiers_text(active_set_effects(item_set, worn), combine=True),
+            next=f"bei {upcoming[0].pieces}: {modifiers_text(upcoming[0].effects)}"
+            if upcoming
+            else "",
         )
 
     def _recipes(self, player: PlayerSnapshot) -> list[RecipeView]:
