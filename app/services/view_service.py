@@ -42,6 +42,7 @@ from app.db.models import (
     TradeOffer,
 )
 from app.engine.inventory import calculate_inventory_capacity, get_occupied_slots
+from app.engine.materials import count_available, quantity_text
 from app.engine.movement import DIRECTION_NAMES
 from app.engine.quests import objective_progress, quests_offered_here
 from app.engine.regeneration import calculate_current_monster_hp
@@ -247,6 +248,25 @@ class QuestsView:
 
 
 @dataclass(frozen=True)
+class IngredientView:
+    name: str
+    have: int
+    needed: int
+
+
+@dataclass(frozen=True)
+class RecipeView:
+    id: str
+    crafter: str
+    result: str  # "2× Heiltrank"
+    summary: str  # what the result does
+    ingredients: list[IngredientView]
+    gold: int
+    min_level: int
+    can_craft: bool  # level, ingredients and gold suffice
+
+
+@dataclass(frozen=True)
 class GameView:
     player: PlayerView
     room: RoomView
@@ -256,6 +276,7 @@ class GameView:
     bank: BankView | None  # only in bank rooms
     trade: TradeView | None  # my active trade (request or open)
     quests: QuestsView
+    recipes: list[RecipeView]  # of the crafters in this room
 
 
 class ViewService:
@@ -416,7 +437,35 @@ class ViewService:
             bank=bank_view,
             trade=trade_view,
             quests=self._quests(snapshot),
+            recipes=self._recipes(snapshot),
         )
+
+    def _recipes(self, player: PlayerSnapshot) -> list[RecipeView]:
+        views = []
+        for recipe in self.content.recipes_in_room(player.current_room_id):
+            ingredients = [
+                IngredientView(
+                    name=self.content.get_item(i.item_id).name,
+                    have=count_available(player, i.item_id),
+                    needed=i.quantity,
+                )
+                for i in recipe.ingredients
+            ]
+            views.append(
+                RecipeView(
+                    id=recipe.id,
+                    crafter=self.content.merchants[recipe.crafter_id].name,
+                    result=quantity_text(self.content, recipe.item_id, recipe.quantity),
+                    summary=item_summary(self.content.get_item(recipe.item_id)),
+                    ingredients=ingredients,
+                    gold=recipe.gold,
+                    min_level=recipe.min_level,
+                    can_craft=player.level >= recipe.min_level
+                    and player.gold >= recipe.gold
+                    and all(i.have >= i.needed for i in ingredients),
+                )
+            )
+        return views
 
     def _objective_text(self, quest: QuestTemplate) -> str:
         objective = quest.objective

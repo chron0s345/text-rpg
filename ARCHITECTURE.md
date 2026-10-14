@@ -254,6 +254,16 @@ class QuestTemplate(BaseModel):  # quests.yaml (optional)
     min_level: PositiveInt = 1
     requires: list[str] = []  # Quest-IDs, die vorher erledigt sein müssen
     repeatable: bool = False
+
+
+class RecipeTemplate(BaseModel):  # recipes.yaml (optional)
+    id: str
+    crafter_id: str  # MerchantTemplate.id
+    item_id: str  # Ergebnis
+    quantity: PositiveInt = 1  # > 1 nur bei stapelbaren Ergebnissen
+    ingredients: list[Ingredient]  # mindestens eine: (item_id, quantity)
+    gold: NonNegativeInt = 0  # Gebühr des Handwerkers
+    min_level: PositiveInt = 1
 ```
 
 Pro Ausrüstungsplatz (`EquipSlot`) trägt ein Charakter genau ein Stück, Taschen ausgenommen (bis `inventory.bag_slots`). Die Engine behandelt alle Plätze gleich; neue Plätze brauchen nur das Literal, die Check-Constraint (Migration) und einen Namen in `app/content/describe.py`. Dort entsteht auch die Kurzbeschreibung, die die Oberfläche unter jedem Itemnamen zeigt (`item_summary`, z. B. „Waffe · +3 Angriff“).
@@ -640,6 +650,14 @@ Umsetzung (`engine/merchant.py`, Preise in `content/prices.py`, gemeinsam für E
 - Zustand: `quest_progress` (`player_id`, `quest_id`, `status` active|completed, `progress`, `times_completed`). Wiederholbare Quests werden beim erneuten Annehmen wieder `active`; Abbrechen löscht die Zeile, bei schon einmal erledigten wiederholbaren Quests stellt es `completed` wieder her.
 - Die Zeilen gehören zu Spielern im Aktions-Snapshot und werden mit ihnen geladen und gesperrt (`Repository.lock_quests`). Neue Zeilen entstehen nur für gesperrte Spieler; die Spielersperre serialisiert sie.
 - Validierung beim Laden: Auftraggeber, Items und Monster existieren, Voraussetzungen existieren und bilden keinen Zyklus, Besiegen-Quests nennen die Grundform statt einer seltenen Variante.
+
+### Handwerk
+
+- Rezepte sind Content (`recipes.yaml`); Handwerker ist ein Händler. Herstellen (`craft`) geht nur in dessen Raum und nicht im Kampf (`app/engine/crafting.py`).
+- Zutaten kommen wie Quest-Lieferungen aus freien, nicht ausgerüsteten und nicht im Handel angebotenen Stapeln (`app/engine/materials.py`, gemeinsam mit `quests.py`). Dazu kommt die Gebühr in Gold.
+- Das Ergebnis muss vollständig ins Inventar passen; ein durch die Zutaten geleerter Stapel macht dafür Platz. Passt es nicht, wird nichts genommen.
+- Kein eigener Zustand in der Datenbank: Herstellen ändert nur Inventar und Gold des Handelnden.
+- Validierung beim Laden: Handwerker und Items existieren, das Ergebnis ist nicht seine eigene Zutat, keine Zutat doppelt, mehrere Stück nur bei stapelbaren Ergebnissen. Ein Balance-Test prüft, dass jede Zutat irgendwo zu bekommen ist.
 
 ### Schutz vor Item-Transfer zwischen eigenen Charakteren
 

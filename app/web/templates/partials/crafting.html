@@ -1,0 +1,20 @@
+{% set p = view.player %}
+<section id="crafting" class="panel crafting" aria-labelledby="crafting-title"{% if not view.recipes %} hidden{% endif %}{% if oob %} hx-swap-oob="true"{% endif %}>
+  <h2 id="crafting-title">Handwerk</h2>
+  <ul class="list recipe-list">
+    {% for r in view.recipes %}
+    <li>
+      <span>
+        <strong>{{ r.result }}</strong> <span class="muted">bei {{ r.crafter }}</span>
+        {% if r.summary %}<small class="item-summary">{{ r.summary }}</small>{% endif %}
+        <small class="recipe-ingredients">
+          {% for i in r.ingredients %}<span class="{{ 'ok' if i.have >= i.needed else 'missing' }}">{{ i.needed }}× {{ i.name }} ({{ i.have }})</span>{% if not loop.last %}, {% endif %}{% endfor %}{% if r.gold %} · {{ r.gold }} Gold{% endif %}{% if r.min_level > p.level %} · ab Stufe {{ r.min_level }}{% endif %}
+        </small>
+      </span>
+      {% if p.state == 'exploring' %}
+      <button hx-post="/ui/actions" hx-vals='{{ {"type": "craft", "recipe_id": r.id} | tojson }}'{% if not r.can_craft %} disabled{% endif %}>Herstellen</button>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>

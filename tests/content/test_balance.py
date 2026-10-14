@@ -100,3 +100,36 @@ def test_lore_items_are_story_not_money() -> None:
     lore = [i for i in CONTENT.items.values() if i.icon == "scroll"]
     assert len(lore) >= 10
     assert all(not item.sellable and item.value == 0 for item in lore)
+
+
+def test_every_recipe_ingredient_can_be_found() -> None:
+    """Ingredients drop, are sold, lie around, are quest rewards or are crafted themselves."""
+    sources = {e.item_id for m in CONTENT.monsters.values() for e in m.loot_table}
+    sources |= {o.item_id for m in CONTENT.merchants.values() for o in m.sells}
+    sources |= {i.item_id for r in CONTENT.rooms.values() for i in r.items}
+    sources |= {i.item_id for q in CONTENT.quests.values() for i in q.reward.items}
+    sources |= {r.item_id for r in CONTENT.recipes.values()}
+    for recipe in CONTENT.recipes.values():
+        for ingredient in recipe.ingredients:
+            assert ingredient.item_id in sources, (recipe.id, ingredient.item_id)
+
+
+def test_crafting_is_no_money_machine() -> None:
+    """Selling what was crafted brings at most a little more than selling the ingredients
+    (convenience, not profit), and nothing that can be bought crafts into a profit."""
+    ratio = CONTENT.rules.merchant
+    buy: dict[str, int] = {}
+    for merchant in CONTENT.merchants.values():
+        for offer in merchant.sells:
+            price = offer.price or round(CONTENT.items[offer.item_id].value * ratio.buy_ratio)
+            buy[offer.item_id] = min(buy.get(offer.item_id, price), price)
+
+    def sell(item_id: str) -> int:
+        return int(CONTENT.items[item_id].value * ratio.sell_ratio)
+
+    for recipe in CONTENT.recipes.values():
+        result = sell(recipe.item_id) * recipe.quantity
+        parts = [(i.item_id, i.quantity) for i in recipe.ingredients]
+        assert result <= sum(sell(i) * n for i, n in parts) + recipe.gold + 5, recipe.id
+        if all(i in buy for i, _ in parts):
+            assert result < sum(buy[i] * n for i, n in parts) + recipe.gold, recipe.id

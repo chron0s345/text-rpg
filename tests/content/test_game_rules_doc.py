@@ -67,3 +67,17 @@ def test_quest_table_lists_every_quest() -> None:
     quests = yaml.safe_load((DOC.parents[1] / "data" / "quests.yaml").read_text())
 
     assert sorted(documented) == sorted(quest["name"] for quest in quests)
+
+
+def test_recipe_table_lists_every_recipe() -> None:
+    lines = DOC.read_text().splitlines()
+    start = lines.index("| Ergebnis | Handwerker | ab Stufe | Zutaten | Gold |") + 2
+    documented = []
+    for line in lines[start:]:
+        if not line.startswith("|"):
+            break
+        documented.append(line.split("|")[3].strip())  # ab Stufe
+    recipes = yaml.safe_load((DOC.parents[1] / "data" / "recipes.yaml").read_text())
+
+    assert len(documented) == len(recipes)
+    assert documented == [str(recipe.get("min_level", 1)) for recipe in recipes]

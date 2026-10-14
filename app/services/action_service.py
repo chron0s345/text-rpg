@@ -34,6 +34,7 @@ from app.api.schemas import (
     BankDepositAction,
     BankWithdrawAction,
     BuyAction,
+    CraftAction,
     DropAction,
     EquipAction,
     FleeAction,
@@ -81,6 +82,7 @@ from app.engine.actions import (
 from app.engine.ambush import resolve_idle_ambush
 from app.engine.bank import resolve_bank_deposit, resolve_bank_withdraw
 from app.engine.combat import resolve_attack, resolve_flee
+from app.engine.crafting import resolve_craft
 from app.engine.events import ActionResult, ActorAudience, GameEvent, rejected
 from app.engine.groups import (
     resolve_group_accept,
@@ -658,6 +660,8 @@ class ActionService:
                 return resolve_quest_turn_in(*args, action.quest_id)
             case QuestAbandonAction():
                 return resolve_quest_abandon(*args, action.quest_id)
+            case CraftAction():
+                return resolve_craft(*args, action.recipe_id)
             case InventoryAction():
                 return resolve_inventory(*args)
             case UseItemAction():

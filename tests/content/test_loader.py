@@ -200,3 +200,38 @@ def test_quests_are_validated() -> None:
     if variants:
         with pytest.raises(ContentValidationError, match="rare variant"):
             check(quest(objective={"type": "kill", "monster_id": variants[0]}))
+
+
+def test_recipes_are_validated() -> None:
+    from app.content.loader import validate_recipes
+    from app.content.schemas import RecipeTemplate
+
+    real = load_content(Path("data"))
+
+    def recipe(**fields: object) -> RecipeTemplate:
+        return RecipeTemplate.model_validate(
+            {
+                "id": "r",
+                "crafter_id": "smith",
+                "item_id": "short_sword",
+                "ingredients": [{"item_id": "goblin_ear"}],
+                **fields,
+            }
+        )
+
+    def check(r: RecipeTemplate) -> None:
+        validate_recipes({r.id: r}, real.items, real.merchants)
+
+    check(recipe())
+    with pytest.raises(ContentValidationError, match="unknown crafter"):
+        check(recipe(crafter_id="nobody"))
+    with pytest.raises(ContentValidationError, match="makes an unknown item"):
+        check(recipe(item_id="nope"))
+    with pytest.raises(ContentValidationError, match="needs an unknown item"):
+        check(recipe(ingredients=[{"item_id": "nope"}]))
+    with pytest.raises(ContentValidationError, match="needs its own result"):
+        check(recipe(ingredients=[{"item_id": "short_sword"}]))
+    with pytest.raises(ContentValidationError, match="twice"):
+        check(recipe(ingredients=[{"item_id": "goblin_ear"}, {"item_id": "goblin_ear"}]))
+    with pytest.raises(ContentValidationError, match="unstackable"):
+        check(recipe(quantity=2))

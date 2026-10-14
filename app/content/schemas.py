@@ -177,6 +177,26 @@ class QuestTemplate(BaseModel):
     repeatable: bool = False
 
 
+# --- recipes.yaml -----------------------------------------------------------
+
+
+class Ingredient(BaseModel):
+    item_id: str
+    quantity: PositiveInt = 1
+
+
+class RecipeTemplate(BaseModel):
+    """A crafter (a merchant) turns ingredients plus a fee into an item, where they stand."""
+
+    id: str
+    crafter_id: str  # MerchantTemplate.id
+    item_id: str  # the result
+    quantity: PositiveInt = 1
+    ingredients: list[Ingredient] = Field(min_length=1)
+    gold: NonNegativeInt = 0  # the crafter's fee
+    min_level: PositiveInt = 1
+
+
 # --- rules.yaml -------------------------------------------------------------
 # Bewusst ohne Defaults: Alle Balancing-Werte stehen ausschließlich in data/rules.yaml.
 

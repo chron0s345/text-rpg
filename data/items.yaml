@@ -1821,3 +1821,220 @@
   value: 0
   sellable: false
   stackable: false
+
+# --- Handwerk: nur über Rezepte (data/recipes.yaml) erhältlich ---
+
+- id: boar_leather_vest
+  name: "Wildlederweste"
+  description: "Aus vier Schwarten gegerbt und doppelt vernäht. Riecht noch ein bisschen nach Wald."
+  kind: armor
+  slot: chest
+  icon: "armor"
+  value: 60
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 3
+
+- id: tusk_club
+  name: "Hauerkeule"
+  description: "Eine Eichenkeule, in die Brandt zwei Trollhauer getrieben hat. Wer davon getroffen wird, steht so schnell nicht auf."
+  kind: weapon
+  slot: weapon
+  icon: "axe"
+  value: 120
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 6
+    - type: stat
+      stat: max_hp
+      amount: 5
+
+- id: bone_shield
+  name: "Knochenschild"
+  description: "Ein Holzschild, mit gesegnetem Knochenstaub gehärtet. Die Toten, sagt Brandt, schützen gern die Lebenden."
+  kind: armor
+  slot: offhand
+  icon: "shield"
+  value: 110
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 2
+    - type: stat
+      stat: max_hp
+      amount: 5
+
+- id: claw_amulet
+  name: "Krallenamulett"
+  description: "Vier Ghulkrallen um ein Knochenamulett gebunden. Hässlich, aber es hält dich am Leben."
+  kind: armor
+  slot: neck
+  icon: "amulet"
+  value: 130
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: max_hp
+      amount: 20
+
+- id: pearl_ring
+  name: "Perlenring"
+  description: "Eine schwarze Perle in Silber gefasst. Aurel sagt, sie habe in der Hand der Hexe gelegen."
+  kind: armor
+  slot: ring
+  icon: "ring"
+  value: 330
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 3
+    - type: stat
+      stat: max_hp
+      amount: 15
+
+- id: frost_cloak
+  name: "Frostpelzmantel"
+  description: "Ein schwerer Mantel aus Frostwolfpelz, gesäumt mit weißem Fell. Kein Wind kommt hindurch, kaum eine Klinge."
+  kind: armor
+  slot: chest
+  icon: "armor"
+  value: 220
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 5
+    - type: stat
+      stat: max_hp
+      amount: 5
+
+- id: drake_helm
+  name: "Drachenschuppenhelm"
+  description: "Brunhild hat die Schuppen von Hrimfang auf einen Eisenhelm genietet. Er ist immer ein bisschen kalt."
+  kind: armor
+  slot: head
+  icon: "armor"
+  value: 380
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 4
+    - type: stat
+      stat: max_hp
+      amount: 10
+
+- id: bark_shield
+  name: "Rindenschild"
+  description: "Lebende Dryadenrinde, um einen Holzschild gewachsen. Nimriel sagt, er heilt seine Kratzer selbst."
+  kind: armor
+  slot: offhand
+  icon: "shield"
+  value: 200
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 3
+    - type: stat
+      stat: max_hp
+      amount: 10
+
+- id: thorn_ring
+  name: "Dornenring"
+  description: "Ein Blattring, durch den sich ein Dorn der Bestie windet. Er sticht – auch den, der dich angreift."
+  kind: armor
+  slot: ring
+  icon: "ring"
+  value: 280
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 3
+    - type: stat
+      stat: defense
+      amount: 1
+
+- id: storm_amulet
+  name: "Sturmamulett"
+  description: "Ein Korallenamulett, in dem drei Sturmessenzen kreisen. Bei Gewitter summt es leise."
+  kind: armor
+  slot: neck
+  icon: "amulet"
+  value: 160
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: max_hp
+      amount: 15
+    - type: stat
+      stat: defense
+      amount: 1
+
+- id: salamander_boots
+  name: "Salamanderstiefel"
+  description: "Obsidianstiefel, mit Salamanderschuppen gefüttert. Damit läufst du über glühende Asche."
+  kind: armor
+  slot: feet
+  icon: "armor"
+  value: 220
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 3
+    - type: stat
+      stat: max_hp
+      amount: 10
+
+- id: crest_shield
+  name: "Wappenschild von Aelmar"
+  description: "Ein Turmschild mit den Wappen der ertrunkenen Ritter und einem Korallensplitter im Buckel. Er trägt ihren Eid weiter."
+  kind: armor
+  slot: offhand
+  icon: "shield"
+  value: 460
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 5
+    - type: stat
+      stat: max_hp
+      amount: 5
+
+- id: void_edge
+  name: "Leerenschneide"
+  description: "Der Händler ohne Gesicht hat einen Leerenbrecher mit Splittern und Albtraum neu geschmiedet. Die Klinge wirft keinen Schatten."
+  kind: weapon
+  slot: weapon
+  icon: "sword"
+  value: 980
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 15
+    - type: stat
+      stat: max_hp
+      amount: 10
