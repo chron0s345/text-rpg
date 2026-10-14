@@ -113,6 +113,7 @@ data/
 ├── quests.yaml          # Aufträge (optional)
 ├── recipes.yaml         # Handwerk (optional)
 ├── sets.yaml            # Ausrüstungssets (optional)
+├── achievements.yaml    # Erfolge & Titel (optional)
 └── rules.yaml           # XP-Kurve, Startwerte, Todesstrafe, Zeiten & Limits
 migrations/
 tests/
@@ -408,6 +409,8 @@ class Player(SQLModel, table=True):  # = ein Charakter
     disconnected_at: datetime | None  # gesetzt bei Verbindungsverlust, Frist läuft
     last_action_at: datetime | None  # Rate Limit
     deleted_at: datetime | None  # Soft Delete
+    achievements: list[str]  # errungene Erfolge (Content-IDs, in Reihenfolge), text[]
+    title: str | None  # Erfolgs-ID, deren Titel hinter dem Namen steht
 
 
 class InventoryItem(SQLModel, table=True):
@@ -572,7 +575,7 @@ Unabhängig davon ist ein Charakter `online` oder offline.
 | buy / sell / sell_junk | ✓ (nur beim Händler im Raum) | ✗ | ✗ |
 | respawn | ✗ | ✗ | ✓ |
 | logout | ✓ | ✓ (mit Bestätigung → Tod) | ✓ |
-| look / inventory / inspect | ✓ | ✓ | ✓ |
+| look / inventory / inspect / set_title | ✓ | ✓ | ✓ |
 
 ### Engine-Schnittstelle
 
@@ -766,6 +769,13 @@ Umsetzung (`engine/groups.py`, `Repository.load_group_snapshot`):
 ### Rasten
 
 - Spieler regenerieren nicht. `actions.resolve_rest` heilt in sicheren Räumen (`RoomTemplate.safe`) auf die effektiven max. HP, kostenlos und nur außerhalb des Kampfes; anderswo wird abgelehnt. Unterwegs heilen nur Verbrauchsgegenstände, Stufenaufstieg und Erwachen.
+
+### Erfolge
+
+- Content (`achievements.yaml`, optional): Name, Beschreibung, eine Bedingung und optional ein Titel. Bedingungen: `level` (Stufe erreicht), `quest` (Auftrag einmal erledigt), `quests` (so viele verschiedene Aufträge; ohne `count`: alle), `kill` (Kill-Gutschrift für das Monster, die seltene Variante zählt mit), `rare` (irgendeine seltene Variante), `set` (alle Teile eines Sets zugleich getragen; ohne `set_id`: irgendeines). Der Loader prüft Verweise.
+- Gespeichert am Charakter (`player.achievements`, `player.title`), nie verloren; Erfolge, die aus dem Content verschwinden, bleiben gespeichert und werden ignoriert.
+- `engine/achievements.grant(builder, player, content, killed=None)` vergibt alles, was der Charakter jetzt erfüllt und noch nicht hat, mit einer Log-Zeile je Erfolg (`achievement.earned`). Aufgerufen bei Kills (jeder Spieler im Raum; `killed` nur für die Gruppe mit Kill-Gutschrift, die anderen wegen Stufenaufstiegen aus dem XP-Anteil), Auftragsabgabe, Ausrüsten und Login (holt neu hinzugekommene Erfolge nach).
+- `set_title(achievement_id | None)` (in jedem Zustand) führt den Titel eines errungenen Erfolgs bzw. legt ihn ab. Angezeigt in der Statusleiste und in der Raumliste.
 
 ### Tod & Checkpoint
 

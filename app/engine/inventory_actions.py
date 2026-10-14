@@ -14,6 +14,7 @@ from uuid import UUID
 
 from app.content.registry import ContentRegistry
 from app.content.schemas import Heal, ItemTemplate, Rules
+from app.engine.achievements import grant
 from app.engine.encounter import monster_strikes, touch_monster
 from app.engine.events import (
     ActionResult,
@@ -133,6 +134,7 @@ def resolve_equip(
         builder.to_actor("inventory.unequipped", f"Du legst {old.name} ab.", item_id=old.id)
     builder.to_actor("inventory.equipped", f"Du rüstest {item.name} aus.", item_id=item.id)
     _cap_hp(builder, actor, content)
+    grant(builder, actor, content)  # a completed set
     return builder.build()
 
 
@@ -192,6 +194,7 @@ def resolve_equip_best(
         text = f"Du rüstest {item.name} aus" + (f" und legst {old.name} ab." if old else ".")
         builder.to_actor("inventory.equipped", text, item_id=item.id)
     _cap_hp(builder, actor, content)
+    grant(builder, actor, content)  # a completed set
     return builder.build()
 
 

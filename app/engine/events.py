@@ -78,6 +78,8 @@ class PlayerUpdate(BaseModel):
     disconnected_at: datetime | None = None
     group_id: UUID | None = None  # engine/groups.py
     group_joined_at: datetime | None = None
+    achievements: list[str] | None = None  # engine/achievements.py: the full new list
+    title: str | None = None
 
 
 class MonsterUpdate(BaseModel):

@@ -75,6 +75,7 @@ RNG = random.Random(1)
         ("quest_abandon", {"exploring", "in_combat", "dead"}),
         ("craft", {"exploring"}),
         ("inspect", {"exploring", "in_combat", "dead"}),
+        ("set_title", {"exploring", "in_combat", "dead"}),
     ],
 )
 def test_state_table_matches_architecture(action: str, allowed: set[str]) -> None:
@@ -85,7 +86,7 @@ def test_state_table_matches_architecture(action: str, allowed: set[str]) -> Non
 
 def test_every_action_type_has_an_entry() -> None:
     # every row of the table above is checked in test_state_table_matches_architecture
-    assert len(ALLOWED_STATES) == 39
+    assert len(ALLOWED_STATES) == 40
 
 
 def test_check_state_messages() -> None:

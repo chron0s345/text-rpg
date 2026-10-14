@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, Field, PositiveInt
+from pydantic import BaseModel, Field, PositiveInt, field_validator
 
 from app.content.schemas import Direction
 from app.engine.events import GameEvent
@@ -208,6 +208,16 @@ class InspectAction(BaseModel):
     item_id: str = Field(min_length=1, max_length=64)
 
 
+class SetTitleAction(BaseModel):
+    type: Literal["set_title"] = "set_title"
+    achievement_id: str | None = Field(default=None, max_length=64)  # None/"": no title
+
+    @field_validator("achievement_id", mode="before")
+    @classmethod
+    def _empty_is_none(cls, value: object) -> object:
+        return None if value == "" else value
+
+
 class LogoutAction(BaseModel):
     type: Literal["logout"] = "logout"
     confirm_death: bool = False
@@ -252,6 +262,7 @@ GameAction = Annotated[
     | QuestAbandonAction
     | CraftAction
     | InspectAction
+    | SetTitleAction
     | LogoutAction,
     Field(discriminator="type"),
 ]

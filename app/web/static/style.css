@@ -186,3 +186,9 @@ button.small { font-size: .75rem; }
 .inventory .list li, .bank .list li { flex-wrap: wrap; }
 .inventory .list li > span:first-child, .bank .list li > span:first-child { flex: 1 1 100%; min-width: 0; }
 .inventory .list li .buttons { justify-content: flex-start; }
+
+/* achievements & titles */
+.title { font-size: .8em; font-weight: normal; font-style: italic; color: var(--accent); }
+.achievements summary { cursor: pointer; color: var(--muted); margin-top: .4rem; }
+.achievement > span { display: flex; flex-direction: column; min-width: 0; }
+.achievement.locked { opacity: .55; }

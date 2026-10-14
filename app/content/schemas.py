@@ -233,6 +233,71 @@ class RecipeTemplate(BaseModel):
     min_level: PositiveInt = 1
 
 
+# --- achievements.yaml ------------------------------------------------------
+
+
+class LevelCondition(BaseModel):
+    """Reach this level."""
+
+    type: Literal["level"] = "level"
+    level: PositiveInt
+
+
+class QuestCondition(BaseModel):
+    """Complete this quest (once)."""
+
+    type: Literal["quest"] = "quest"
+    quest_id: str
+
+
+class QuestCountCondition(BaseModel):
+    """Complete this many different quests (``count`` None: every quest there is)."""
+
+    type: Literal["quests"] = "quests"
+    count: PositiveInt | None = None
+
+
+class KillCondition(BaseModel):
+    """Get kill credit for this monster (its rare variant counts, too)."""
+
+    type: Literal["kill"] = "kill"
+    monster_id: str
+
+
+class RareKillCondition(BaseModel):
+    """Get kill credit for any rare variant."""
+
+    type: Literal["rare"] = "rare"
+
+
+class SetCondition(BaseModel):
+    """Wear every piece of this set at once (``set_id`` None: of any set)."""
+
+    type: Literal["set"] = "set"
+    set_id: str | None = None
+
+
+Condition = Annotated[
+    LevelCondition
+    | QuestCondition
+    | QuestCountCondition
+    | KillCondition
+    | RareKillCondition
+    | SetCondition,
+    Field(discriminator="type"),
+]
+
+
+class AchievementTemplate(BaseModel):
+    """Earned once per character, never lost. ``title``: may be shown after the name."""
+
+    id: str
+    name: str
+    description: str
+    condition: Condition
+    title: str | None = Field(default=None, max_length=30)
+
+
 # --- rules.yaml -------------------------------------------------------------
 # Bewusst ohne Defaults: Alle Balancing-Werte stehen ausschließlich in data/rules.yaml.
 

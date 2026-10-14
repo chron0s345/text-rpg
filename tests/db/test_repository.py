@@ -375,3 +375,30 @@ async def test_apply_changes_without_snapshot_writes_nothing(session: AsyncSessi
         await Repository(session).apply_changes(
             StateChanges(players=[PlayerUpdate(player_id=player.id, gold=5)])
         )
+
+
+async def test_achievements_and_title_round_trip(session: AsyncSession) -> None:
+    player = await add_player(session)
+    repo = Repository(session)
+    snapshot = await repo.load_action_snapshot(player.id)
+    assert snapshot is not None and snapshot.actor.achievements == []
+    await repo.apply_changes(
+        StateChanges(
+            players=[
+                PlayerUpdate(
+                    player_id=player.id, achievements=["level_5", "rare_kill"], title="rare_kill"
+                )
+            ]
+        )
+    )
+    await session.refresh(player)
+    assert (player.achievements, player.title) == (["level_5", "rare_kill"], "rare_kill")
+    snapshot = await Repository(session).load_action_snapshot(player.id)
+    assert snapshot is not None
+    assert (snapshot.actor.achievements, snapshot.actor.title) == (
+        ["level_5", "rare_kill"],
+        "rare_kill",
+    )
+    await repo.apply_changes(StateChanges(players=[PlayerUpdate(player_id=player.id, title=None)]))
+    await session.refresh(player)
+    assert player.title is None and player.achievements == ["level_5", "rare_kill"]

@@ -337,6 +337,13 @@ Manche Ausrüstungsstücke gehören zu einem **Set**; das steht unter dem Namen 
 | Sternenstahl | Sternenstahlhelm, Sternenstahlharnisch, Sternenstahlbeinschienen, Sternenstahlstiefel, Sternenstahlschild | 2 Teile: +1 Verteidigung; 3 Teile: +15 max. HP; 5 Teile: +2 Angriff, +2 Verteidigung |
 | Krone der Schatten | Schattenklinge, Schattenring, Seelenanhänger | 2 Teile: +1 Angriff; 3 Teile: +1 Angriff, +20 max. HP |
 
+## Erfolge & Titel
+
+- Für besondere Taten gibt es **Erfolge**: Stufen erreichen, Aufträge erledigen (einzelne und viele), Bosse besiegen, eine seltene Variante erwischen, ein Set vollständig tragen. Jeder Erfolg zählt einmal und geht nie verloren; im Log steht, wenn du einen errungen hast.
+- Manche Erfolge bringen einen **Titel**. Im Erfolge-Panel kannst du einen davon führen – er steht dann hinter deinem Namen, für alle im Raum sichtbar – oder ihn wieder ablegen.
+- Bei Bossen zählt die Kill-Gutschrift: Die ganze Gruppe im Raum bekommt den Erfolg.
+- Neue Erfolge, die du schon erfüllst (z. B. eine Stufe), bekommst du beim nächsten Einloggen.
+
 ## Händler & Bank
 
 - **Elira** (Kaufmannsstand) verkauft Heiltränke, Brot und Kleine Taschen und kauft alles Verkaufbare an.

@@ -19,11 +19,12 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Index,
+    Text,
     Uuid,
     func,
     text,
 )
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlmodel import Field, SQLModel
 
 SQLModel.metadata.naming_convention = {
@@ -120,6 +121,12 @@ class Player(SQLModel, table=True):
     disconnected_at: datetime | None = timestamp()
     last_action_at: datetime | None = timestamp()
     deleted_at: datetime | None = timestamp()
+    # earned achievement ids (content), in the order earned; never lost
+    achievements: list[str] = Field(
+        default_factory=list,
+        sa_column=Column(ARRAY(Text()), nullable=False, server_default=text("'{}'")),
+    )
+    title: str | None = Field(default=None, max_length=64)  # achievement id shown as title
 
 
 class InventoryItem(SQLModel, table=True):

@@ -26,9 +26,9 @@
   {% if r.players %}
   <h3>Hier sind</h3>
   <ul class="list">
-    {% for pid, name, state in r.players %}
+    {% for pid, name, state, title in r.players %}
     <li>
-      <span>{{ name }}{% if state != 'exploring' %} <span class="muted">({{ state_label(state) }})</span>{% endif %}</span>
+      <span>{{ name }}{% if title %} <span class="title">{{ title }}</span>{% endif %}{% if state != 'exploring' %} <span class="muted">({{ state_label(state) }})</span>{% endif %}</span>
       {% if p.state == 'exploring' and state == 'exploring' and view.trade is none %}
       <button class="subtle" hx-post="/ui/actions" hx-vals='{{ {"type": "trade_request", "target_player_id": pid | string} | tojson }}'>Handeln</button>
       {% endif %}
