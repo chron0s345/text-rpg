@@ -707,3 +707,165 @@
   sellable: true
   stackable: true
   max_stack: 5
+
+# --- Schattenreich (Stufe 14–15) ---
+
+- id: starsteel_helm
+  name: "Sternenstahlhelm"
+  description: "Geschmiedet aus Metall, das vom Himmel fiel. Er schimmert wie eine klare Nacht."
+  kind: armor
+  slot: head
+  icon: "armor"
+  value: 400
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 4
+
+- id: starsteel_greaves
+  name: "Sternenstahlbeinschienen"
+  description: "Leicht wie Leder, hart wie der Fels, aus dem sie geschlagen wurden."
+  kind: armor
+  slot: legs
+  icon: "armor"
+  value: 420
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 4
+
+- id: starsteel_boots
+  name: "Sternenstahlstiefel"
+  description: "Wer sie trägt, hinterlässt Spuren aus schwachem Licht."
+  kind: armor
+  slot: feet
+  icon: "armor"
+  value: 400
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 4
+
+- id: starsteel_plate
+  name: "Sternenstahlharnisch"
+  description: "Die beste Rüstung, die man für Gold kaufen kann – und sehr viel Gold."
+  kind: armor
+  slot: chest
+  icon: "armor"
+  value: 900
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 10
+
+- id: voidbreaker
+  name: "Leerenbrecher"
+  description: "Eine Axt, deren Klinge aus nichts zu bestehen scheint. Wo sie trifft, bleibt eine Kerbe in der Welt."
+  kind: weapon
+  slot: weapon
+  icon: "axe"
+  value: 750
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 14
+
+- id: shadow_blade
+  name: "Schattenklinge"
+  description: "Morvaths eigenes Schwert. Es wirft kein Spiegelbild und keinen Schatten."
+  kind: weapon
+  slot: weapon
+  icon: "sword"
+  value: 900
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 15
+
+- id: moon_lily
+  name: "Mondlilie"
+  description: "Eine silbern leuchtende Blüte aus dem Verdorrten Garten. Stellt 40 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "herb"
+  value: 12
+  sellable: true
+  stackable: true
+  max_stack: 10
+  effects:
+    - type: heal
+      amount: 40
+
+- id: starlight_tonic
+  name: "Sternenlichttonikum"
+  description: "In der Flasche funkelt ein Stück Nachthimmel. Stellt sofort 160 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "potion"
+  value: 260
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - type: heal
+      amount: 160
+
+- id: shadow_pelt
+  name: "Schattenfell"
+  description: "Ein Fell, das sich anfühlt wie kalter Rauch."
+  kind: misc
+  icon: "trophy"
+  value: 28
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: void_shard
+  name: "Leerensplitter"
+  description: "Ein Splitter aus schwarzem Glas, in dem sich nichts spiegelt."
+  kind: misc
+  icon: "trophy"
+  value: 30
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: nightmare_essence
+  name: "Albtraumessenz"
+  description: "Eine Phiole mit wirbelndem Dunst. Wer zu lange hineinsieht, träumt schlecht."
+  kind: misc
+  icon: "trophy"
+  value: 35
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: warden_sigil
+  name: "Siegel der Wächter"
+  description: "Ein steinernes Abzeichen mit einem geschlossenen Auge."
+  kind: misc
+  icon: "trophy"
+  value: 45
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: shadow_crown
+  name: "Krone der Schatten"
+  description: "Morvaths Krone. Sie ist schwer, kalt und frisst das Licht um sich herum."
+  kind: misc
+  icon: "trophy"
+  value: 250
+  sellable: true
+  stackable: true
+  max_stack: 5
