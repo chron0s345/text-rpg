@@ -12,6 +12,10 @@ Dein Passwort änderst du auf der Charakterauswahl. Dabei werden alle anderen Ge
 
 Neue Charaktere starten auf Stufe 1 auf dem **Marktplatz von Oakhaven**.
 
+### Fundstücke
+
+Überall in der Welt liegen **Briefe, Tagebuchseiten und Chroniken** – am Brunnen von Oakhaven, im Goblin-Lager, in der Gruft, im Zwergenposten und an noch dunkleren Orten; manche tragen auch Monster bei sich. Ein Klick auf den Namen liest sie vor. Zusammen erzählen sie, warum die Toten laufen, woher das grüne Licht kommt und was unter der Mine wartet.
+
 ### Räume
 
 | Raum | Besonderheit |

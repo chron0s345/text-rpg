@@ -692,6 +692,8 @@
     delay_seconds: 20
     hp_per_second: 10.0
   loot_table:
+    - item_id: black_tablet
+      chance: 0.5
     - item_id: soul_pendant
       chance: 0.1
     - item_id: shadow_ring
@@ -742,6 +744,8 @@
     chance_per_tick: 0.05
     max_level_difference: 2
   loot_table:
+    - item_id: ship_log
+      chance: 0.1
     - item_id: old_compass
       chance: 0.3
     - item_id: coral_amulet
@@ -769,6 +773,8 @@
     monster_id: smuggler_king
     chance: 0.05
   loot_table:
+    - item_id: smuggler_note
+      chance: 0.1
     - item_id: contraband
       chance: 0.6
     - item_id: silver_ring
