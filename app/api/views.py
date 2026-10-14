@@ -29,6 +29,7 @@ from app.services.account_service import (
 from app.services.action_service import NotPlayingError, RetryLimitExceededError
 from app.services.login_guard import TooManyAttemptsError
 from app.services.session_service import ConfirmDeathRequiredError, SessionConflictError
+from app.web.chat import chat_action
 from app.web.render import log_line, templates
 
 router = APIRouter(include_in_schema=False)
@@ -295,6 +296,11 @@ async def ui_action(request: Request, services: ServicesDep) -> Response:
     if _account_id(request) is None or player_id is None:
         return _hx_redirect("/welcome")
     form = await _form(request)
+    if form.get("type") == "chat":  # the chat field: room, group or whisper
+        chosen = chat_action(form.get("text", ""))
+        if isinstance(chosen, str):
+            return HTMLResponse(log_line("action.rejected", chosen))
+        form = chosen
     try:
         action = ACTION.validate_python({k: v for k, v in form.items() if v != ""})
     except ValidationError:

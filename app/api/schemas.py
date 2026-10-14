@@ -57,6 +57,17 @@ class SayAction(BaseModel):
     text: str = Field(min_length=1, max_length=300)
 
 
+class GroupSayAction(BaseModel):
+    type: Literal["group_say"] = "group_say"
+    text: str = Field(min_length=1, max_length=300)
+
+
+class WhisperAction(BaseModel):
+    type: Literal["whisper"] = "whisper"
+    player_name: str = Field(min_length=1, max_length=20)
+    text: str = Field(min_length=1, max_length=300)
+
+
 class GroupInviteAction(BaseModel):
     type: Literal["group_invite"] = "group_invite"
     player_name: str = Field(min_length=1, max_length=20)
@@ -174,6 +185,8 @@ GameAction = Annotated[
     | PickUpAction
     | DropAction
     | SayAction
+    | GroupSayAction
+    | WhisperAction
     | GroupInviteAction
     | GroupAcceptAction
     | GroupDeclineAction

@@ -53,7 +53,7 @@ app/
 ├── engine/              # Reine Spiellogik, kein HTTP, kein DB-Zugriff
 │   ├── state.py         # Snapshots (ActionSnapshot, PlayerSnapshot, ...) als Engine-Eingabe
 │   ├── permissions.py   # Erlaubte Aktionen je Charakterzustand
-│   ├── actions.py       # say, look, respawn
+│   ├── actions.py       # say, group_say, whisper, look, respawn
 │   ├── combat.py        # attack, flee
 │   ├── encounter.py     # Gemeinsame Kampfbausteine (Schaden, Kampfkontakt, Monsterschlag)
 │   ├── participation.py # Kampfteilnahme & Aufheben der Markierung
@@ -480,6 +480,7 @@ Unabhängig davon ist ein Charakter `online` oder offline.
 | equip / unequip | ✓ | ✗ | ✗ |
 | pick_up / drop | ✓ | ✗ | ✗ |
 | say | ✓ | ✓ | ✗ |
+| group_say / whisper | ✓ | ✓ | ✓ |
 | group_invite / accept / leave / kick | ✓ | ✓ (außer kick) | ✓ (nur leave) |
 | trade_* | ✓ | ✗ (laufender Handel wird abgebrochen) | ✗ |
 | bank_deposit / bank_withdraw | ✓ (nur in Bank-Räumen) | ✗ | ✗ |
@@ -784,11 +785,13 @@ Umsetzung: `ActionService.execute` (`app/services/action_service.py`).
 | Kanal | Empfänger | Beispiele |
 |---|---|---|
 | `room:{room_id}` | Alle Online-Spieler im Raum | Spieler kommt/geht, Kampfmeldungen, Überfall, Respawn, `say` |
-| `group:{group_id}` | Gruppenmitglieder | Mitglied wird angegriffen, HP-Änderungen, Beute, Beitritt/Austritt |
-| `player:{player_id}` | Ein Charakter | Einladungen, Handelsanfragen & -änderungen, Beute, Überfall auf einen selbst |
+| `group:{group_id}` | Gruppenmitglieder | Mitglied wird angegriffen, HP-Änderungen, Beute, Beitritt/Austritt, `group_say` |
+| `player:{player_id}` | Ein Charakter | Einladungen, Handelsanfragen & -änderungen, Beute, Überfall auf einen selbst, `whisper` |
 | `global` | Alle | Server-Ankündigungen |
 
 Server-Ankündigungen sendet der Betreiber mit `python -m app.admin announce "Text"` (höchstens 300 Zeichen): ein `server.announcement`-Event an `Global`, das über den Event-Bus jede Verbindung in jedem Prozess erreicht und im Log hervorgehoben wird. Wie alle `Global`-Events wird es nicht pro Spieler geloggt – wer offline ist, sieht es nicht. Ankündigungen und Chat lösen keine Panel-Aktualisierung aus (sonst würden bei einer Ankündigung alle Clients gleichzeitig nachladen).
+
+Chat: `say` an den Raum, `group_say` an die Gruppe (in jedem Raum), `whisper` an einen Online-Charakter. Flüstern sucht den Empfänger vorab ungesperrt per Name unter den Online-Charakteren (`ActionService._online_player`); es ändert keinen Zustand, und ein Empfänger, der gerade ausloggt, findet die Nachricht in seinem Log. Gruppenchat und Flüstern gehen auch tot. Das Chatfeld der Spielseite schickt `type=chat`; `app/web/chat.py` macht daraus `say`, `group_say` (`/g Text`) oder `whisper` (`/w Name Text`). Die JSON-API kennt nur die Aktionen selbst.
 
 ### Ablauf
 
@@ -863,6 +866,17 @@ class SayAction(BaseModel):
     text: str = Field(min_length=1, max_length=300)
 
 
+class GroupSayAction(BaseModel):  # an die eigene Gruppe, in jedem Raum
+    type: Literal["group_say"]
+    text: str = Field(min_length=1, max_length=300)
+
+
+class WhisperAction(BaseModel):  # an einen Online-Charakter, in jedem Raum
+    type: Literal["whisper"]
+    player_name: str  # ohne Groß-/Kleinschreibung; der Service sucht den Empfänger
+    text: str = Field(min_length=1, max_length=300)
+
+
 class GroupInviteAction(BaseModel):
     type: Literal["group_invite"]
     player_name: str
@@ -923,7 +937,7 @@ Action = Annotated[
 - Rate Limit über `min_action_interval_ms`.
 - **Login- und Registrierungs-Limit** (`services/login_guard.py`, Tabelle `login_throttle`): Jeder Login-Versuch zählt gegen den Benutzernamen (ohne Groß-/Kleinschreibung) und gegen die Client-Adresse, jede Registrierung gegen die Adresse. Wer sein Kontingent pro Zeitfenster aufgebraucht hat, wird für die Sperrzeit abgewiesen: `429` mit `Retry-After` (Formular: Hinweis auf der Seite). Abgewiesen wird **vor** dem argon2-Hash, sodass Versuche weder Passwörter testen noch CPU binden. Die Zähler liegen in der Datenbank (für alle Worker gemeinsam); jeder Versuch reserviert unter Zeilensperre, daher kommen auch viele parallele Anfragen nicht über das Limit. Ein erfolgreicher Login setzt den Namen zurück und gibt der Adresse den Versuch zurück. Bekannter Kompromiss: Wer absichtlich falsch rät, sperrt einen fremden Namen für die (kurze) Sperrzeit. Einstellungen (Umgebung): `LOGIN_ATTEMPTS_PER_USER` (5), `LOGIN_ATTEMPTS_PER_ADDRESS` (30), `REGISTRATIONS_PER_ADDRESS` (10), `LOGIN_WINDOW_SECONDS` (900), `LOGIN_LOCKOUT_SECONDS` (900).
 - CSRF: Das Session-Cookie ist `SameSite=Lax`, Browser senden es also nicht bei Formular-POSTs von fremden Seiten; die JSON-Routen erzwingen bei fremden Origins zusätzlich einen CORS-Preflight.
-- `say`-Texte und Charakternamen werden beim Rendern escaped (Jinja-Autoescape). Charakternamen werden zusätzlich auf erlaubte Zeichen beschränkt.
+- Chat-Texte (`say`, `group_say`, `whisper`) und Charakternamen werden beim Rendern escaped (Jinja-Autoescape). Charakternamen werden zusätzlich auf erlaubte Zeichen beschränkt.
 - Sicherheits-Header auf jeder Antwort (`app/api/security.py`, reine ASGI-Middleware, damit der SSE-Stream unberührt bleibt): `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: same-origin` und eine strikte Content-Security-Policy (`default-src 'self'`, `script-src 'self'` ohne `unsafe-inline`/`unsafe-eval`, `frame-ancestors 'none'`, `form-action 'self'`). Ausgenommen von der CSP sind nur FastAPIs `/docs` und `/redoc` (Swagger vom CDN). Dafür gilt im Frontend: keine Inline-Skripte, -Handler (`hx-on`) oder -Styles; htmx läuft mit `allowEval: false` und ohne eingefügte Indikator-Styles (`htmx-config` in `base.html`), Verhalten wie „Formular nach dem Senden leeren“ (`data-reset-on-success`) steht in `app.js`.
 
 ## Frontend
