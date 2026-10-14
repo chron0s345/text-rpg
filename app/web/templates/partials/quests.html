@@ -7,6 +7,7 @@
     <li>
       <span>
         <strong>{{ a.name }}</strong>{% if a.show_count %} <span class="muted">{{ a.done }}/{{ a.needed }}</span>{% endif %}
+        {% if a.show_count %}<meter class="quest-bar" min="0" max="{{ a.needed }}" value="{{ a.done }}" aria-label="Fortschritt {{ a.done }} von {{ a.needed }}"></meter>{% endif %}
         <small class="item-summary">{% if a.steps > 1 %}Schritt {{ a.step }}/{{ a.steps }}: {% endif %}{{ a.objective }} · bei {{ a.giver }}</small>
       </span>
       <span class="buttons">

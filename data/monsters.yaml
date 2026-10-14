@@ -148,6 +148,7 @@
 
 - id: cave_troll
   name: "Höhlentroll"
+  boss: true
   level: 5
   max_hp: 75
   attack: 15
@@ -245,6 +246,7 @@
 
 - id: ice_drake
   name: "Eisdrache Hrimfang"
+  boss: true
   level: 10
   max_hp: 320
   attack: 38
@@ -324,6 +326,7 @@
 
 - id: spider_queen
   name: "Spinnenkönigin Ysvara"
+  boss: true
   level: 9
   max_hp: 250
   attack: 37
@@ -453,6 +456,7 @@
 
 - id: grave_lord
   name: "Grabfürst Valen"
+  boss: true
   level: 5
   max_hp: 120
   attack: 16
@@ -567,6 +571,7 @@
 
 - id: ignaros
   name: "Glutfürst Ignaros"
+  boss: true
   level: 13
   max_hp: 520
   attack: 60
@@ -681,6 +686,7 @@
 
 - id: morvath
   name: "Schattenkönig Morvath"
+  boss: true
   level: 15
   max_hp: 800
   attack: 64
@@ -801,6 +807,7 @@
 
 - id: sea_witch
   name: "Seehexe Morwenna"
+  boss: true
   level: 7
   max_hp: 300
   attack: 32
@@ -1107,6 +1114,7 @@
 
 - id: corrupted_warden
   name: "Der Verderbte Hüter"
+  boss: true
   level: 10
   max_hp: 420
   attack: 40
@@ -1191,6 +1199,7 @@
 
 - id: kraken
   name: "Der Kraken Ul'thar"
+  boss: true
   level: 13
   max_hp: 600
   attack: 64

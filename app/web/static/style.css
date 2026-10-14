@@ -129,3 +129,33 @@ button.link.item-name:hover { color: var(--accent); }
 .recipe-ingredients .missing { color: var(--muted); }
 .log .log-craft-done { color: var(--good); }
 .set-line { margin: .3rem 0; font-size: .9em; }
+
+/* Minimap (partials/minimap.html): styled by class only, the CSP allows no inline styles */
+.minimap { margin: .4rem 0 .6rem; display: flex; flex-direction: column; align-items: center; }
+.minimap svg { display: block; max-width: 100%; height: auto; }
+.map-link { stroke: var(--muted); stroke-width: 2; opacity: .6; }
+.map-room rect { fill: var(--panel); stroke: var(--muted); stroke-width: 1; }
+.map-room.safe rect { fill: #2a3a2c; stroke: var(--good); }
+.map-room.current rect { fill: var(--accent); stroke: var(--text); stroke-width: 2; }
+.map-merchant { fill: var(--good); }
+.map-quest { fill: var(--accent); stroke: var(--bg); stroke-width: .6; }
+.map-room.current .map-quest { fill: var(--text); }
+.map-stairs { fill: var(--text); opacity: .8; }
+.minimap figcaption { margin-top: .3rem; display: flex; flex-wrap: wrap; justify-content: center; gap: .1rem .6rem; }
+.key { display: inline-block; width: .6rem; height: .6rem; border-radius: 2px; margin-right: .25rem; vertical-align: middle; }
+.key-current { background: var(--accent); }
+.key-safe { background: #2a3a2c; border: 1px solid var(--good); }
+.key-merchant { background: var(--good); border-radius: 50%; }
+.key-quest { background: var(--accent); clip-path: polygon(50% 0, 62% 35%, 100% 38%, 70% 60%, 80% 100%, 50% 78%, 20% 100%, 30% 60%, 0 38%, 38% 35%); }
+
+/* Bars */
+.monster { display: flex; flex-direction: column; gap: .15rem; min-width: 10rem; }
+.monster meter { width: 100%; height: .5rem; }
+.tag.boss { background: var(--danger); color: var(--bg); }
+.tag.rare { background: var(--accent); color: var(--bg); }
+.status .xp { display: inline-flex; align-items: center; gap: .4rem; }
+.status .xp label { margin: 0; color: var(--text); }
+.xp-bar::-webkit-meter-optimum-value, .xp-bar::-webkit-meter-suboptimum-value { background: var(--accent); }
+.xp-bar::-moz-meter-bar { background: var(--accent); }
+.xp-bar { width: 6rem; height: .5rem; }
+.quest-bar { display: block; width: 100%; max-width: 12rem; height: .4rem; margin: .15rem 0; }
