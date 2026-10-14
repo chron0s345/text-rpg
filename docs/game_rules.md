@@ -23,6 +23,13 @@ Neue Charaktere starten auf Stufe 1 auf dem **Marktplatz von Oakhaven**.
 | Südtor zum Wald (südlich) | Übergang in die Wildnis |
 | Dunkler Wald | Goblin-Späher und Hungriger Wolf |
 | Goblin-Lager (östlich des Waldes) | zwei Goblin-Späher und ein Goblin-Krieger, frisches Brot liegt aus |
+| Feldweg (östlich des Kaufmannsstands) | drei Feldratten |
+| Weizenfelder (nördlich des Feldwegs) | zwei Riesenkrähen, wilde Äpfel am Baum |
+| Dornendickicht (östlich der Felder) | zwei Wildschweine – greifen nur an, wenn man sie stört |
+| Mühle am Bach (östlich des Feldwegs) | sicher, Checkpoint, Müllerin Grete (Proviant, Mistgabel) |
+| Alter Friedhof (südlich des Feldwegs) | drei Wandelnde Leichname |
+| Gruft der Familie Valen (unter dem Friedhof) | zwei Gruftritter |
+| Grabkammer des Grabfürsten (nördlich der Gruft) | Grabfürst Valen – nur für Gruppen |
 | Moorpfad (südlich des Waldes) | Moorschleicher und Hungriger Wolf, Moorkraut wächst am Weg |
 | Lagerfeuer am Moor (östlich des Moorpfads) | sicher, Checkpoint |
 | Eingestürztes Tor (südlich des Moorpfads) | ein Skelettwächter |
@@ -38,7 +45,7 @@ Neue Charaktere starten auf Stufe 1 auf dem **Marktplatz von Oakhaven**.
 | Spinnengrotte | drei Höhlenspinnen |
 | Nest der Spinnenkönigin (unter der Grotte) | Spinnenkönigin Ysvara – nur für Gruppen |
 
-Die Welt wird nach außen gefährlicher: Rund um Oakhaven und im Wald kommt man mit Stufe 1–3 zurecht, Moor, Ruine und Mine sind für Stufe 3–5. Das **Grauzahn-Gebirge** östlich des Moors und **die Tiefen** unter der Mine sind für Stufe 6–10; die beiden Bosse dort (Spinnenkönigin, Eisdrache) schafft man nur in der Gruppe oder mit vielen Tränken. Im Zwergenposten gibt es eine zweite Bank.
+Die Welt wird nach außen gefährlicher: Rund um Oakhaven, im Wald und in den **Kornfeldern** östlich der Stadt kommt man mit Stufe 1–3 zurecht; Moor, Ruine, Mine und die Gruft unter dem Alten Friedhof sind für Stufe 3–5. Das **Grauzahn-Gebirge** östlich des Moors und **die Tiefen** unter der Mine sind für Stufe 6–10; die beiden Bosse dort (Spinnenkönigin, Eisdrache) schafft man nur in der Gruppe oder mit vielen Tränken. Im Zwergenposten gibt es eine zweite Bank.
 
 In **sicheren Räumen** wird nicht gekämpft und niemand wird überfallen. Betrittst du einen **Checkpoint**, merkt sich dein Charakter diesen Ort; dort erwachst du nach dem Tod.
 

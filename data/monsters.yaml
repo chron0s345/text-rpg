@@ -317,3 +317,125 @@
       chance: 0.3
     - item_id: war_axe
       chance: 0.1
+
+# --- Kornfelder ---
+
+- id: field_rat
+  name: "Feldratte"
+  level: 1
+  max_hp: 8
+  attack: 4
+  defense: 0
+  xp_reward: 8
+  gold_reward: [0, 2]
+  respawn_seconds: 45
+  ambush:
+    chance_on_enter: 0.1
+    chance_per_tick: 0.03
+    max_level_difference: 2
+  loot_table:
+    - item_id: rat_tail
+      chance: 0.7
+
+- id: giant_crow
+  name: "Riesenkrähe"
+  level: 2
+  max_hp: 14
+  attack: 7
+  defense: 1
+  xp_reward: 18
+  gold_reward: [0, 3]
+  respawn_seconds: 60
+  regen:
+    delay_seconds: 10
+    hp_per_second: 1.0
+  ambush:
+    chance_on_enter: 0.15
+    chance_per_tick: 0.04
+    max_level_difference: 2
+  loot_table:
+    - item_id: crow_feather
+      chance: 0.7
+      min_qty: 1
+      max_qty: 2
+
+- id: wild_boar
+  name: "Wildschwein"
+  level: 2
+  max_hp: 22
+  attack: 7
+  defense: 2
+  xp_reward: 26
+  gold_reward: [0, 0]
+  respawn_seconds: 90
+  regen:
+    delay_seconds: 15
+    hp_per_second: 1.0
+  # greift nur an, wenn man es stört
+  loot_table:
+    - item_id: boar_ham
+      chance: 0.6
+    - item_id: boar_hide
+      chance: 0.5
+
+- id: shambling_corpse
+  name: "Wandelnder Leichnam"
+  level: 3
+  max_hp: 30
+  attack: 9
+  defense: 2
+  xp_reward: 40
+  gold_reward: [1, 6]
+  respawn_seconds: 90
+  ambush:
+    chance_on_enter: 0.15
+    chance_per_tick: 0.05
+    max_level_difference: 2
+  loot_table:
+    - item_id: bone_dust
+      chance: 0.5
+    - item_id: rusty_dagger
+      chance: 0.08
+
+- id: crypt_knight
+  name: "Gruftritter"
+  level: 4
+  max_hp: 40
+  attack: 12
+  defense: 5
+  xp_reward: 70
+  gold_reward: [4, 12]
+  respawn_seconds: 150
+  ambush:
+    chance_on_enter: 0.2
+    chance_per_tick: 0.0
+    max_level_difference: 2
+  loot_table:
+    - item_id: bone_dust
+      chance: 0.6
+      min_qty: 1
+      max_qty: 2
+    - item_id: leather_cap
+      chance: 0.08
+    - item_id: healing_potion
+      chance: 0.15
+
+- id: grave_lord
+  name: "Grabfürst Valen"
+  level: 5
+  max_hp: 120
+  attack: 16
+  defense: 6
+  xp_reward: 260
+  gold_reward: [30, 60]
+  respawn_seconds: 600
+  regen:
+    delay_seconds: 20
+    hp_per_second: 3.0
+  loot_table:
+    - item_id: valen_signet
+      chance: 1.0
+    - item_id: greater_potion
+      chance: 0.3
+    - item_id: valen_blade
+      chance: 0.15

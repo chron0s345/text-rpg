@@ -31,6 +31,7 @@
   bank: false
   exits:
     west: town_square
+    east: farm_road
   spawns: []
   items: []
 
@@ -290,5 +291,105 @@
     up: spider_grotto
   spawns:
     - monster_id: spider_queen
+      count: 1
+  items: []
+
+# --- Kornfelder (Stufe 1–5), östlich des Kaufmannsstands ---
+
+- id: farm_road
+  name: "Feldweg"
+  description: "Ein ausgefahrener Karrenweg zwischen niedrigen Steinmauern. Im Graben raschelt es verdächtig."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    west: town_market
+    north: wheat_fields
+    east: mill
+    south: old_cemetery
+  spawns:
+    - monster_id: field_rat
+      count: 3
+  items: []
+
+- id: wheat_fields
+  name: "Weizenfelder"
+  description: "Goldene Ähren wiegen sich im Wind, am Rand steht ein krummer Apfelbaum. Krähen beobachten dich von einer zerzausten Vogelscheuche."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    south: farm_road
+    east: boar_thicket
+  spawns:
+    - monster_id: giant_crow
+      count: 2
+  items:
+    - item_id: wild_apple
+      quantity: 3
+      respawn_seconds: 150
+
+- id: boar_thicket
+  name: "Dornendickicht"
+  description: "Zertrampeltes Unterholz und aufgewühlte Erde. Hier wühlt etwas Großes mit Hauern."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    west: wheat_fields
+  spawns:
+    - monster_id: wild_boar
+      count: 2
+  items: []
+
+- id: mill
+  name: "Mühle am Bach"
+  description: "Das große Wasserrad knarrt gemächlich. Im Hof duftet es nach frischem Brot und Apfelkuchen."
+  safe: true
+  checkpoint: true
+  bank: false
+  exits:
+    west: farm_road
+  spawns: []
+  items: []
+
+- id: old_cemetery
+  name: "Alter Friedhof"
+  description: "Schiefe Grabsteine versinken im Nebel. Manche Gräber sind offen – von innen aufgegraben."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    north: farm_road
+    down: valen_crypt
+  spawns:
+    - monster_id: shambling_corpse
+      count: 3
+  items: []
+
+- id: valen_crypt
+  name: "Gruft der Familie Valen"
+  description: "Steinsärge stehen in Nischen, ihre Deckel verschoben. Am Ende des Gangs flackert ein kaltes, grünes Licht."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    up: old_cemetery
+    north: valen_tomb
+  spawns:
+    - monster_id: crypt_knight
+      count: 2
+  items: []
+
+- id: valen_tomb
+  name: "Grabkammer des Grabfürsten"
+  description: "Ein Thron aus Gebeinen. Darauf sitzt eine Gestalt in schwarzer Rüstung, die Augen glimmen grün."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    south: valen_crypt
+  spawns:
+    - monster_id: grave_lord
       count: 1
   items: []

@@ -56,3 +56,19 @@
       price: 90
     - item_id: greater_potion
       price: 40
+
+- id: miller
+  name: "Müllerin Grete"
+  room_id: mill
+  greeting: "Hungrig, Kindchen? Setz dich, es ist genug für alle da."
+  buys: listed
+  buys_kinds: [consumable, misc]
+  sells:
+    - item_id: bread
+      price: 3
+    - item_id: cheese
+      price: 5
+    - item_id: apple_pie
+      price: 8
+    - item_id: pitchfork
+      price: 15
