@@ -360,3 +360,131 @@
   objective: {type: kill, monster_id: nightmare, count: 3}
   reward: {xp: 2000, gold: 300, items: [{item_id: moon_lily, quantity: 4}]}
   min_level: 15
+
+# --- Questketten mit Geschichte ---
+
+# Kette: Der verschwundene Jäger (Wirtin Hanne, Fischerin Maren)
+
+- id: hunter_trail
+  name: "Der verschwundene Jäger"
+  giver_id: innkeeper
+  description: "Tamm, mein Jäger, ist zur Küste gegangen, um sich das Lied vom Leuchtturm anzuhören. Er kam nie zurück. Die Ertrunkenen dort tragen Sachen von Leuten, die das Meer geholt hat – bring mir, was du findest. Er hatte einen alten Kompass."
+  completion_text: "Das ist seiner. Die Kerbe am Rand hat er selbst gemacht … Er lebt vielleicht noch. Frag Maren im Fischerdorf."
+  objective: {type: deliver, item_id: old_compass, quantity: 1}
+  reward: {xp: 200, gold: 30, items: [{item_id: stew, quantity: 2}]}
+  min_level: 4
+  requires: [boar_roast]
+
+- id: hunter_drowned
+  name: "Unter den Ertrunkenen"
+  giver_id: fisherwoman
+  description: "Hanne schickt dich wegen Tamm? Seit das Lied begann, steigen die Ertrunkenen aus dem Wasser. Wenn er unter ihnen ist, gib ihm Ruhe. Wenn nicht, wissen wir mehr."
+  completion_text: "Er war nicht dabei. Aber einer hatte ein Ruder mit dem Zeichen der Schmuggler. Das gefällt mir gar nicht."
+  objective: {type: kill, monster_id: drowned_sailor, count: 4}
+  reward: {xp: 250, gold: 40, items: [{item_id: smoked_fish, quantity: 3}]}
+  min_level: 5
+  requires: [hunter_trail]
+
+- id: hunter_smugglers
+  name: "Ware ohne Zoll"
+  giver_id: fisherwoman
+  description: "Die Schmuggler verschleppen Leute, die nachts am Strand sind, und lassen sie rudern. Bring mir vier Kisten ihrer Ware – damit gehe ich zum Hafenmeister, und er muss mir glauben."
+  completion_text: "Das reicht. Und in einer Kiste lag Tamms Jagdmesser. Er rudert für sie, ganz sicher."
+  objective: {type: deliver, item_id: contraband, quantity: 4}
+  reward: {xp: 350, gold: 60, items: [{item_id: greater_potion, quantity: 2}]}
+  min_level: 6
+  requires: [hunter_drowned]
+
+- id: hunter_home
+  name: "Heimkehr"
+  giver_id: innkeeper
+  description: "Maren hat mir alles geschrieben. Tamm sitzt an einem Ruder in ihrer Bucht. Bitte – schlag die Schmuggler in die Flucht, sechs von ihnen, dann lassen sie ihre Ruderer laufen."
+  completion_text: "Er sitzt da drüben am Feuer und schweigt, aber er ist zu Hause. Er will, dass du seine Harpune bekommst. Er sagt, er jagt nie wieder am Wasser."
+  objective: {type: kill, monster_id: smuggler, count: 6}
+  reward: {xp: 600, gold: 100, items: [{item_id: harpoon}]}
+  min_level: 7
+  requires: [hunter_smugglers]
+
+# Kette: Die Halle von Khazdur (Waffenmeisterin Brunhild)
+
+- id: khazdur_depths
+  name: "Wie tief sie graben"
+  giver_id: dwarf_armorer
+  description: "Die Ghule tragen Erzstaub an den Krallen, den es nur ganz unten gibt – in der alten Halle von Khazdur. Sechs Krallen, und ich weiß, wie tief sie schon gegraben haben."
+  completion_text: "Tiefenerz. Sie sind bis zur Halle durch. Dann ist es Zeit, sie zurückzuholen."
+  objective: {type: deliver, item_id: ghoul_claw, quantity: 6}
+  reward: {xp: 300, gold: 50, items: [{item_id: greater_potion}]}
+  min_level: 6
+  requires: [clear_the_mine]
+
+- id: khazdur_guardians
+  name: "Gefallene Wächter"
+  giver_id: dwarf_armorer
+  description: "Die Eisgolems haben einmal die Tore von Khazdur bewacht. Der Riss hat ihre Runen erfroren, jetzt greifen sie jeden an. Zerschlag drei – ehrenvoll, bitte, es waren gute Golems."
+  completion_text: "In ihren Kernen leuchten noch die alten Runen. Wir werden sie neu schreiben."
+  objective: {type: kill, monster_id: ice_golem, count: 3}
+  reward: {xp: 450, gold: 70, items: [{item_id: elixir}]}
+  min_level: 8
+  requires: [khazdur_depths]
+
+- id: khazdur_webs
+  name: "Netze vor dem Tor"
+  giver_id: dwarf_armorer
+  description: "Hinter den Golems kommen die Spinnen. Ihre Netze hängen vor dem Tor zur Halle, dicht wie ein Vorhang. Sechs Spinnen, dann kommen wir durch."
+  completion_text: "Das Tor ist frei. Ich habe es gesehen, zum ersten Mal mit eigenen Augen. Es ist kleiner, als die Lieder sagen."
+  objective: {type: kill, monster_id: cave_spider, count: 6}
+  reward: {xp: 450, gold: 70, items: [{item_id: greater_potion, quantity: 2}]}
+  min_level: 8
+  requires: [khazdur_guardians]
+
+- id: khazdur_hall
+  name: "Die Halle von Khazdur"
+  giver_id: dwarf_armorer
+  description: "In der Halle sitzt Ysvara, die Spinnenkönigin, auf dem Thron meines Volkes. Bring mir ihren Giftzahn. Aus dem Gift schmieden wir den Eid, mit dem wir die Halle wieder in Besitz nehmen."
+  completion_text: "Khazdur gehört wieder uns. Nimm den Panzer meines Großvaters – er hätte gewollt, dass ihn jemand trägt, der durch dieses Tor gegangen ist."
+  objective: {type: deliver, item_id: queen_fang, quantity: 1}
+  reward: {xp: 900, gold: 150, items: [{item_id: dwarven_plate}]}
+  min_level: 9
+  requires: [khazdur_webs]
+
+# Kette: Die Laternen der Tiefe (Ilva, Brack, der Händler ohne Gesicht, Schwester Liora)
+
+- id: lanterns_ash
+  name: "Die Asche der Kundschafter"
+  giver_id: crater_scout
+  description: "Die Laternenpriester in der letzten Zuflucht sammeln die Asche der Gefallenen für ihre Lampen. Sie sagen, sie leuchtet gegen die Schatten. Fünf Häufchen Geisterasche – für meine Kameraden."
+  completion_text: "Ich schicke sie hinunter. Wenn ihre Asche dort unten leuchtet, waren sie nicht umsonst hier."
+  objective: {type: deliver, item_id: wraith_ash, quantity: 5}
+  reward: {xp: 700, gold: 90, items: [{item_id: fire_blossom, quantity: 3}]}
+  min_level: 11
+  requires: [ash_wraiths]
+
+- id: lanterns_knights
+  name: "Laternen unter Wasser"
+  giver_id: old_diver
+  description: "Ilva hat mir von den Laternen erzählt. Die Ritter von Aelmar trugen genau solche, als die Stadt sank – sie haben gegen etwas gekämpft, das aus dem Riss kam. Vier ertrunkene Ritter, und ich hole ihre Laternen herauf."
+  completion_text: "Sie brennen noch. Unter Wasser, nach all der Zeit. Das ist kein Zufall – der Riss war schon damals offen."
+  objective: {type: kill, monster_id: drowned_knight, count: 4}
+  reward: {xp: 900, gold: 120, items: [{item_id: kelp_salve, quantity: 2}]}
+  min_level: 12
+  requires: [lanterns_ash]
+
+- id: lanterns_shadow
+  name: "Was die Laternen fürchten"
+  giver_id: faceless_merchant
+  description: "Du bringst Laternen aus Aelmar. Interessant. Sie halten die Pirscher fern, aber nicht lange. Erlege fünf Schattenpirscher, dann zeige ich dir, wozu die Laternen wirklich dienen."
+  completion_text: "Gut. Die Laternen sind Schlösser, keine Lampen. Wer genug von ihnen hat, kann eine Tür schließen. Geh zur Priesterin in Oakhaven – sie weiß, welche Tür."
+  objective: {type: kill, monster_id: shadow_stalker, count: 5}
+  reward: {xp: 1300, gold: 200, items: [{item_id: starlight_tonic}]}
+  min_level: 14
+  requires: [lanterns_knights]
+
+- id: lanterns_seal
+  name: "Das letzte Siegel"
+  giver_id: priestess
+  description: "Laternen als Schlösser … so steht es auch in den ältesten Gebeten. Was fehlt, sind die Siegel der Schattenwächter. Bring mir drei, und wir verschließen den Riss, so weit es Sterblichen möglich ist."
+  completion_text: "Es ist getan. Der Riss ist nicht fort, aber er schläft. Nimm diesen Mondstein – er hat in der Lampe über dem Altar gelegen, seit es den Tempel gibt."
+  objective: {type: deliver, item_id: warden_sigil, quantity: 3}
+  reward: {xp: 2500, gold: 400, items: [{item_id: moonstone_amulet}]}
+  min_level: 15
+  requires: [lanterns_shadow]
