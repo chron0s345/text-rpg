@@ -107,6 +107,8 @@ def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegist
     validate_content(rooms, monsters, items, merchants, rules)
     validate_rare_variants(rooms, monsters)
     validate_quests(quests, monsters, items, merchants, rooms)
+    if rules.intro_quest_id is not None and rules.intro_quest_id not in quests:
+        raise ContentValidationError(f"rules.intro_quest_id '{rules.intro_quest_id}' is no quest")
     validate_recipes(recipes, items, merchants)
     if icons_dir is not None:
         validate_icons(items, Path(icons_dir))
@@ -384,6 +386,10 @@ def validate_content(
         if merchant.buys == "listed" and not merchant.buys_kinds:
             raise ContentValidationError(
                 f"Merchant '{merchant.id}' has buys: listed but no buys_kinds"
+            )
+        if merchant.buys == "none" and merchant.buys_kinds:
+            raise ContentValidationError(
+                f"Merchant '{merchant.id}' has buys: none but lists buys_kinds"
             )
 
         for offer in merchant.sells:

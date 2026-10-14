@@ -149,7 +149,7 @@ async def test_switching_character_out_of_a_fight_needs_confirmation(api: Api) -
         assert (await client.post(f"/characters/{other_id}/play")).status_code == 409
         response = await client.post(f"/characters/{other_id}/play", json={"confirm_death": True})
         assert response.status_code == 200
-        assert kinds(response.json()) == ["session.logged_in"]
+        assert kinds(response.json()) == ["session.logged_in", "player.hint"]  # a newcomer
         states = {
             c["id"]: (c["state"], c["online"]) for c in (await client.get("/characters")).json()
         }

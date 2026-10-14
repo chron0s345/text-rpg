@@ -87,7 +87,7 @@ async def test_play_logs_in_and_tells_the_room(
 
     outcome = await presence.play(hero.account_id, hero.id)
 
-    assert [e.kind for e in outcome.events] == [LOGGED_IN]
+    assert [e.kind for e in outcome.events] == [LOGGED_IN, "player.hint"]  # a newcomer
     row = await load(h, hero.id)
     assert row.online and row.disconnected_at is None
     assert [e.kind for e in h.publisher.published] == ["player.entered_world"]

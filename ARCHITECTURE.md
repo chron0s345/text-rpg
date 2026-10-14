@@ -284,7 +284,7 @@ class MerchantTemplate(BaseModel):
     room_id: str
     greeting: str
     sells: list[MerchantOffer]  # Sortiment, unbegrenzter Vorrat
-    buys: Literal["all", "listed"] = "all"
+    buys: Literal["all", "listed", "none"] = "all"  # "none": nur Auftraggeber
     buys_kinds: list[ItemKind] = []  # bei "listed": nur diese Item-Arten
     sell_ratio: float | None = None  # überschreibt rules.merchant.sell_ratio
 
@@ -325,6 +325,7 @@ Pro Ausrüstungsplatz (`EquipSlot`) trägt ein Charakter genau ein Stück, Tasch
 ```yaml
 start_room_id: town_square         # Startraum neuer Charaktere
 town_room_id: town_square          # Ziel beim Ausloggen
+intro_quest_id: intro_first_steps  # Lernauftrag; beim Einloggen auf Stufe 1 empfohlen (oder null)
 max_characters_per_account: 5
 max_group_size: 4
 
@@ -701,6 +702,7 @@ Umsetzung (`engine/merchant.py`, Preise in `content/prices.py`, gemeinsam für E
 - **Besiegen** (`kill`): `rewards.resolve_kill` ruft `quests.count_kill` für alle Mitglieder der Partei auf, die den Kill gutgeschrieben bekommt und im Raum ist – also dieselben, die Gold und Beute bekommen. Seltene Varianten zählen für ihre Grundform. Mehr als die geforderte Anzahl wird nicht gezählt.
 - Belohnung: XP (mit Stufenaufstieg wie bei Kämpfen), Gold, Gegenstände. Passen die Gegenstände nicht vollständig ins Inventar, wird nicht abgegeben.
 - Voraussetzungen: `min_level` und `requires` (Ketten). Höchstens 10 offene Aufträge gleichzeitig.
+- Einstieg: `rules.intro_quest_id` nennt den ersten Lernauftrag. `presence.resolve_login` weist Charaktere auf Stufe 1, die ihn nie angenommen haben, im Log auf Auftraggeber und Ort hin. Reine Auftraggeber ohne Handel haben `buys: none` und leere `sells`; ihr Händlerpanel zeigt nur die Begrüßung.
 - Zustand: `quest_progress` (`player_id`, `quest_id`, `status` active|completed, `step` – aktueller Schritt, `len(steps)` wenn alle Besiegen-/Besuchsschritte erledigt sind –, `progress` – Kills im aktuellen Schritt –, `times_completed`; Migration 0007 fügt `step` hinzu). Wiederholbare Quests werden beim erneuten Annehmen wieder `active`; Abbrechen löscht die Zeile, bei schon einmal erledigten wiederholbaren Quests stellt es `completed` wieder her.
 - Die Zeilen gehören zu Spielern im Aktions-Snapshot und werden mit ihnen geladen und gesperrt (`Repository.lock_quests`). Neue Zeilen entstehen nur für gesperrte Spieler; die Spielersperre serialisiert sie.
 - Validierung beim Laden: Auftraggeber, Items, Monster und Räume existieren, Liefern nur als letzter Schritt, Voraussetzungen existieren und bilden keinen Zyklus, Besiegen-Quests nennen die Grundform statt einer seltenen Variante.
