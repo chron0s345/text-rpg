@@ -16,6 +16,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlmodel import col
 
+from app.content.describe import item_summary
 from app.content.prices import buy_price, sell_price
 from app.content.registry import ContentRegistry
 from app.content.schemas import Direction, Heal, MerchantOffer, MerchantTemplate
@@ -110,6 +111,7 @@ class ItemView:
     sell: tuple[str, int] | None = None
     tradable: bool = True
     offered: bool = False  # part of my offer in an active trade
+    summary: str = ""  # what it does, e.g. "Waffe · +3 Angriff"
 
 
 @dataclass(frozen=True)
@@ -143,6 +145,7 @@ class OfferView:
     icon: str | None
     price: int
     affordable: bool
+    summary: str = ""
 
 
 @dataclass(frozen=True)
@@ -418,7 +421,15 @@ class ViewService:
     def _offer(self, offer: MerchantOffer, gold: int) -> OfferView:
         item = self.content.get_item(offer.item_id)
         price = buy_price(offer, item, self.content.rules)
-        return OfferView(item.id, item.name, item.description, item.icon, price, price <= gold)
+        return OfferView(
+            item.id,
+            item.name,
+            item.description,
+            item.icon,
+            price,
+            price <= gold,
+            item_summary(item),
+        )
 
     async def _bank(self, player_id: UUID) -> BankView:
         async with self.sessions() as session:
@@ -533,6 +544,7 @@ class ViewService:
             sell=max(offers, key=lambda o: o[1]) if offers else None,
             tradable=item.tradable,
             offered=entry.id in (offered or set()),
+            summary=item_summary(item),
         )
 
     async def log(self, player_id: UUID, limit: int = LOG_LINES) -> list[LogLine]:

@@ -6,7 +6,7 @@
   <ul class="list">
     {% for i in b.items %}
     <li title="{{ i.description }}">
-      <span>{% if i.icon %}<img src="/static/icons/{{ i.icon }}.svg" alt="" class="icon">{% endif %}{% if i.quantity != 1 %}{{ i.quantity }}× {% endif %}{{ i.name }}</span>
+      <span>{% if i.icon %}<img src="/static/icons/{{ i.icon }}.svg" alt="" class="icon">{% endif %}{% if i.quantity != 1 %}{{ i.quantity }}× {% endif %}{{ i.name }}{% if i.summary %}<small class="item-summary">{{ i.summary }}</small>{% endif %}</span>
       {% if p.state == 'exploring' %}
       <button hx-post="/ui/actions" hx-vals='{{ {"type": "bank_withdraw", "bank_item_id": i.id | string, "quantity": i.quantity | string} | tojson }}'>Abheben</button>
       {% endif %}

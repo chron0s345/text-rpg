@@ -165,6 +165,10 @@ async def test_shop_and_bank_views(api: Api) -> None:
             data={"type": "buy", "merchant_id": "alchemist", "item_id": "bread", "quantity": "1"},
         )
         assert "Du kaufst Frisches Brot für 3 Gold." in bought.text
+        # what an item does is shown next to its name: in the shop and in the backpack
+        assert '<small class="item-summary">heilt 15</small>' in page  # potion offer
+        assert '<small class="item-summary">Tasche · +2 Plätze</small>' in page  # small bag
+        assert '<small class="item-summary">heilt 6</small>' in bought.text  # bread carried
 
         async with api.committed.session() as db, db.begin():
             await db.execute(
