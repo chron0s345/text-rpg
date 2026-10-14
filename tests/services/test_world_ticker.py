@@ -106,6 +106,31 @@ async def test_dead_monsters_come_back_when_due(
     assert kinds == ["monster.respawned"]
 
 
+async def test_one_broken_room_does_not_stop_the_others(
+    harness: ServiceHarness, ticker: WorldTicker
+) -> None:
+    """A monster whose template was removed from the content (forgotten data migration) must
+    not keep the monsters of every other room from respawning, tick after tick."""
+    h = harness
+    broken = h.scratch_room()
+    orphan = MonsterInstance(
+        monster_id="removed_from_content", room_id=broken, hp=0, alive=False, respawn_at=h.clock.now
+    )
+    healthy = [
+        MonsterInstance(
+            monster_id="goblin", room_id=h.scratch_room(), hp=0, alive=False, respawn_at=h.clock.now
+        )
+        for _ in range(5)
+    ]
+    await add(h, orphan, *healthy)
+
+    report = await ticker.tick()
+
+    assert [(await get(h, MonsterInstance, m.id)).alive for m in healthy] == [True] * 5
+    assert report.monsters_respawned >= 5
+    assert not (await get(h, MonsterInstance, orphan.id)).alive
+
+
 # --- 2. + 3. items ---
 
 

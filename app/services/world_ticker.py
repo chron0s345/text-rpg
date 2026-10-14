@@ -203,6 +203,18 @@ class WorldTicker:
             rows = await session.scalars(select(column).where(*conditions).distinct())
             return list(rows.all())
 
+    async def _each_room(
+        self, step: str, rooms: list[str], handle: Callable[[str], Awaitable[None]]
+    ) -> None:
+        """Runs ``handle`` per room, each in its own transaction. A room that fails (e.g. a row
+        whose content was removed without a data migration) is logged and skipped; it must not
+        block the same step in every other room, tick after tick."""
+        for room_id in rooms:
+            try:
+                await handle(room_id)
+            except Exception:
+                logger.exception("world ticker step %s failed in room %s", step, room_id)
+
     # 1. monsters
 
     async def _respawn_monsters(self, now: datetime, report: TickReport) -> None:
@@ -211,7 +223,8 @@ class WorldTicker:
             col(MonsterInstance.alive).is_(False),
             col(MonsterInstance.respawn_at) <= now,
         )
-        for room_id in rooms:
+
+        async def handle(room_id: str) -> None:
             async with self.sessions() as session, session.begin():
                 repo = Repository(session)
                 monsters = [monster_snapshot(m) for m in await repo.lock_monsters_in_room(room_id)]
@@ -220,15 +233,18 @@ class WorldTicker:
             report.monsters_respawned += len(result.changes.monsters)
             await self._publish(result.events)
 
+        await self._each_room("monster respawns", rooms, handle)
+
     # 2. spawn items
 
     async def _respawn_items(self, now: datetime, report: TickReport) -> None:
         rooms = await self._rooms(
             col(ItemSpawnState.room_id), col(ItemSpawnState.next_spawn_at) <= now
         )
-        for room_id in rooms:
+
+        async def handle(room_id: str) -> None:
             if room_id not in self.content.rooms:
-                continue  # room removed from the content: nothing to spawn
+                return  # room removed from the content: nothing to spawn
             async with self.sessions() as session, session.begin():
                 repo = Repository(session)
                 floor_rows, spawn_rows = await repo.lock_room_items(room_id)
@@ -244,11 +260,14 @@ class WorldTicker:
             report.items_respawned += len(result.changes.floor_items_create)
             await self._publish(result.events)
 
+        await self._each_room("item respawns", rooms, handle)
+
     # 3. floor items
 
     async def _remove_expired_floor_items(self, now: datetime, report: TickReport) -> None:
         rooms = await self._rooms(col(FloorItem.room_id), col(FloorItem.expires_at) <= now)
-        for room_id in rooms:
+
+        async def handle(room_id: str) -> None:
             async with self.sessions() as session, session.begin():
                 repo = Repository(session)
                 floor = [
@@ -258,6 +277,8 @@ class WorldTicker:
                 result.changes.floor_items_delete = expired_floor_items(floor, now)
                 await repo.apply_changes(result.changes)
             report.floor_items_removed += len(result.changes.floor_items_delete)
+
+        await self._each_room("floor cleanup", rooms, handle)
 
     # 4. disconnect grace periods
 

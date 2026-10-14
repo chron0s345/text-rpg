@@ -7,6 +7,7 @@ after every content change (``python -m app.db.seed``).
 
 from __future__ import annotations
 
+import argparse
 import asyncio
 from collections.abc import Mapping
 from dataclasses import dataclass, field
@@ -19,6 +20,7 @@ from sqlmodel import col
 from app.content.loader import load_content
 from app.content.registry import ContentRegistry
 from app.db.models import FloorItem, ItemSpawnState, MonsterInstance
+from app.db.orphans import find_orphans, prune
 from app.db.session import create_engine, create_session_factory
 
 
@@ -89,13 +91,32 @@ async def seed(session: AsyncSession, content: ContentRegistry) -> SeedPlan:
     return plan
 
 
-async def _main() -> None:
+async def _main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(
+        prog="python -m app.db.seed",
+        description="Legt fehlenden Welt-Zustand aus data/ an und meldet verwaiste Zeilen.",
+    )
+    parser.add_argument(
+        "--prune",
+        action="store_true",
+        help="verwaiste Welt-Zeilen löschen und Charaktere aus entfernten Räumen in die Stadt "
+        "setzen (Inventar und Bank bleiben unangetastet)",
+    )
+    args = parser.parse_args(argv)
     content = load_content(Path("data"))
     engine = create_engine()
     try:
         async with create_session_factory(engine)() as session, session.begin():
             plan = await seed(session, content)
+            orphans = await find_orphans(session, content)
+            if orphans and args.prune:
+                await prune(session, content, orphans)
         print(plan.summary())
+        for line in orphans.report():
+            print(("Bereinigt: " if args.prune else "Verwaist: ") + line)
+        if orphans and not args.prune:
+            # only reported: the seed runs on every container start and must not block it
+            print("Datenmigration nachholen oder mit --prune bereinigen (siehe app/db/orphans.py).")
     finally:
         await engine.dispose()
 

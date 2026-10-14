@@ -771,6 +771,8 @@ Umsetzung: `ActionService.execute` (`app/services/action_service.py`).
 
 - Schema-Änderungen ausschließlich über Alembic.
 - Content-IDs sind stabil. Umbenennen oder Entfernen erfordert eine Datenmigration für Charaktere, Inventare, Monster-Instanzen und Floor-Items.
+- Wurde die Migration vergessen, meldet `python -m app.db.seed` die verwaisten Zeilen (`app/db/orphans.py`). Mit `--prune` werden verwaiste Monster, Spawn-Zustände und Floor-Items gelöscht; Charaktere in entfernten Räumen oder mit entferntem Checkpoint kommen nach `town_room_id`, Kämpfe gegen gelöschte Monster enden. Inventar und Bank mit unbekannten Items werden nur gemeldet – das braucht eine echte Migration. Der Seed endet auch bei Funden mit Exit-Code 0, weil er bei jedem Container-Start läuft.
+- Der World-Ticker arbeitet Respawns und Aufräumen pro Raum in eigenen Transaktionen; scheitert ein Raum (z. B. an einer verwaisten Zeile), wird er protokolliert und übersprungen, die übrigen Räume laufen weiter.
 
 ## Echtzeit
 
