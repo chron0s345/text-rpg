@@ -45,3 +45,117 @@
       chance: 0.25
       min_qty: 1
       max_qty: 1
+
+- id: goblin_warrior
+  name: "Goblin-Krieger"
+  level: 3
+  max_hp: 26
+  attack: 8
+  defense: 3
+  xp_reward: 45
+  gold_reward: [3, 9]
+  respawn_seconds: 120
+  regen:
+    delay_seconds: 10
+    hp_per_second: 1.5
+  ambush:
+    chance_on_enter: 0.1
+    chance_per_tick: 0.04
+    max_level_difference: 2
+  loot_table:
+    - item_id: goblin_ear
+      chance: 1.0
+      min_qty: 1
+      max_qty: 2
+    - item_id: leather_cap
+      chance: 0.1
+      min_qty: 1
+      max_qty: 1
+    - item_id: short_sword
+      chance: 0.05
+      min_qty: 1
+      max_qty: 1
+
+- id: bog_lurker
+  name: "Moorschleicher"
+  level: 3
+  max_hp: 30
+  attack: 9
+  defense: 3
+  xp_reward: 55
+  gold_reward: [0, 0]
+  respawn_seconds: 120
+  regen:
+    delay_seconds: 15
+    hp_per_second: 2.0
+  ambush:
+    chance_on_enter: 0.25
+    chance_per_tick: 0.08
+    max_level_difference: 2
+  loot_table:
+    - item_id: bog_herb
+      chance: 0.5
+      min_qty: 1
+      max_qty: 2
+    - item_id: leather_boots
+      chance: 0.08
+      min_qty: 1
+      max_qty: 1
+    - item_id: greater_potion
+      chance: 0.05
+      min_qty: 1
+      max_qty: 1
+
+- id: skeleton
+  name: "Skelettwächter"
+  level: 4
+  max_hp: 38
+  attack: 11
+  defense: 5
+  xp_reward: 80
+  gold_reward: [4, 12]
+  respawn_seconds: 150
+  # bones do not heal: a guard left half broken stays half broken
+  ambush:
+    chance_on_enter: 0.3
+    chance_per_tick: 0.0
+    max_level_difference: 2
+  loot_table:
+    - item_id: bone_dust
+      chance: 0.7
+      min_qty: 1
+      max_qty: 3
+    - item_id: chain_mail
+      chance: 0.04
+      min_qty: 1
+      max_qty: 1
+    - item_id: long_sword
+      chance: 0.03
+      min_qty: 1
+      max_qty: 1
+
+- id: cave_troll
+  name: "Höhlentroll"
+  level: 5
+  max_hp: 75
+  attack: 15
+  defense: 6
+  xp_reward: 170
+  gold_reward: [15, 30]
+  respawn_seconds: 300
+  regen:
+    delay_seconds: 20
+    hp_per_second: 3.0
+  loot_table:
+    - item_id: troll_tusk
+      chance: 1.0
+      min_qty: 1
+      max_qty: 1
+    - item_id: greater_potion
+      chance: 0.3
+      min_qty: 1
+      max_qty: 2
+    - item_id: large_bag
+      chance: 0.1
+      min_qty: 1
+      max_qty: 1

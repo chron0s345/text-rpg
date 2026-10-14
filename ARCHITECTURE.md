@@ -774,6 +774,8 @@ Umsetzung: `ActionService.execute` (`app/services/action_service.py`).
 
 - Schema-Änderungen ausschließlich über Alembic.
 - Content-IDs sind stabil. Umbenennen oder Entfernen erfordert eine Datenmigration für Charaktere, Inventare, Monster-Instanzen und Floor-Items.
+- Wurde die Migration vergessen, meldet `python -m app.db.seed` die verwaisten Zeilen (`app/db/orphans.py`). Mit `--prune` werden verwaiste Monster, Spawn-Zustände und Floor-Items gelöscht; Charaktere in entfernten Räumen oder mit entferntem Checkpoint kommen nach `town_room_id`, Kämpfe gegen gelöschte Monster enden. Inventar und Bank mit unbekannten Items werden nur gemeldet – das braucht eine echte Migration. Der Seed endet auch bei Funden mit Exit-Code 0, weil er bei jedem Container-Start läuft.
+- Der World-Ticker arbeitet Respawns und Aufräumen pro Raum in eigenen Transaktionen; scheitert ein Raum (z. B. an einer verwaisten Zeile), wird er protokolliert und übersprungen, die übrigen Räume laufen weiter.
 
 ## Echtzeit
 
@@ -785,6 +787,8 @@ Umsetzung: `ActionService.execute` (`app/services/action_service.py`).
 | `group:{group_id}` | Gruppenmitglieder | Mitglied wird angegriffen, HP-Änderungen, Beute, Beitritt/Austritt |
 | `player:{player_id}` | Ein Charakter | Einladungen, Handelsanfragen & -änderungen, Beute, Überfall auf einen selbst |
 | `global` | Alle | Server-Ankündigungen |
+
+Server-Ankündigungen sendet der Betreiber mit `python -m app.admin announce "Text"` (höchstens 300 Zeichen): ein `server.announcement`-Event an `Global`, das über den Event-Bus jede Verbindung in jedem Prozess erreicht und im Log hervorgehoben wird. Wie alle `Global`-Events wird es nicht pro Spieler geloggt – wer offline ist, sieht es nicht. Ankündigungen und Chat lösen keine Panel-Aktualisierung aus (sonst würden bei einer Ankündigung alle Clients gleichzeitig nachladen).
 
 ### Ablauf
 
@@ -918,6 +922,7 @@ Action = Annotated[
 - **Login- und Registrierungs-Limit** (`services/login_guard.py`, Tabelle `login_throttle`): Jeder Login-Versuch zählt gegen den Benutzernamen (ohne Groß-/Kleinschreibung) und gegen die Client-Adresse, jede Registrierung gegen die Adresse. Wer sein Kontingent pro Zeitfenster aufgebraucht hat, wird für die Sperrzeit abgewiesen: `429` mit `Retry-After` (Formular: Hinweis auf der Seite). Abgewiesen wird **vor** dem argon2-Hash, sodass Versuche weder Passwörter testen noch CPU binden. Die Zähler liegen in der Datenbank (für alle Worker gemeinsam); jeder Versuch reserviert unter Zeilensperre, daher kommen auch viele parallele Anfragen nicht über das Limit. Ein erfolgreicher Login setzt den Namen zurück und gibt der Adresse den Versuch zurück. Bekannter Kompromiss: Wer absichtlich falsch rät, sperrt einen fremden Namen für die (kurze) Sperrzeit. Einstellungen (Umgebung): `LOGIN_ATTEMPTS_PER_USER` (5), `LOGIN_ATTEMPTS_PER_ADDRESS` (30), `REGISTRATIONS_PER_ADDRESS` (10), `LOGIN_WINDOW_SECONDS` (900), `LOGIN_LOCKOUT_SECONDS` (900).
 - CSRF: Das Session-Cookie ist `SameSite=Lax`, Browser senden es also nicht bei Formular-POSTs von fremden Seiten; die JSON-Routen erzwingen bei fremden Origins zusätzlich einen CORS-Preflight.
 - `say`-Texte und Charakternamen werden beim Rendern escaped (Jinja-Autoescape). Charakternamen werden zusätzlich auf erlaubte Zeichen beschränkt.
+- Sicherheits-Header auf jeder Antwort (`app/api/security.py`, reine ASGI-Middleware, damit der SSE-Stream unberührt bleibt): `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: same-origin` und eine strikte Content-Security-Policy (`default-src 'self'`, `script-src 'self'` ohne `unsafe-inline`/`unsafe-eval`, `frame-ancestors 'none'`, `form-action 'self'`). Ausgenommen von der CSP sind nur FastAPIs `/docs` und `/redoc` (Swagger vom CDN). Dafür gilt im Frontend: keine Inline-Skripte, -Handler (`hx-on`) oder -Styles; htmx läuft mit `allowEval: false` und ohne eingefügte Indikator-Styles (`htmx-config` in `base.html`), Verhalten wie „Formular nach dem Senden leeren“ (`data-reset-on-success`) steht in `app.js`.
 
 ## Frontend
 
@@ -974,6 +979,7 @@ Nebenläufigkeitsfälle ohne eigenen Platz in den Feature-Tests stehen in `tests
 ## Deployment
 
 - Ein Container für die App (uvicorn, mehrere Worker möglich), ein Container für PostgreSQL.
+- Umsetzung: `Dockerfile` + `scripts/entrypoint.sh` (beim Start `alembic upgrade head`, Seed, dann uvicorn mit `--proxy-headers`), `docker compose --profile app up --build` startet App und Datenbank. Mit `WEB_CONCURRENCY > 1` verweigert der Container ohne `SESSION_SECRET` den Start. Die CI baut das Image und wartet, bis es gegen PostgreSQL gesund ist. Konfiguration: siehe `README.md`.
 - Reverse Proxy (z. B. Caddy oder nginx) muss für `/stream` Buffering deaktivieren und lange Verbindungen erlauben.
 - Hinter dem Proxy uvicorn mit `--proxy-headers --forwarded-allow-ips <Proxy-IP>` starten, sonst haben alle Clients die Adresse des Proxys und teilen sich ein Login-Limit.
 - Content-Änderungen erfordern einen Neustart; danach Seed-Befehl ausführen.

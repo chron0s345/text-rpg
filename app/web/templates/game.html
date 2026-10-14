@@ -17,7 +17,7 @@
     <ol id="log" class="log" aria-live="polite" aria-label="Ereignisse" sse-swap="log" hx-swap="beforeend">
       {% for line in log %}{% with kind=line.kind, text=line.text %}{% include "partials/log_line.html" %}{% endwith %}{% endfor %}
     </ol>
-    <form class="chat" hx-post="/ui/actions" hx-on::after-request="if (event.detail.successful) this.reset()">
+    <form class="chat" hx-post="/ui/actions" data-reset-on-success>
       <input type="hidden" name="type" value="say">
       <label class="visually-hidden" for="say">Sagen</label>
       <input id="say" name="text" maxlength="300" autocomplete="off" placeholder="Etwas sagen …" required>

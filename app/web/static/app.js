@@ -15,6 +15,8 @@
     const el = e.detail.elt;
     if (el instanceof HTMLButtonElement) el.disabled = false;
     if (el instanceof HTMLFormElement) el.querySelectorAll("button").forEach((b) => { b.disabled = false; });
+    // chat and invite fields empty themselves once sent (no inline handlers: see the CSP)
+    if (el instanceof HTMLFormElement && el.hasAttribute("data-reset-on-success") && e.detail.successful) el.reset();
   });
 
   // Newest log entries stay visible; keep the log short in long sessions.
@@ -42,6 +44,14 @@
   document.addEventListener("htmx:sseBeforeMessage", (e) => {
     if (e.detail.type === "ended") { e.preventDefault(); window.location.href = "/select"; }
     if (e.detail.type === "reload") { e.preventDefault(); window.location.reload(); }
+  });
+
+  // Leaving the page (logout, character selection, reload): close the stream first, so the
+  // aborted connection does not show up as an SSE error in the console.
+  window.addEventListener("pagehide", () => {
+    const el = document.querySelector("[sse-connect]");
+    const internal = el && el["htmx-internal-data"];
+    if (internal && internal.sseEventSource) internal.sseEventSource.close();
   });
 
   // Closing the tab in a fight kills the character after the grace period: warn.
