@@ -75,3 +75,32 @@ async def test_seed_is_idempotent(session: AsyncSession, content: ContentRegistr
     item_rules = sum(len(room.items) for room in content.rooms.values())
     assert len((await session.scalars(select(FloorItem))).all()) == item_rules
     assert len((await session.scalars(select(ItemSpawnState))).all()) == item_rules
+
+
+def test_a_rare_variant_fills_its_base_spawn_rule(content: ContentRegistry) -> None:
+    from dataclasses import replace
+
+    from app.content.schemas import RareVariant
+
+    goblin = content.get_monster("goblin")
+    golden = goblin.model_copy(update={"id": "golden_goblin", "name": "Goldener Goblin"})
+    with_variant = replace(
+        content,
+        monsters={
+            **content.monsters,
+            "goblin": goblin.model_copy(
+                update={"rare_variant": RareVariant(monster_id="golden_goblin", chance=0.1)}
+            ),
+            "golden_goblin": golden,
+        },
+    )
+    existing = dict(wanted_monsters(with_variant))
+    existing[("dark_forest", "goblin")] = 0
+    existing[("dark_forest", "golden_goblin")] = 1  # the forest's goblin is golden right now
+
+    seeded = {
+        (room.id, rule.item_id) for room in with_variant.rooms.values() for rule in room.items
+    }
+    plan = plan_seed(with_variant, existing, seeded)
+
+    assert plan.monsters == []
