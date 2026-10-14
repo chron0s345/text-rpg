@@ -20,6 +20,7 @@ from app.engine.events import (
 from app.engine.group_status import report_hp, report_location
 from app.engine.movement import DIRECTION_NAMES
 from app.engine.permissions import check_state
+from app.engine.quests import count_visit
 from app.engine.regeneration import calculate_current_monster_hp
 from app.engine.state import ActionSnapshot, PlayerRef
 from app.engine.stats import stats_of
@@ -295,4 +296,5 @@ def resolve_respawn(
         )
     report_hp(builder, actor)
     report_location(builder, actor, checkpoint.name)
+    count_visit(builder, actor, content)  # waking up at a quest's destination counts
     return builder.build()

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from datetime import timedelta
 
 import pytest
 from sqlalchemy import select
@@ -60,3 +61,42 @@ async def test_crafting_writes_the_result(harness: ServiceHarness, workshop: str
             ).all()
         }
     assert items == {"goblin_ear": 1, "healing_potion": 2}
+
+
+async def test_offered_items_do_not_count_in_the_view(
+    harness: ServiceHarness, workshop: str
+) -> None:
+    """Like the engine, the recipe panel ignores what is offered in an open trade."""
+    from sqlalchemy.ext.asyncio import async_sessionmaker
+
+    from app.db.models import Trade, TradeOffer
+    from app.services.view_service import ViewService
+
+    h = harness
+    anna, ben = await player(h, workshop, gold=10), await player(h, workshop)
+    ears = InventoryItem(player_id=anna.id, item_id="goblin_ear", quantity=2)
+    async with h.committed.session() as db, db.begin():
+        db.add(ears)
+        await db.flush()
+        trade = Trade(
+            initiator_id=anna.id,
+            partner_id=ben.id,
+            room_id=workshop,
+            status="open",
+            expires_at=h.clock() + timedelta(minutes=5),
+        )
+        db.add(trade)
+        await db.flush()
+        db.add(
+            TradeOffer(trade_id=trade.id, inventory_item_id=ears.id, player_id=anna.id, quantity=2)
+        )
+    views = ViewService(
+        async_sessionmaker(h.committed.engine, expire_on_commit=False), h.content, clock=h.clock
+    )
+
+    view = await views.game(anna.id)
+
+    assert view is not None
+    [recipe] = view.recipes
+    assert [(i.have, i.needed) for i in recipe.ingredients] == [(0, 2)]
+    assert not recipe.can_craft
