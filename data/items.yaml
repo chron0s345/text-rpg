@@ -409,3 +409,125 @@
   sellable: true
   stackable: true
   max_stack: 5
+
+# --- Kornfelder (Stufe 1–5) ---
+
+- id: pitchfork
+  name: "Mistgabel"
+  description: "Drei rostige Zinken an einem langen Stiel. Für Heu gedacht, nicht für Ratten."
+  kind: weapon
+  slot: weapon
+  icon: "axe"
+  value: 15
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 3
+
+- id: valen_blade
+  name: "Valens Klinge"
+  description: "Ein schwarzes Schwert mit grünlich schimmernder Schneide. Es fühlt sich kälter an, als es sollte."
+  kind: weapon
+  slot: weapon
+  icon: "sword"
+  value: 150
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 7
+
+- id: wild_apple
+  name: "Wilder Apfel"
+  description: "Klein, sauer und voller Würmer – aber nahrhaft. Stellt 3 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "herb"
+  value: 1
+  sellable: true
+  stackable: true
+  max_stack: 10
+  effects:
+    - type: heal
+      amount: 3
+
+- id: apple_pie
+  name: "Apfelkuchen"
+  description: "Noch warm aus Gretes Ofen. Stellt 12 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "bread"
+  value: 8
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - type: heal
+      amount: 12
+
+- id: cheese
+  name: "Bauernkäse"
+  description: "Ein würziger Laib aus der Mühle. Stellt 8 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "bread"
+  value: 5
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - type: heal
+      amount: 8
+
+- id: boar_ham
+  name: "Wildschweinkeule"
+  description: "Ein ordentliches Stück Fleisch, über dem Feuer gebraten. Stellt 10 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "bread"
+  value: 5
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - type: heal
+      amount: 10
+
+- id: rat_tail
+  name: "Rattenschwanz"
+  description: "Lang, kahl und eklig. Der Rattenfänger in Oakhaven zahlt pro Stück."
+  kind: misc
+  icon: "trophy"
+  value: 1
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: crow_feather
+  name: "Krähenfeder"
+  description: "Eine glänzend schwarze Feder. Schreiber nehmen sie gern als Kiel."
+  kind: misc
+  icon: "trophy"
+  value: 2
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: boar_hide
+  name: "Wildschweinfell"
+  description: "Borstig und zäh. Gerber verarbeiten es zu Stiefeln."
+  kind: misc
+  icon: "trophy"
+  value: 6
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: valen_signet
+  name: "Siegelring der Valen"
+  description: "Ein schwerer Goldring mit dem Wappen einer erloschenen Familie."
+  kind: misc
+  icon: "trophy"
+  value: 40
+  sellable: true
+  stackable: true
+  max_stack: 5
