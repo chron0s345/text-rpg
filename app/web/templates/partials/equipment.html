@@ -1,0 +1,32 @@
+{% from "partials/macros.html" import item_name %}
+{% set eq = view.equipment %}{% set p = view.player %}
+<section id="equipment" class="panel equipment" aria-labelledby="equipment-title"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <h2 id="equipment-title">Ausrüstung <span class="muted">Angriff {{ p.attack }} · Verteidigung {{ p.defense }} · max. HP {{ p.max_hp }}</span></h2>
+  <ul class="slots">
+    {% for s in eq.slots %}
+    <li class="slot{% if s.item is none %} empty{% endif %}{% if s.upgrade %} has-upgrade{% endif %}">
+      <span class="slot-label">{{ s.label }}</span>
+      {% if s.item is not none %}
+      <span class="slot-item">{{ item_name(s.item) }}{% if s.item.summary %}<small class="item-summary">{{ s.item.summary }}</small>{% endif %}</span>
+      {% if p.state == 'exploring' %}
+      <button class="subtle small" hx-post="/ui/actions" hx-vals='{{ {"type": "unequip", "inventory_item_id": s.item.id | string} | tojson }}' title="Ablegen">✕</button>
+      {% endif %}
+      {% else %}
+      <span class="slot-item muted">leer</span>
+      {% endif %}
+      {% if s.upgrade %}<small class="upgrade">▲ {{ s.upgrade }} im Rucksack ist besser</small>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  <p class="bags">
+    <span class="slot-label">Taschen {{ eq.bags | length }}/{{ eq.bag_slots }}</span>
+    {% for b in eq.bags %}
+    <span class="bag">{{ item_name(b) }}{% if b.summary %} <span class="muted small">{{ b.summary }}</span>{% endif %}{% if p.state == 'exploring' %} <button class="subtle small" hx-post="/ui/actions" hx-vals='{{ {"type": "unequip", "inventory_item_id": b.id | string} | tojson }}' title="Ablegen">✕</button>{% endif %}</span>
+    {% else %}
+    <span class="muted">keine</span>
+    {% endfor %}
+  </p>
+  {% for s in eq.sets %}
+  <p class="set-line"><strong>{{ s.name }}</strong> <span class="muted">{{ s.worn }}/{{ s.total }}</span>{% if s.active %} · {{ s.active }}{% endif %}{% if s.next %} <span class="muted">({{ s.next }})</span>{% endif %}</p>
+  {% endfor %}
+</section>

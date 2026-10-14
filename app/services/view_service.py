@@ -16,7 +16,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlmodel import col
 
-from app.content.describe import item_summary, modifiers_text
+from app.content.describe import SLOT_NAMES, item_summary, modifiers_text
 from app.content.prices import buy_price, sell_price
 from app.content.registry import ContentRegistry
 from app.content.schemas import (
@@ -57,6 +57,7 @@ from app.engine.regeneration import calculate_current_monster_hp
 from app.engine.state import InventoryItemState, PlayerSnapshot
 from app.engine.stats import active_set_effects, stats_of, worn_sets
 from app.services.action_service import utc_now
+from app.services.gear import Comparison, compare
 from app.services.minimap import Minimap, minimap
 
 LOG_LINES = 50
@@ -105,6 +106,7 @@ class FloorItemView:
     icon: str | None
     quantity: int
     item_id: str = ""  # template id, for "Ansehen"
+    compare: Comparison | None = None  # against what is worn in its slot
 
 
 @dataclass(frozen=True)
@@ -138,6 +140,7 @@ class ItemView:
     offered: bool = False  # part of my offer in an active trade
     summary: str = ""  # what it does, e.g. "Waffe · +3 Angriff"
     item_id: str = ""  # template id, for "Ansehen"
+    compare: Comparison | None = None  # carried and banked gear: against what is worn
 
 
 @dataclass(frozen=True)
@@ -172,6 +175,7 @@ class OfferView:
     price: int
     affordable: bool
     summary: str = ""
+    compare: Comparison | None = None
 
 
 @dataclass(frozen=True)
@@ -294,6 +298,22 @@ class RecipeView:
 
 
 @dataclass(frozen=True)
+class SlotView:
+    slot: str
+    label: str  # "Waffe", "Kopf", …
+    item: ItemView | None  # None: empty
+    upgrade: str  # name of a better piece in the backpack, "" if none
+
+
+@dataclass(frozen=True)
+class EquipmentView:
+    slots: list[SlotView]  # every equipment slot, in a fixed order, empty ones included
+    bags: list[ItemView]  # worn bags
+    bag_slots: int
+    sets: list[SetView]
+
+
+@dataclass(frozen=True)
 class GameView:
     player: PlayerView
     room: RoomView
@@ -304,6 +324,7 @@ class GameView:
     trade: TradeView | None  # my active trade (request or open)
     quests: QuestsView
     recipes: list[RecipeView]  # of the crafters in this room
+    equipment: EquipmentView
 
 
 class ViewService:
@@ -417,7 +438,14 @@ class ViewService:
                 continue  # expired: hidden even before the ticker removes it
             item = self.content.get_item(item_row.item_id)
             floor_views.append(
-                FloorItemView(item_row.id, item.name, item.icon, item_row.quantity, item.id)
+                FloorItemView(
+                    item_row.id,
+                    item.name,
+                    item.icon,
+                    item_row.quantity,
+                    item.id,
+                    compare(snapshot, item.id, self.content),
+                )
             )
         room_view = RoomView(
             id=room.id,
@@ -441,7 +469,7 @@ class ViewService:
         )
 
         merchants = self.content.merchants_in_room(room.id)
-        items = [self._item(entry, merchants, offered) for entry in snapshot.inventory]
+        items = [self._item(entry, merchants, offered, snapshot) for entry in snapshot.inventory]
         inventory_view = InventoryView(
             used=get_occupied_slots(snapshot.inventory),
             capacity=calculate_inventory_capacity(
@@ -462,11 +490,12 @@ class ViewService:
                 merchant_id=merchant.id,
                 name=merchant.name,
                 greeting=merchant.greeting,
-                offers=[self._offer(offer, row.gold) for offer in merchant.sells],
+                offers=[self._offer(offer, row.gold, snapshot) for offer in merchant.sells],
             )
             for merchant in merchants
         ]
-        bank_view = await self._bank(row.id) if room.bank else None
+        bank_view = await self._bank(row.id, snapshot) if room.bank else None
+        equipment = self._equipment(items, inventory_view)
         return GameView(
             player=player,
             room=room_view,
@@ -477,6 +506,7 @@ class ViewService:
             trade=trade_view,
             quests=self._quests(snapshot),
             recipes=self._recipes(snapshot),
+            equipment=equipment,
         )
 
     def _quest_rooms(self, player: PlayerSnapshot) -> frozenset[str]:
@@ -637,7 +667,7 @@ class ViewService:
             their_confirmed=trade.partner_confirmed if mine_first else trade.initiator_confirmed,
         )
 
-    def _offer(self, offer: MerchantOffer, gold: int) -> OfferView:
+    def _offer(self, offer: MerchantOffer, gold: int, player: PlayerSnapshot) -> OfferView:
         item = self.content.get_item(offer.item_id)
         price = buy_price(offer, item, self.content.rules)
         return OfferView(
@@ -648,9 +678,28 @@ class ViewService:
             price,
             price <= gold,
             item_summary(item),
+            compare(player, item.id, self.content),
         )
 
-    async def _bank(self, player_id: UUID) -> BankView:
+    def _equipment(self, items: list[ItemView], inventory: InventoryView) -> EquipmentView:
+        worn = {i.equipped_slot: i for i in items if i.equipped_slot not in (None, "bag")}
+        better: dict[str, str] = {}
+        for carried in inventory.carried:
+            slot = self.content.items[carried.item_id].slot
+            if slot and carried.compare is not None and carried.compare.verdict == "better":
+                better.setdefault(slot, carried.name)
+        return EquipmentView(
+            slots=[
+                SlotView(slot, label, worn.get(slot), better.get(slot, ""))
+                for slot, label in SLOT_NAMES.items()
+                if slot != "bag"
+            ],
+            bags=[i for i in items if i.equipped_slot == "bag"],
+            bag_slots=inventory.bag_slots,
+            sets=inventory.sets,
+        )
+
+    async def _bank(self, player_id: UUID, player: PlayerSnapshot) -> BankView:
         async with self.sessions() as session:
             rows = (
                 await session.scalars(
@@ -663,7 +712,7 @@ class ViewService:
         return BankView(
             used=get_occupied_slots(stored),
             capacity=self.content.rules.bank.slots,
-            items=[self._item(entry) for entry in stored],
+            items=[self._item(entry, player=player) for entry in stored],
         )
 
     async def _group(self, row: Player, now: datetime) -> GroupView:
@@ -744,6 +793,7 @@ class ViewService:
         entry: InventoryItemState,
         merchants: Sequence[MerchantTemplate] = (),
         offered: set[UUID] | None = None,
+        player: PlayerSnapshot | None = None,
     ) -> ItemView:
         item = self.content.get_item(entry.item_id)
         offers = [
@@ -765,6 +815,9 @@ class ViewService:
             offered=entry.id in (offered or set()),
             summary=item_summary(item),
             item_id=item.id,
+            compare=compare(player, item.id, self.content)
+            if player is not None and entry.equipped_slot is None
+            else None,
         )
 
     async def log(self, player_id: UUID, limit: int = LOG_LINES) -> list[LogLine]:

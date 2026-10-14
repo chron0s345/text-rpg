@@ -1,0 +1,14 @@
+{# Shared bits of the panels. #}
+{% macro compare_badge(c) -%}
+{%- if c -%}
+<small class="cmp cmp-{{ c.verdict }}">
+  <span class="cmp-verdict">{{ {"better": "▲ besser", "worse": "▼ schlechter", "mixed": "◆ gemischt", "same": "= gleichwertig"}[c.verdict] }}</span>
+  {%- if c.changes %} {{ c.changes }}{% endif %}
+  <span class="cmp-against">{% if c.replaces %}statt {{ c.replaces }}{% else %}Platz ist frei{% endif %}</span>
+</small>
+{%- endif -%}
+{%- endmacro %}
+
+{% macro item_name(i, quantity=1) -%}
+{% if i.icon %}<img src="/static/icons/{{ i.icon }}.svg" alt="" class="icon">{% endif %}{% if quantity != 1 %}{{ quantity }}× {% endif %}<button class="link item-name" hx-post="/ui/actions" hx-vals='{{ {"type": "inspect", "item_id": i.item_id} | tojson }}' title="Ansehen">{{ i.name }}</button>
+{%- endmacro %}
