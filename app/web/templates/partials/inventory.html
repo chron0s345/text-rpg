@@ -1,28 +1,12 @@
+{% from "partials/macros.html" import compare_badge %}
 {% set inv = view.inventory %}{% set p = view.player %}
 <section id="inventory" class="panel inventory" aria-labelledby="inventory-title"{% if oob %} hx-swap-oob="true"{% endif %}>
-  <h2 id="inventory-title">Inventar <span class="muted">{{ inv.used }}/{{ inv.capacity }} Plätze · Taschen {{ inv.bags }}/{{ inv.bag_slots }}</span></h2>
-  {% if inv.equipped %}
-  <h3>Ausgerüstet</h3>
-  <ul class="list">
-    {% for i in inv.equipped %}
-    <li title="{{ i.description }}">
-      <span>{% if i.icon %}<img src="/static/icons/{{ i.icon }}.svg" alt="" class="icon">{% endif %}<button class="link item-name" hx-post="/ui/actions" hx-vals='{{ {"type": "inspect", "item_id": i.item_id} | tojson }}' title="Ansehen">{{ i.name }}</button>{% if i.summary %}<small class="item-summary">{{ i.summary }}</small>{% endif %}</span>
-      {% if p.state == 'exploring' %}
-      <button hx-post="/ui/actions" hx-vals='{{ {"type": "unequip", "inventory_item_id": i.id | string} | tojson }}'>Ablegen</button>
-      {% endif %}
-    </li>
-    {% endfor %}
-  </ul>
-  {% for s in inv.sets %}
-  <p class="set-line"><strong>{{ s.name }}</strong> <span class="muted">{{ s.worn }}/{{ s.total }}</span>{% if s.active %} · {{ s.active }}{% endif %}{% if s.next %} <span class="muted">({{ s.next }})</span>{% endif %}</p>
-  {% endfor %}
-  {% endif %}
-  <h3>Rucksack</h3>
+  <h2 id="inventory-title">Rucksack <span class="muted">{{ inv.used }}/{{ inv.capacity }} Plätze · Taschen {{ inv.bags }}/{{ inv.bag_slots }}</span></h2>
   {% if inv.carried %}
   <ul class="list">
     {% for i in inv.carried %}
     <li title="{{ i.description }}">
-      <span>{% if i.icon %}<img src="/static/icons/{{ i.icon }}.svg" alt="" class="icon">{% endif %}{% if i.quantity != 1 %}{{ i.quantity }}× {% endif %}<button class="link item-name" hx-post="/ui/actions" hx-vals='{{ {"type": "inspect", "item_id": i.item_id} | tojson }}' title="Ansehen">{{ i.name }}</button>{% if i.summary %}<small class="item-summary">{{ i.summary }}</small>{% endif %}</span>
+      <span>{% if i.icon %}<img src="/static/icons/{{ i.icon }}.svg" alt="" class="icon">{% endif %}{% if i.quantity != 1 %}{{ i.quantity }}× {% endif %}<button class="link item-name" hx-post="/ui/actions" hx-vals='{{ {"type": "inspect", "item_id": i.item_id} | tojson }}' title="Ansehen">{{ i.name }}</button>{% if i.summary %}<small class="item-summary">{{ i.summary }}</small>{% endif %}{{ compare_badge(i.compare) }}</span>
       <span class="buttons">
         {% if i.offered %}
         <span class="tag">im Angebot</span>

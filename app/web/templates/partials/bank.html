@@ -1,3 +1,4 @@
+{% from "partials/macros.html" import compare_badge %}
 {% set p = view.player %}{% set b = view.bank %}
 <section id="bank" class="panel bank" aria-labelledby="bank-title"{% if b is none %} hidden{% endif %}{% if oob %} hx-swap-oob="true"{% endif %}>
   {% if b is not none %}
@@ -6,7 +7,7 @@
   <ul class="list">
     {% for i in b.items %}
     <li title="{{ i.description }}">
-      <span>{% if i.icon %}<img src="/static/icons/{{ i.icon }}.svg" alt="" class="icon">{% endif %}{% if i.quantity != 1 %}{{ i.quantity }}× {% endif %}<button class="link item-name" hx-post="/ui/actions" hx-vals='{{ {"type": "inspect", "item_id": i.item_id} | tojson }}' title="Ansehen">{{ i.name }}</button>{% if i.summary %}<small class="item-summary">{{ i.summary }}</small>{% endif %}</span>
+      <span>{% if i.icon %}<img src="/static/icons/{{ i.icon }}.svg" alt="" class="icon">{% endif %}{% if i.quantity != 1 %}{{ i.quantity }}× {% endif %}<button class="link item-name" hx-post="/ui/actions" hx-vals='{{ {"type": "inspect", "item_id": i.item_id} | tojson }}' title="Ansehen">{{ i.name }}</button>{% if i.summary %}<small class="item-summary">{{ i.summary }}</small>{% endif %}{{ compare_badge(i.compare) }}</span>
       {% if p.state == 'exploring' %}
       <button hx-post="/ui/actions" hx-vals='{{ {"type": "bank_withdraw", "bank_item_id": i.id | string, "quantity": i.quantity | string} | tojson }}'>Abheben</button>
       {% endif %}
