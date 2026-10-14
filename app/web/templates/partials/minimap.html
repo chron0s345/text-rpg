@@ -1,0 +1,23 @@
+{% set m = view.room.map %}
+<figure class="minimap">
+  <svg viewBox="0 0 {{ m.width }} {{ m.height }}" width="{{ m.width }}" height="{{ m.height }}" role="img" aria-label="Karte der Umgebung">
+    {% for l in m.links %}<line class="map-link" x1="{{ l.x1 }}" y1="{{ l.y1 }}" x2="{{ l.x2 }}" y2="{{ l.y2 }}"/>{% endfor %}
+    {% for r in m.rooms %}
+    <g class="map-room{% if r.current %} current{% endif %}{% if r.safe %} safe{% endif %}">
+      <title>{{ r.name }}{% if r.merchant %} · Händler{% endif %}{% if r.quest %} · Auftragsziel{% endif %}{% if r.up %} · Weg nach oben{% endif %}{% if r.down %} · Weg nach unten{% endif %}</title>
+      <rect x="{{ r.x }}" y="{{ r.y }}" width="18" height="18" rx="3"/>
+      {% if r.merchant %}<circle class="map-merchant" cx="{{ r.x + 5 }}" cy="{{ r.y + 13 }}" r="2.5"/>{% endif %}
+      {% if r.quest %}<path class="map-quest" d="M{{ r.x + 13 }} {{ r.y + 1 }} l2 4 4 .5 -3 3 1 4 -4 -2 -4 2 1 -4 -3 -3 4 -.5z"/>{% endif %}
+      {% if r.up %}<path class="map-stairs" d="M{{ r.x + 3 }} {{ r.y + 7 }} l3 -4 3 4z"/>{% endif %}
+      {% if r.down %}<path class="map-stairs" d="M{{ r.x + 3 }} {{ r.y + 11 }} l3 4 3 -4z"/>{% endif %}
+    </g>
+    {% endfor %}
+  </svg>
+  <figcaption class="muted small">
+    <span><span class="key key-current"></span>hier</span>
+    <span><span class="key key-safe"></span>sicher</span>
+    <span><span class="key key-merchant"></span>Händler</span>
+    <span><span class="key key-quest"></span>Auftrag</span>
+    <span>▲▼ Treppe</span>
+  </figcaption>
+</figure>

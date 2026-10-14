@@ -6,6 +6,8 @@ Wie das Spiel aus Sicht der Spielenden funktioniert. Technische Umsetzung: [`ARC
 
 Alle spielen in **einer gemeinsamen, dauerhaften Welt**. Wer im selben Raum steht, sieht sich gegenseitig, dieselben Monster und dieselben Gegenstände am Boden. Gespeichert wird automatisch nach jeder Aktion.
 
+Die **Minikarte** im Raumpanel zeigt die Umgebung bis zwei Räume weit: wo du stehst, sichere Räume, Händler und – mit Stern – wohin dich deine Aufträge gerade führen (das Ziel eines „Gehe zu“, die Räume mit den gesuchten Monstern oder den Auftraggeber, wenn du abgeben kannst). Kleine Dreiecke zeigen Wege nach oben oder unten.
+
 Ein Account kann mehrere Charaktere haben (höchstens `max_characters_per_account`), aber immer nur **einer ist gleichzeitig im Spiel**. Wählst du einen anderen, wird der bisherige ausgeloggt.
 
 Dein Passwort änderst du auf der Charakterauswahl. Dabei werden alle anderen Geräte abgemeldet und eingeloggte Charaktere ausgeloggt; steckt einer im Kampf, beende den Kampf zuerst.

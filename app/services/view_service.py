@@ -23,6 +23,7 @@ from app.content.schemas import (
     Direction,
     Heal,
     ItemSet,
+    KillObjective,
     MerchantOffer,
     MerchantTemplate,
     QuestTemplate,
@@ -56,6 +57,7 @@ from app.engine.regeneration import calculate_current_monster_hp
 from app.engine.state import InventoryItemState, PlayerSnapshot
 from app.engine.stats import active_set_effects, stats_of, worn_sets
 from app.services.action_service import utc_now
+from app.services.minimap import Minimap, minimap
 
 LOG_LINES = 50
 
@@ -67,6 +69,7 @@ class PlayerView:
     level: int
     xp: int
     xp_next: int | None  # XP needed for the next level; None at max level
+    xp_floor: int  # XP needed for the current level (start of the XP bar)
     hp: int
     max_hp: int
     attack: int
@@ -90,6 +93,9 @@ class MonsterView:
     hp: int
     max_hp: int
     fighting_me: bool
+    level: int
+    boss: bool
+    rare: bool  # the rare form of a monster
 
 
 @dataclass(frozen=True)
@@ -113,6 +119,7 @@ class RoomView:
     players: list[tuple[UUID, str, str]]  # (id, name, state)
     merchants: list[str]
     floor_items: list[FloorItemView]
+    map: Minimap
 
 
 @dataclass(frozen=True)
@@ -372,6 +379,7 @@ class ViewService:
             level=row.level,
             xp=row.xp,
             xp_next=next_rule.xp_required if next_rule else None,
+            xp_floor=rules.level_rule(row.level).xp_required,
             hp=row.hp,
             max_hp=stats.max_hp,
             attack=stats.attack,
@@ -393,6 +401,9 @@ class ViewService:
                     hp=hp,
                     max_hp=template.max_hp,
                     fighting_me=monster.id == row.combat_target_id,
+                    level=template.level,
+                    boss=template.boss,
+                    rare=self.content.base_monster_id(template.id) != template.id,
                 )
             )
         floor_views = []
@@ -421,6 +432,7 @@ class ViewService:
             players=[(pid, name, state) for pid, name, state in others],
             merchants=[m.name for m in self.content.merchants_in_room(room.id)],
             floor_items=floor_views,
+            map=minimap(self.content, room.id, self._quest_rooms(snapshot)),
         )
 
         merchants = self.content.merchants_in_room(room.id)
@@ -463,6 +475,27 @@ class ViewService:
             quests=self._quests(snapshot),
             recipes=self._recipes(snapshot),
         )
+
+    def _quest_rooms(self, player: PlayerSnapshot) -> frozenset[str]:
+        """Where the current steps of active quests lead: the room to visit, the rooms where the
+        monsters to kill appear, or the giver once only the turn-in is left."""
+        rooms: set[str] = set()
+        for state in player.quests:
+            quest = self.content.quests.get(state.quest_id)
+            if state.status != "active" or quest is None:
+                continue
+            step = current_step(quest, state)
+            if isinstance(step, VisitObjective):
+                rooms.add(step.room_id)
+            elif isinstance(step, KillObjective):
+                rooms |= {
+                    room.id
+                    for room in self.content.rooms.values()
+                    if any(spawn.monster_id == step.monster_id for spawn in room.spawns)
+                }
+            if ready_to_turn_in(quest, state, player):
+                rooms.add(self.content.merchants[quest.giver_id].room_id)
+        return frozenset(rooms)
 
     def _set(self, item_set: ItemSet, worn: int) -> SetView:
         upcoming = sorted((b for b in item_set.bonuses if b.pieces > worn), key=lambda b: b.pieces)

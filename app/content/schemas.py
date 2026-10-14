@@ -81,6 +81,7 @@ class MonsterTemplate(BaseModel):
     ambush: Ambush | None = None  # None = greift nie von selbst an
     loot_table: list[LootEntry] = Field(default_factory=list)
     rare_variant: RareVariant | None = None  # seltene Form, gewürfelt bei jedem Respawn
+    boss: bool = False  # nur in der Gruppe oder mit Tränken zu schaffen (Anzeige, Balance-Test)
 
 
 class StatModifier(BaseModel):

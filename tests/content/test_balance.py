@@ -77,7 +77,7 @@ MONSTERS = sorted(CONTENT.monsters.values(), key=lambda m: (m.level, m.id))
 def test_every_level_has_monsters_and_bosses_exist() -> None:
     top = max(rule.level for rule in CONTENT.rules.levels)
     assert {m.level for m in MONSTERS} == set(range(1, top + 1))
-    assert BOSSES <= set(CONTENT.monsters)
+    assert BOSSES == {m.id for m in CONTENT.monsters.values() if m.boss}  # flagged in the data
 
 
 @pytest.mark.parametrize("monster", MONSTERS, ids=lambda m: m.id)

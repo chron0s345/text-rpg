@@ -2,13 +2,18 @@
 <section id="room" class="panel room" aria-labelledby="room-name"{% if oob %} hx-swap-oob="true"{% endif %}>
   <h2 id="room-name">{{ r.name }}{% if r.safe %} <span class="tag">sicher</span>{% endif %}{% if r.bank %} <span class="tag">Bank</span>{% endif %}</h2>
   <p class="description">{{ r.description }}</p>
+  {% include "partials/minimap.html" %}
 
   {% if r.monsters %}
   <h3>Gegner</h3>
   <ul class="list">
     {% for m in r.monsters %}
     <li class="{% if m.fighting_me %}fighting{% endif %}">
-      <span>{{ m.name }} <span class="muted">{{ m.hp }}/{{ m.max_hp }} HP</span></span>
+      <span class="monster">
+        <span>{{ m.name }} <span class="muted">Stufe {{ m.level }}</span>{% if m.boss %} <span class="tag boss">Boss</span>{% endif %}{% if m.rare %} <span class="tag rare">selten</span>{% endif %}</span>
+        <meter min="0" max="{{ m.max_hp }}" low="{{ (m.max_hp * 0.3) | round(0, 'ceil') | int }}" high="{{ (m.max_hp * 0.6) | int }}" optimum="{{ m.max_hp }}" value="{{ m.hp }}" title="{{ m.hp }}/{{ m.max_hp }} HP" aria-label="HP von {{ m.name }}: {{ m.hp }} von {{ m.max_hp }}"></meter>
+        <span class="muted small">{{ m.hp }}/{{ m.max_hp }} HP</span>
+      </span>
       {% if not r.safe and (p.state == 'exploring' or m.fighting_me) %}
       <button hx-post="/ui/actions" hx-vals='{{ {"type": "attack", "target_id": m.id | string} | tojson }}'>Angreifen</button>
       {% endif %}
