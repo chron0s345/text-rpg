@@ -251,20 +251,22 @@ QUEST_STATUSES = ("active", "completed")
 
 
 class QuestProgress(SQLModel, table=True):
-    """One row per character and quest it ever accepted. ``progress`` counts kills of a kill
-    quest (delivery quests count the inventory on turn-in). A repeatable, completed quest
-    becomes ``active`` again when accepted anew."""
+    """One row per character and quest it ever accepted. ``step`` is the current step of the
+    quest, ``progress`` counts kills in a kill step (delivery steps count the inventory on
+    turn-in). A repeatable, completed quest becomes ``active`` again when accepted anew."""
 
     __tablename__ = "quest_progress"
     __table_args__ = (
         CheckConstraint(_in("status", QUEST_STATUSES), name="status"),
         CheckConstraint("progress >= 0", name="progress"),
         CheckConstraint("times_completed >= 0", name="times_completed"),
+        CheckConstraint("step >= 0", name="step"),
     )
 
     player_id: UUID = Field(foreign_key="player.id", ondelete="CASCADE", primary_key=True)
     quest_id: str = Field(primary_key=True)
     status: str = "active"
+    step: int = 0
     progress: int = 0
     times_completed: int = 0
 

@@ -125,7 +125,7 @@ def test_kills_count_for_the_party_and_rare_variants(
 
     assert "Puppenjagd: 2/2 – zurück zu Alchemistin Elira!" in actor_texts(result)
     [upsert] = result.changes.quests_upsert
-    assert (upsert.quest_id, upsert.progress) == ("hunt", 2)
+    assert (upsert.quest_id, upsert.step, upsert.progress) == ("hunt", 1, 0)  # all steps done
 
 
 def test_kills_beyond_the_count_and_other_monsters_change_nothing(

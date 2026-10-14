@@ -202,6 +202,7 @@ class QuestUpsert(BaseModel):
     player_id: UUID
     quest_id: str
     status: str
+    step: int
     progress: int
     times_completed: int
 
@@ -285,6 +286,7 @@ class ResultBuilder:
                 player_id=player_id,
                 quest_id=quest.quest_id,
                 status=quest.status,
+                step=quest.step,
                 progress=quest.progress,
                 times_completed=quest.times_completed,
             )

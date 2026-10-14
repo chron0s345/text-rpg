@@ -1,9 +1,14 @@
-"""Quests (ARCHITECTURE.md, "Quests"): accepting, turning in and abandoning, plus kill progress.
+"""Quests (ARCHITECTURE.md, "Quests"): accepting, turning in and abandoning, plus progress.
 
 A quest is offered by a merchant (its giver) and accepted and turned in where that merchant
-stands. Delivery quests count the backpack on turn-in and take the items; kill quests count
-kills as they happen (``count_kill``, called from ``rewards.resolve_kill``): every member of
-the credited party in the room gets the kill, rare variants count for their base monster.
+stands. Its steps are done in order:
+
+- kill steps count kills as they happen (``count_kill``, called from ``rewards.resolve_kill``):
+  every member of the credited party in the room gets the kill, rare variants count for their
+  base monster;
+- visit steps are done by entering the room (``count_visit``, called from ``resolve_move``),
+  or at once if the character already stands there when the step begins;
+- a delivery can only be the last step: it counts the backpack on turn-in and takes the items.
 """
 
 from __future__ import annotations
@@ -14,7 +19,14 @@ from datetime import datetime
 from typing import Final
 
 from app.content.registry import ContentRegistry
-from app.content.schemas import DeliverObjective, QuestTemplate, Rules
+from app.content.schemas import (
+    DeliverObjective,
+    KillObjective,
+    Objective,
+    QuestTemplate,
+    Rules,
+    VisitObjective,
+)
 from app.engine.events import ActionResult, QuestDelete, ResultBuilder, rejected
 from app.engine.materials import (
     count_available,
@@ -61,15 +73,73 @@ def quests_offered_here(actor: PlayerSnapshot, content: ContentRegistry) -> list
     ]
 
 
+def step_text(step: Objective, content: ContentRegistry) -> str:
+    """What a step asks for, e.g. "Besiege 4× Hungriger Wolf"."""
+    if isinstance(step, DeliverObjective):
+        return f"Bringe {step.quantity}× {content.get_item(step.item_id).name}"
+    if isinstance(step, KillObjective):
+        return f"Besiege {step.count}× {content.get_monster(step.monster_id).name}"
+    return f"Gehe zu: {content.get_room(step.room_id).name}"
+
+
+def current_step(quest: QuestTemplate, state: QuestState) -> Objective | None:
+    """The step being worked on; None once all kill and visit steps are done."""
+    return quest.steps[state.step] if state.step < len(quest.steps) else None
+
+
 def objective_progress(
     quest: QuestTemplate, state: QuestState, actor: PlayerSnapshot
 ) -> tuple[int, int]:
-    """(done, needed) for display and turn-in; deliveries count the backpack right now."""
-    objective = quest.objective
-    if isinstance(objective, DeliverObjective):
-        have = count_available(actor, objective.item_id)
-        return min(have, objective.quantity), objective.quantity
-    return min(state.progress, objective.count), objective.count
+    """(done, needed) of the current step for display and turn-in; deliveries count the
+    backpack right now. (1, 1) once every step is done."""
+    step = current_step(quest, state)
+    if step is None:
+        return 1, 1
+    if isinstance(step, DeliverObjective):
+        have = count_available(actor, step.item_id)
+        return min(have, step.quantity), step.quantity
+    if isinstance(step, KillObjective):
+        return min(state.progress, step.count), step.count
+    return 0, 1  # a visit step that is still ahead
+
+
+def ready_to_turn_in(quest: QuestTemplate, state: QuestState, actor: PlayerSnapshot) -> bool:
+    """All steps done, or only the closing delivery left and the items are at hand."""
+    step = current_step(quest, state)
+    if step is None:
+        return True
+    if not isinstance(step, DeliverObjective):
+        return False
+    done, needed = objective_progress(quest, state, actor)
+    return done >= needed
+
+
+def _advance(
+    builder: ResultBuilder,
+    player: PlayerSnapshot,
+    quest: QuestTemplate,
+    state: QuestState,
+    content: ContentRegistry,
+    done_text: str,
+) -> None:
+    """Finishes the current step and tells the player ``done_text`` plus what is next; a
+    following visit step for the room the player stands in is done right away."""
+    state.step += 1
+    state.progress = 0
+    while (step := current_step(quest, state)) is not None and (
+        isinstance(step, VisitObjective) and step.room_id == player.current_room_id
+    ):
+        state.step += 1
+    builder.upsert_quest(player.id, state)
+    step = current_step(quest, state)
+    giver = content.merchants[quest.giver_id].name
+    if step is None:
+        text = f"{done_text} – zurück zu {giver}!"
+    elif isinstance(step, DeliverObjective):
+        text = f"{done_text} – jetzt: {step_text(step, content)} zu {giver}."
+    else:
+        text = f"{done_text} – weiter: {step_text(step, content)}."
+    builder.to_player(player.id, "quest.progress", text, quest_id=quest.id)
 
 
 def resolve_quest_accept(
@@ -98,6 +168,7 @@ def resolve_quest_accept(
     state = QuestState(
         quest_id=quest.id,
         status="active",
+        step=0,
         progress=0,
         times_completed=previous.times_completed if previous else 0,
     )
@@ -109,6 +180,11 @@ def resolve_quest_accept(
         f"Auftrag angenommen: {quest.name}. {giver.name}: „{quest.description}“",
         quest_id=quest.id,
     )
+    first = quest.steps[0]
+    if isinstance(first, VisitObjective) and first.room_id == actor.current_room_id:
+        state.step = -1  # _advance counts up to the first step and finishes it right away
+        here = content.get_room(first.room_id).name
+        _advance(builder, actor, quest, state, content, f"{quest.name}: {here} – schon da")
     return builder.build()
 
 
@@ -129,7 +205,7 @@ def resolve_quest_abandon(
         return rejected("Diesen Auftrag hast du nicht.")
     builder = ResultBuilder(actor_id=actor.id)
     if state.times_completed > 0:  # a repeatable quest done before: back to "completed"
-        restored = state.model_copy(update={"status": "completed", "progress": 0})
+        restored = state.model_copy(update={"status": "completed", "step": 0, "progress": 0})
         actor.quests = [restored if q.quest_id == quest_id else q for q in actor.quests]
         builder.upsert_quest(actor.id, restored)
     else:
@@ -157,14 +233,19 @@ def resolve_quest_turn_in(
     giver = content.merchants[quest.giver_id]
     if not _giver_here(quest, actor, content):
         return rejected(f"Den Auftrag gibst du bei {giver.name} ab.")
-    done, needed = objective_progress(quest, state, actor)
-    if done < needed:
-        return rejected(f"{quest.name}: erst {done}/{needed}.")
+    if not ready_to_turn_in(quest, state, actor):
+        step = current_step(quest, state)
+        assert step is not None  # ready_to_turn_in is True without a step
+        done, needed = objective_progress(quest, state, actor)
+        if isinstance(step, VisitObjective):
+            return rejected(f"{quest.name}: erst noch – {step_text(step, content)}.")
+        prefix = f"Schritt {state.step + 1}/{len(quest.steps)}, " if len(quest.steps) > 1 else ""
+        return rejected(f"{quest.name}: {prefix}erst {done}/{needed}.")
 
     builder = ResultBuilder(actor_id=actor.id)
-    objective = quest.objective
-    if isinstance(objective, DeliverObjective):
-        take_items(builder, actor, objective.item_id, objective.quantity)
+    last = current_step(quest, state)
+    if isinstance(last, DeliverObjective):
+        take_items(builder, actor, last.item_id, last.quantity)
 
     # reward items must fit completely, otherwise nothing happens
     rewards_in = [(r.item_id, r.quantity) for r in quest.reward.items]
@@ -172,7 +253,12 @@ def resolve_quest_turn_in(
         return rejected("Für die Belohnung ist kein Platz im Inventar.")
 
     finished = state.model_copy(
-        update={"status": "completed", "progress": 0, "times_completed": state.times_completed + 1}
+        update={
+            "status": "completed",
+            "step": 0,
+            "progress": 0,
+            "times_completed": state.times_completed + 1,
+        }
     )
     actor.quests = [finished if q.quest_id == quest_id else q for q in actor.quests]
     builder.upsert_quest(actor.id, finished)
@@ -199,21 +285,35 @@ def count_kill(
     monster_id: str,
     content: ContentRegistry,
 ) -> None:
-    """Every credited party member with an active kill quest for this monster (or the base of
-    this rare variant) gets one kill, up to the quest's count."""
+    """Every credited party member whose current quest step is to kill this monster (or the
+    base of this rare variant) gets one kill, up to the step's count."""
     base = content.base_monster_id(monster_id)
     for player in recipients:
         for state in player.quests:
-            if state.status != "active":
-                continue
             quest = content.quests.get(state.quest_id)
-            if quest is None or quest.objective.type != "kill":
+            if state.status != "active" or quest is None:
                 continue
-            if quest.objective.monster_id != base or state.progress >= quest.objective.count:
+            step = current_step(quest, state)
+            if not isinstance(step, KillObjective) or step.monster_id != base:
+                continue
+            if state.progress >= step.count:
                 continue
             state.progress += 1
+            text = f"{quest.name}: {state.progress}/{step.count}"
+            if state.progress >= step.count:
+                _advance(builder, player, quest, state, content, text)
+                continue
             builder.upsert_quest(player.id, state)
-            text = f"{quest.name}: {state.progress}/{quest.objective.count}"
-            if state.progress >= quest.objective.count:
-                text += f" – zurück zu {content.merchants[quest.giver_id].name}!"
             builder.to_player(player.id, "quest.progress", text, quest_id=quest.id)
+
+
+def count_visit(builder: ResultBuilder, player: PlayerSnapshot, content: ContentRegistry) -> None:
+    """The player just entered their current room: visit steps for it are done."""
+    for state in player.quests:
+        quest = content.quests.get(state.quest_id)
+        if state.status != "active" or quest is None:
+            continue
+        step = current_step(quest, state)
+        if isinstance(step, VisitObjective) and step.room_id == player.current_room_id:
+            room = content.get_room(step.room_id).name
+            _advance(builder, player, quest, state, content, f"{quest.name}: {room} erreicht")

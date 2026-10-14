@@ -6,8 +6,8 @@
     {% for a in q.active %}
     <li>
       <span>
-        <strong>{{ a.name }}</strong> <span class="muted">{{ a.done }}/{{ a.needed }}</span>
-        <small class="item-summary">{{ a.objective }} · bei {{ a.giver }}</small>
+        <strong>{{ a.name }}</strong>{% if a.show_count %} <span class="muted">{{ a.done }}/{{ a.needed }}</span>{% endif %}
+        <small class="item-summary">{% if a.steps > 1 %}Schritt {{ a.step }}/{{ a.steps }}: {% endif %}{{ a.objective }} · bei {{ a.giver }}</small>
       </span>
       <span class="buttons">
         {% if a.can_turn_in and p.state == 'exploring' %}

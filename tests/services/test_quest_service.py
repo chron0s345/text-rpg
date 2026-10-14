@@ -44,12 +44,24 @@ def giver_room(harness: ServiceHarness) -> Iterator[str]:
             "objective": {"type": "kill", "monster_id": "goblin", "count": 2},
         }
     )
+    h.content.quests["q_steps"] = QuestTemplate.model_validate(
+        {
+            **base,
+            "id": "q_steps",
+            "name": "Zwei Wege",
+            "steps": [
+                {"type": "visit", "room_id": room},
+                {"type": "visit", "room_id": h.content.rules.town_room_id},
+            ],
+        }
+    )
     try:
         yield room
     finally:
         del h.content.merchants["qgiver"]
         del h.content.quests["q_deliver"]
         del h.content.quests["q_kill"]
+        del h.content.quests["q_steps"]
 
 
 async def quest_row(h: ServiceHarness, player_id: Any, quest_id: str) -> QuestProgress | None:
@@ -125,3 +137,12 @@ async def test_quest_rows_disappear_with_the_character(
         assert row is not None
         await db.delete(row)
     assert await quest_row(h, anna.id, "q_kill") is None
+
+
+async def test_the_current_step_is_stored(harness: ServiceHarness, giver_room: str) -> None:
+    h = harness
+    anna = await player(h, giver_room)
+    texts = await act(h, anna.id, QuestAcceptAction(quest_id="q_steps"))
+    assert texts[-1].startswith("Zwei Wege: ")  # the first visit is done at once: we stand here
+    row = await quest_row(h, anna.id, "q_steps")
+    assert row is not None and (row.status, row.step) == ("active", 1)

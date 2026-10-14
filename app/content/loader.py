@@ -106,7 +106,7 @@ def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegist
 
     validate_content(rooms, monsters, items, merchants, rules)
     validate_rare_variants(rooms, monsters)
-    validate_quests(quests, monsters, items, merchants)
+    validate_quests(quests, monsters, items, merchants, rooms)
     validate_recipes(recipes, items, merchants)
     if icons_dir is not None:
         validate_icons(items, Path(icons_dir))
@@ -162,25 +162,36 @@ def validate_quests(
     monsters: dict[str, MonsterTemplate],
     items: dict[str, ItemTemplate],
     merchants: dict[str, MerchantTemplate],
+    rooms: dict[str, RoomTemplate],
 ) -> None:
-    """Givers, items and monsters exist; prerequisites exist and form no cycle; kill quests
-    name a base monster (a rare variant counts for its base anyway)."""
+    """Givers, items, monsters and rooms exist; a delivery is only ever the last step;
+    prerequisites exist and form no cycle; kill steps name a base monster (a rare variant
+    counts for its base anyway)."""
     variants = {m.rare_variant.monster_id for m in monsters.values() if m.rare_variant}
     for quest in quests.values():
         where = f"Quest '{quest.id}'"
         if quest.giver_id not in merchants:
             raise ContentValidationError(f"{where} has an unknown giver '{quest.giver_id}'")
-        objective = quest.objective
-        if objective.type == "deliver" and objective.item_id not in items:
-            raise ContentValidationError(f"{where} asks for an unknown item '{objective.item_id}'")
-        if objective.type == "kill":
-            if objective.monster_id not in monsters:
+        for number, objective in enumerate(quest.steps, start=1):
+            if objective.type == "deliver":
+                if objective.item_id not in items:
+                    raise ContentValidationError(
+                        f"{where} asks for an unknown item '{objective.item_id}'"
+                    )
+                if number < len(quest.steps):
+                    raise ContentValidationError(f"{where}: a delivery must be the last step")
+            if objective.type == "kill":
+                if objective.monster_id not in monsters:
+                    raise ContentValidationError(
+                        f"{where} asks to kill an unknown monster '{objective.monster_id}'"
+                    )
+                if objective.monster_id in variants:
+                    raise ContentValidationError(
+                        f"{where} names the rare variant '{objective.monster_id}'; name its base"
+                    )
+            if objective.type == "visit" and objective.room_id not in rooms:
                 raise ContentValidationError(
-                    f"{where} asks to kill an unknown monster '{objective.monster_id}'"
-                )
-            if objective.monster_id in variants:
-                raise ContentValidationError(
-                    f"{where} names the rare variant '{objective.monster_id}'; name its base"
+                    f"{where} sends to an unknown room '{objective.room_id}'"
                 )
         for reward in quest.reward.items:
             if reward.item_id not in items:

@@ -137,6 +137,34 @@ def content() -> ContentRegistry:
                 "repeatable": True,
             }
         ),
+        "tour": QuestTemplate.model_validate(
+            {
+                "id": "tour",
+                "name": "Rundgang",
+                "giver_id": "alchemist",
+                "description": "Geh zum Marktplatz, zerschlag eine Puppe, bring mir Brot.",
+                "completion_text": "Fein.",
+                "steps": [
+                    {"type": "visit", "room_id": "town_square"},
+                    {"type": "kill", "monster_id": "plain", "count": 1},
+                    {"type": "deliver", "item_id": "bread", "quantity": 1},
+                ],
+                "reward": {"gold": 3},
+            }
+        ),
+        "errand": QuestTemplate.model_validate(
+            {
+                "id": "errand",
+                "name": "Botengang",
+                "giver_id": "alchemist",
+                "description": "Sieh am Stand nach und dann im Wald.",
+                "completion_text": "Danke.",
+                "steps": [
+                    {"type": "visit", "room_id": "town_market"},
+                    {"type": "visit", "room_id": "dark_forest"},
+                ],
+            }
+        ),
         "veteran": QuestTemplate.model_validate(
             {
                 "id": "veteran",

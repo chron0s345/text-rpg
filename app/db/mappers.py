@@ -77,6 +77,7 @@ def quest_state(row: QuestProgress) -> QuestState:
     return QuestState(
         quest_id=row.quest_id,
         status=cast(Literal["active", "completed"], row.status),
+        step=row.step,
         progress=row.progress,
         times_completed=row.times_completed,
     )

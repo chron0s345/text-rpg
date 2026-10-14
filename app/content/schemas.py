@@ -163,7 +163,16 @@ class KillObjective(BaseModel):
     count: PositiveInt = 1
 
 
-Objective = Annotated[DeliverObjective | KillObjective, Field(discriminator="type")]
+class VisitObjective(BaseModel):
+    """Reach a room (entering it counts)."""
+
+    type: Literal["visit"] = "visit"
+    room_id: str
+
+
+Objective = Annotated[
+    DeliverObjective | KillObjective | VisitObjective, Field(discriminator="type")
+]
 
 
 class RewardItem(BaseModel):
@@ -183,11 +192,24 @@ class QuestTemplate(BaseModel):
     giver_id: str  # MerchantTemplate.id: accepted and turned in where that merchant stands
     description: str  # the task, as the giver tells it
     completion_text: str  # what the giver says on turn-in
-    objective: Objective
+    # done in order; kill and visit steps advance on their own, a delivery can only be the
+    # last step (handed over on turn-in). ``objective: …`` is short for a single step.
+    steps: list[Objective] = Field(min_length=1)
     reward: QuestReward = Field(default_factory=QuestReward)
     min_level: PositiveInt = 1
     requires: list[str] = Field(default_factory=list)  # quest ids that must be completed first
     repeatable: bool = False
+
+    @model_validator(mode="before")
+    @classmethod
+    def _single_objective(cls, data: object) -> object:
+        if isinstance(data, dict) and "objective" in data:
+            if "steps" in data:
+                raise ValueError("give either objective or steps, not both")
+            data = {k: v for k, v in data.items() if k != "objective"} | {
+                "steps": [data["objective"]]
+            }
+        return data
 
 
 # --- recipes.yaml -----------------------------------------------------------
