@@ -8,6 +8,8 @@ Alle spielen in **einer gemeinsamen, dauerhaften Welt**. Wer im selben Raum steh
 
 Ein Account kann mehrere Charaktere haben (höchstens `max_characters_per_account`), aber immer nur **einer ist gleichzeitig im Spiel**. Wählst du einen anderen, wird der bisherige ausgeloggt.
 
+Dein Passwort änderst du auf der Charakterauswahl. Dabei werden alle anderen Geräte abgemeldet und eingeloggte Charaktere ausgeloggt; steckt einer im Kampf, beende den Kampf zuerst.
+
 Neue Charaktere starten auf Stufe 1 auf dem **Marktplatz von Oakhaven**.
 
 ### Räume

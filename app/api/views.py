@@ -15,9 +15,10 @@ from fastapi import APIRouter, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from pydantic import TypeAdapter, ValidationError
 
-from app.api.auth import client_address
+from app.api.auth import change_password, client_address
 from app.api.deps import Services, ServicesDep, session_player_id
 from app.api.schemas import GameAction, LogoutAction
+from app.api.session_guard import remember_login
 from app.engine.events import GameEvent
 from app.engine.presence import LOGGED_OUT
 from app.services.account_service import (
@@ -95,8 +96,7 @@ async def welcome_login(request: Request, services: ServicesDep) -> Response:
             {"error": "Benutzername oder Passwort falsch.", "username": username},
             status_code=status.HTTP_401_UNAUTHORIZED,
         )
-    request.session.clear()
-    request.session["account_id"] = str(account.id)
+    remember_login(request.session, account.id, account.session_version)
     return _redirect("/select")
 
 
@@ -115,8 +115,7 @@ async def welcome_register(request: Request, services: ServicesDep) -> Response:
         return templates.TemplateResponse(
             request, "welcome.html", {"error": str(exc)}, status_code=status.HTTP_400_BAD_REQUEST
         )
-    request.session.clear()
-    request.session["account_id"] = str(account.id)
+    remember_login(request.session, account.id, account.session_version)
     return _redirect("/select")
 
 
@@ -129,6 +128,7 @@ async def _select_page(
     account_id: UUID,
     *,
     error: str | None = None,
+    notice: str | None = None,
     confirm: dict[str, Any] | None = None,
     status_code: int = status.HTTP_200_OK,
 ) -> Response:
@@ -140,6 +140,7 @@ async def _select_page(
             "characters": characters,
             "can_create": len(characters) < services.content.rules.max_characters_per_account,
             "error": error,
+            "notice": notice,
             "confirm": confirm,
         },
         status_code=status_code,
@@ -151,7 +152,36 @@ async def select(request: Request, services: ServicesDep) -> Response:
     account_id = _account_id(request)
     if account_id is None:
         return _redirect("/welcome")
-    return await _select_page(request, services, account_id)
+    notice = "Passwort geändert." if request.query_params.get("passwort") == "neu" else None
+    return await _select_page(request, services, account_id, notice=notice)
+
+
+@router.post("/select/password")
+async def select_password(request: Request, services: ServicesDep) -> Response:
+    account_id = _account_id(request)
+    if account_id is None:
+        return _redirect("/welcome")
+    form = await _form(request)
+    try:
+        await change_password(
+            request,
+            services,
+            account_id,
+            form.get("current_password", "")[:128],
+            form.get("new_password", "")[:128],
+        )
+    except TooManyAttemptsError as exc:
+        error, code = exc.message, status.HTTP_429_TOO_MANY_REQUESTS
+    except AccountError as exc:
+        error, code = str(exc), status.HTTP_400_BAD_REQUEST
+    except ConfirmDeathRequiredError as exc:
+        error = f"{exc.name} ist im Kampf. Beende den Kampf oder logge ihn im Spiel aus."
+        code = status.HTTP_409_CONFLICT
+    except SessionConflictError as exc:
+        error, code = str(exc), status.HTTP_409_CONFLICT
+    else:
+        return _redirect("/select?passwort=neu")
+    return await _select_page(request, services, account_id, error=error, status_code=code)
 
 
 @router.post("/select/new")

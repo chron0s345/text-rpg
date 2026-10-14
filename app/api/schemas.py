@@ -206,6 +206,12 @@ class Credentials(BaseModel):
     password: str = Field(max_length=128)
 
 
+class PasswordChange(BaseModel):
+    current_password: str = Field(max_length=128)
+    new_password: str = Field(max_length=128)
+    confirm_death: bool = False  # a character of the account is in combat
+
+
 class AccountOut(BaseModel):
     id: UUID
     username: str

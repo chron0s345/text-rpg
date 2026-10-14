@@ -8,6 +8,7 @@
     <form method="post" action="/select/logout"><button class="link" type="submit">Abmelden</button></form>
   </header>
   {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+  {% if notice %}<p class="notice" role="status">{{ notice }}</p>{% endif %}
   {% if confirm %}
   <form method="post" action="/select/{{ confirm.id }}/play" class="card warning" role="alertdialog" aria-labelledby="confirm-title">
     <h2 id="confirm-title">Achtung</h2>
@@ -46,5 +47,14 @@
     <button type="submit">Erschaffen</button>
   </form>
   {% endif %}
+  <details class="card account">
+    <summary>Passwort ändern</summary>
+    <form method="post" action="/select/password">
+      <label>Aktuelles Passwort <input type="password" name="current_password" required maxlength="128" autocomplete="current-password"></label>
+      <label>Neues Passwort <input type="password" name="new_password" required minlength="8" maxlength="128" autocomplete="new-password"></label>
+      <p class="muted">Alle anderen Geräte werden abgemeldet, eingeloggte Charaktere ausgeloggt.</p>
+      <button type="submit">Passwort ändern</button>
+    </form>
+  </details>
 </main>
 {% endblock %}
