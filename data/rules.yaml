@@ -65,3 +65,28 @@ levels:
     max_hp: 52
     attack: 15
     defense: 7
+  - level: 6
+    xp_required: 1400
+    max_hp: 63
+    attack: 18
+    defense: 8
+  - level: 7
+    xp_required: 2000
+    max_hp: 75
+    attack: 21
+    defense: 9
+  - level: 8
+    xp_required: 2800
+    max_hp: 88
+    attack: 24
+    defense: 11
+  - level: 9
+    xp_required: 3800
+    max_hp: 102
+    attack: 27
+    defense: 12
+  - level: 10
+    xp_required: 5000
+    max_hp: 118
+    attack: 31
+    defense: 14
