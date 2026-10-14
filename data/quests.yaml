@@ -172,3 +172,191 @@
   reward: {xp: 3000, gold: 500, items: [{item_id: phoenix_draught, quantity: 3}]}
   min_level: 15
   requires: [valen_ring]
+
+# --- Zweites Auftragspaket: Lücken zwischen den Gebieten und Bossjagden ---
+
+- id: crow_scare
+  name: "Vogelscheuche ohne Wirkung"
+  giver_id: miller
+  description: "Meine Vogelscheuche lacht mich aus, und die Krähen lachen mit. Bring mir vier Krähenfedern, dann hänge ich sie als Warnung auf."
+  completion_text: "Mal sehen, wer jetzt lacht. Hier, ein Stück Käse für jede zweite Feder."
+  objective: {type: deliver, item_id: crow_feather, quantity: 4}
+  reward: {xp: 50, gold: 12, items: [{item_id: cheese, quantity: 2}]}
+
+- id: swamp_remedy
+  name: "Kräuter aus dem Moor"
+  giver_id: alchemist
+  description: "Moorkraut verdirbt schnell, deshalb habe ich nie genug davon. Sechs Bündel, frisch, und ich zeige dir, was ein richtiger Trank ist."
+  completion_text: "Noch feucht, perfekt. Das hier ist ein großer Heiltrank – teil ihn dir gut ein."
+  objective: {type: deliver, item_id: bog_herb, quantity: 6}
+  reward: {xp: 80, gold: 20, items: [{item_id: greater_potion}]}
+  min_level: 3
+
+- id: sacred_ash
+  name: "Asche zu Asche"
+  giver_id: priestess
+  description: "Den Staub der Gefallenen zu segnen, gibt ihnen Frieden, den der Riss ihnen genommen hat. Bring mir fünf Häufchen Knochenstaub."
+  completion_text: "Ich werde für sie beten. Nimm das geweihte Wasser – es schützt die Lebenden genauso."
+  objective: {type: deliver, item_id: bone_dust, quantity: 5}
+  reward: {xp: 120, gold: 25, items: [{item_id: holy_water, quantity: 2}]}
+  min_level: 3
+  requires: [rest_for_the_dead]
+
+- id: troll_toll
+  name: "Brückenzoll"
+  giver_id: smith
+  description: "Ein Höhlentroll hält die Pässe besetzt und frisst meine Erzlieferungen gleich mit. Sorge dafür, dass er nichts mehr frisst."
+  completion_text: "Endlich kommt wieder Eisen. Der Schild ist aus der ersten Lieferung – du hast ihn dir verdient."
+  objective: {type: kill, monster_id: cave_troll, count: 1}
+  reward: {xp: 350, gold: 60, items: [{item_id: iron_shield}]}
+  min_level: 5
+  requires: [wolves_at_the_gate]
+
+- id: smugglers_cove
+  name: "Fremde Boote"
+  giver_id: fisherwoman
+  description: "Nachts legen Boote ohne Laternen an, und am Morgen fehlen unsere Netze. Vier Schmuggler weniger, und die Bucht gehört wieder uns."
+  completion_text: "Heute Nacht schlafe ich zum ersten Mal durch. Hier, das Beste aus meiner Räucherkammer."
+  objective: {type: kill, monster_id: smuggler, count: 4}
+  reward: {xp: 350, gold: 60, items: [{item_id: smoked_fish, quantity: 4}]}
+  min_level: 6
+
+- id: harpy_quills
+  name: "Federn für Pfeile"
+  giver_id: dwarf_armorer
+  description: "Harpyienfedern fliegen gerader als alles, was ein Zwerg rupfen kann. Vier Stück, und ich gebe dir einen Helm, der etwas aushält."
+  completion_text: "Gute Kiele. Der Helm ist zwergisch geschmiedet – nicht hübsch, aber dein Kopf bleibt dran."
+  objective: {type: deliver, item_id: harpy_feather, quantity: 4}
+  reward: {xp: 220, gold: 40, items: [{item_id: iron_helm}]}
+  min_level: 6
+
+- id: clear_the_mine
+  name: "Die Mine zurückerobern"
+  giver_id: dwarf_armorer
+  description: "Die Grubenghule hausen in unseren alten Stollen. Mein Großvater liegt dort unten. Erschlag fünf von ihnen."
+  completion_text: "Fünf. Er hätte gelacht und ‚nur fünf?‘ gesagt. Nimm die Beinschienen, er hätte es so gewollt."
+  objective: {type: kill, monster_id: mine_ghoul, count: 5}
+  reward: {xp: 300, gold: 50, items: [{item_id: iron_greaves}]}
+  min_level: 6
+
+- id: bottled_storm
+  name: "Der Sturm in der Flasche"
+  giver_id: fisherwoman
+  description: "Die alten Fischer sagen, wer Sturmessenz am Bug trägt, kentert nie. Ich glaube es nicht – aber meine Leute schon. Drei Stück."
+  completion_text: "Sie werden sich sicherer fühlen, und das ist auf See schon die halbe Miete. Hier, mein alter Ölmantel."
+  objective: {type: deliver, item_id: storm_essence, quantity: 3}
+  reward: {xp: 300, gold: 50, items: [{item_id: oilskin_coat}]}
+  min_level: 7
+
+- id: lights_in_the_mist
+  name: "Lichter im Nebel"
+  giver_id: elf_ranger
+  description: "Die Irrlichter waren einst Seelen unseres Volkes, die den Weg nach Hause suchten. Fange vier ihrer Lichter, damit wir sie zur Ruhe betten."
+  completion_text: "Sie leuchten jetzt ruhiger. Danke, Fremde. Nimm unser Brot für den Weg."
+  objective: {type: deliver, item_id: wisp_light, quantity: 4}
+  reward: {xp: 400, gold: 60, items: [{item_id: elven_bread, quantity: 3}]}
+  min_level: 8
+
+- id: queen_of_webs
+  name: "Die Königin der Netze"
+  giver_id: alchemist
+  description: "Deine Seide hat mir gezeigt, woher die Spinnen kommen: aus einem Nest, das Ysvara bewacht. Solange sie lebt, kommen mehr. Töte die Königin."
+  completion_text: "Kein Nest mehr, keine Brut mehr. Zwei Elixiere, mein bestes Werk."
+  objective: {type: kill, monster_id: spider_queen, count: 1}
+  reward: {xp: 900, gold: 150, items: [{item_id: elixir, quantity: 2}]}
+  min_level: 9
+  requires: [spider_silk]
+
+- id: thorns_of_the_grove
+  name: "Dornen im Hain"
+  giver_id: elf_ranger
+  description: "Wo die Dryaden fielen, wachsen jetzt Dornenbestien aus dem kranken Boden. Drei müssen fallen, bevor der Hain wieder atmen kann."
+  completion_text: "Ich höre die Vögel wieder. Nimm diese Silberblätter – sie wachsen nur, wo der Boden heilt."
+  objective: {type: kill, monster_id: thorn_beast, count: 3}
+  reward: {xp: 1000, gold: 120, items: [{item_id: silverleaf, quantity: 5}]}
+  min_level: 10
+  requires: [heal_the_grove]
+
+- id: hrimfang
+  name: "Hrimfangs Ende"
+  giver_id: dwarf_armorer
+  description: "Der Eisdrache hat sich in unserer Esse eingenistet, als die Kälte kam. Die Pelze haben uns durch den Winter gebracht – jetzt bring uns die Esse zurück."
+  completion_text: "Das Feuer brennt wieder! Hier, Gold aus der Kriegskasse und Elixiere aus der Feldapotheke."
+  objective: {type: kill, monster_id: ice_drake, count: 1}
+  reward: {xp: 1500, gold: 250, items: [{item_id: elixir, quantity: 3}]}
+  min_level: 10
+  requires: [winter_furs]
+
+- id: salamander_hunt
+  name: "Schuppen aus der Glut"
+  giver_id: crater_scout
+  description: "Salamanderschuppen halten Hitze ab – mit genug davon könnten wir näher an den Krater heran. Vier Stück."
+  completion_text: "Die nähe ich mir in die Stiefel. Nimm die Feuerblüten, sie wachsen hier wie Unkraut."
+  objective: {type: deliver, item_id: salamander_scale, quantity: 4}
+  reward: {xp: 700, gold: 90, items: [{item_id: fire_blossom, quantity: 4}]}
+  min_level: 11
+
+- id: ash_wraiths
+  name: "Asche im Wind"
+  giver_id: crater_scout
+  description: "Die Aschegeister sind die Kundschafter, die vor mir hier waren. Gib ihnen das Ende, das ich mir für mich selbst wünschen würde. Fünf."
+  completion_text: "Danke. Ich hoffe, wenn es mich trifft, kommt jemand wie du."
+  objective: {type: kill, monster_id: ash_wraith, count: 5}
+  reward: {xp: 800, gold: 100, items: [{item_id: phoenix_draught}]}
+  min_level: 11
+
+- id: deep_raiders
+  name: "Räuber der Tiefe"
+  giver_id: old_diver
+  description: "Die Tiefseeräuber plündern die Gräber von Aelmar, bevor ich sie erforschen kann. Fünf weniger, und ich tauche wieder ruhiger."
+  completion_text: "Gut. Die Salbe hier hält die Kälte des Wassers aus den Knochen."
+  objective: {type: kill, monster_id: deep_raider, count: 5}
+  reward: {xp: 800, gold: 100, items: [{item_id: kelp_salve, quantity: 2}]}
+  min_level: 11
+
+- id: giants_teeth
+  name: "Zähne eines Riesen"
+  giver_id: goldsmith
+  description: "Feuerriesenzähne sind härter als jeder Edelstein. Ich will einen Ring daraus fassen, den es noch nie gab. Drei Zähne."
+  completion_text: "Was für ein Material! Hier – ein Rubinring aus meinem Fenster, solange ich an dem neuen arbeite."
+  objective: {type: deliver, item_id: giant_tooth, quantity: 3}
+  reward: {xp: 1000, gold: 150, items: [{item_id: ruby_ring}]}
+  min_level: 13
+
+- id: the_ember_lord
+  name: "Der Glutfürst"
+  giver_id: crater_scout
+  description: "Die Glutkerne kommen aus dem Herzen des Kraters, und dort sitzt Ignaros. Er ist es, der den Berg brennen lässt. Lösch ihn."
+  completion_text: "Der Berg ist still. Zum ersten Mal, seit ich hier bin. Nimm meine letzten Tränke – ich brauche sie nicht mehr."
+  objective: {type: kill, monster_id: ignaros, count: 1}
+  reward: {xp: 2200, gold: 350, items: [{item_id: phoenix_draught, quantity: 2}]}
+  min_level: 13
+  requires: [ember_cores]
+
+- id: the_eye_of_the_deep
+  name: "Das Auge der Tiefe"
+  giver_id: old_diver
+  description: "Die Wappen sagen es klar: Aelmar ist nicht gesunken, es wurde hinabgezogen. Ul'thar lebt noch in der Thronhalle. Bring die Stadt zur Ruhe."
+  completion_text: "Ich habe dreißig Jahre auf diesen Tag gewartet. Nimm meinen alten Helm – ich tauche nicht mehr."
+  objective: {type: kill, monster_id: kraken, count: 1}
+  reward: {xp: 2500, gold: 400, items: [{item_id: diver_helm}]}
+  min_level: 13
+  requires: [crests_of_aelmar]
+
+- id: pelts_of_shadow
+  name: "Pelze aus Schatten"
+  giver_id: faceless_merchant
+  description: "Schattenpelze. Vier. Frag nicht, wofür. Ich frage auch nicht, wie du sie bekommst."
+  completion_text: "Sehr gut. Du bist nützlicher, als du aussiehst. Hier – Sternenlicht, eingefangen und abgefüllt."
+  objective: {type: deliver, item_id: shadow_pelt, quantity: 4}
+  reward: {xp: 1200, gold: 200, items: [{item_id: starlight_tonic}]}
+  min_level: 14
+
+- id: sleepless_nights
+  name: "Schlaflose Nächte"
+  giver_id: innkeeper
+  description: "Seit der Riss tiefer wird, wachen meine Gäste schreiend auf. Ein Wanderprediger sagt, die Albträume kommen von dort unten – als Wesen. Drei davon, bitte."
+  completion_text: "Letzte Nacht war es still im ganzen Haus. Das Zimmer gehört dir, wann immer du willst – und die Mondlilien hier auch."
+  objective: {type: kill, monster_id: nightmare, count: 3}
+  reward: {xp: 2000, gold: 300, items: [{item_id: moon_lily, quantity: 4}]}
+  min_level: 15
