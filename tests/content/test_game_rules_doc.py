@@ -41,3 +41,16 @@ def test_documented_levels_match_rules_yaml() -> None:
         if (m := LEVEL_ROW.match(line))
     ]
     assert rows == levels
+
+
+def test_room_table_lists_every_room() -> None:
+    lines = DOC.read_text().splitlines()
+    start = lines.index("| Raum | Besonderheit |") + 2
+    documented = []
+    for line in lines[start:]:
+        if not line.startswith("|"):
+            break
+        documented.append(line.split("|")[1].split(" (")[0].strip())
+    rooms = yaml.safe_load((DOC.parents[1] / "data" / "rooms.yaml").read_text())
+
+    assert sorted(documented) == sorted(room["name"] for room in rooms)
