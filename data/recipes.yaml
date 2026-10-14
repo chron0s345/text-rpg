@@ -1,0 +1,196 @@
+# Handwerk (ARCHITECTURE.md, "Handwerk"). Hergestellt beim Handwerker (crafter_id = Händler):
+# Zutaten aus dem Rucksack (nicht ausgerüstet, nicht im Handel) plus Gebühr in Gold.
+
+# --- Oakhaven ---
+
+- id: herbal_potions
+  crafter_id: alchemist
+  item_id: healing_potion
+  quantity: 2
+  ingredients: [{item_id: bog_herb, quantity: 3}]
+  gold: 2
+
+- id: strong_potion
+  crafter_id: alchemist
+  item_id: greater_potion
+  ingredients: [{item_id: healing_potion}, {item_id: bog_herb, quantity: 3}]
+  gold: 5
+  min_level: 3
+
+- id: silk_elixir
+  crafter_id: alchemist
+  item_id: elixir
+  ingredients: [{item_id: greater_potion, quantity: 2}, {item_id: spider_silk}]
+  gold: 15
+  min_level: 7
+
+- id: boar_vest
+  crafter_id: smith
+  item_id: boar_leather_vest
+  ingredients: [{item_id: boar_hide, quantity: 4}]
+  gold: 20
+  min_level: 2
+
+- id: bone_shield
+  crafter_id: smith
+  item_id: bone_shield
+  ingredients: [{item_id: wooden_shield}, {item_id: bone_dust, quantity: 4}]
+  gold: 25
+  min_level: 4
+
+- id: tusk_club
+  crafter_id: smith
+  item_id: tusk_club
+  ingredients: [{item_id: troll_tusk, quantity: 2}]
+  gold: 30
+  min_level: 5
+
+- id: tooth_ring
+  crafter_id: goldsmith
+  item_id: silver_ring
+  ingredients: [{item_id: gold_tooth, quantity: 2}]
+  gold: 20
+
+- id: claw_amulet
+  crafter_id: goldsmith
+  item_id: claw_amulet
+  ingredients: [{item_id: bone_amulet}, {item_id: ghoul_claw, quantity: 4}]
+  gold: 30
+  min_level: 6
+
+- id: pearl_ring
+  crafter_id: goldsmith
+  item_id: pearl_ring
+  ingredients: [{item_id: silver_ring}, {item_id: black_pearl}]
+  gold: 60
+  min_level: 7
+
+- id: tavern_stew
+  crafter_id: innkeeper
+  item_id: stew
+  quantity: 2
+  ingredients: [{item_id: boar_ham, quantity: 2}, {item_id: bread}]
+
+- id: blessed_water
+  crafter_id: priestess
+  item_id: holy_water
+  quantity: 2
+  ingredients: [{item_id: bone_dust, quantity: 4}]
+  gold: 5
+  min_level: 3
+
+# --- Sturmküste ---
+
+- id: smoked_crab
+  crafter_id: fisherwoman
+  item_id: smoked_fish
+  quantity: 2
+  ingredients: [{item_id: crab_meat, quantity: 3}]
+
+- id: storm_amulet
+  crafter_id: fisherwoman
+  item_id: storm_amulet
+  ingredients: [{item_id: coral_amulet}, {item_id: storm_essence, quantity: 3}]
+  gold: 30
+  min_level: 7
+
+# --- Gebirge ---
+
+- id: iron_boots
+  crafter_id: dwarf_armorer
+  item_id: iron_boots
+  ingredients: [{item_id: leather_boots}, {item_id: ice_shard, quantity: 2}]
+  gold: 15
+  min_level: 6
+
+- id: frost_cloak
+  crafter_id: dwarf_armorer
+  item_id: frost_cloak
+  ingredients: [{item_id: frost_pelt, quantity: 3}, {item_id: white_pelt}]
+  gold: 40
+  min_level: 7
+
+- id: drake_helm
+  crafter_id: dwarf_armorer
+  item_id: drake_helm
+  ingredients: [{item_id: iron_helm}, {item_id: drake_scale, quantity: 3}]
+  gold: 80
+  min_level: 10
+
+# --- Silberhain ---
+
+- id: elven_bread
+  crafter_id: elf_ranger
+  item_id: elven_bread
+  ingredients: [{item_id: silverleaf, quantity: 4}]
+  gold: 5
+  min_level: 8
+
+- id: bark_shield
+  crafter_id: elf_ranger
+  item_id: bark_shield
+  ingredients: [{item_id: wooden_shield}, {item_id: dryad_bark, quantity: 3}]
+  gold: 30
+  min_level: 9
+
+- id: thorn_ring
+  crafter_id: elf_ranger
+  item_id: thorn_ring
+  ingredients: [{item_id: leaf_ring}, {item_id: thorn_spike, quantity: 3}]
+  gold: 50
+  min_level: 10
+
+# --- Feuerschlund ---
+
+- id: phoenix_draught
+  crafter_id: crater_scout
+  item_id: phoenix_draught
+  ingredients: [{item_id: elixir}, {item_id: ember_core, quantity: 2}]
+  gold: 20
+  min_level: 11
+
+- id: salamander_boots
+  crafter_id: crater_scout
+  item_id: salamander_boots
+  ingredients: [{item_id: obsidian_boots}, {item_id: salamander_scale, quantity: 4}]
+  gold: 40
+  min_level: 11
+
+# --- Aelmar ---
+
+- id: kelp_salve
+  crafter_id: old_diver
+  item_id: kelp_salve
+  quantity: 2
+  ingredients: [{item_id: sea_kelp, quantity: 4}]
+  gold: 10
+  min_level: 11
+
+- id: crest_shield
+  crafter_id: old_diver
+  item_id: crest_shield
+  ingredients:
+    - {item_id: tower_shield}
+    - {item_id: knight_crest, quantity: 3}
+    - {item_id: coral_shard}
+  gold: 80
+  min_level: 12
+
+# --- Schattenreich ---
+
+- id: starlight_tonic
+  crafter_id: faceless_merchant
+  item_id: starlight_tonic
+  ingredients: [{item_id: moon_lily, quantity: 2}, {item_id: nightmare_essence}]
+  gold: 60
+  min_level: 14
+
+- id: void_edge
+  crafter_id: faceless_merchant
+  item_id: void_edge
+  ingredients:
+    - {item_id: voidbreaker}
+    - {item_id: void_shard, quantity: 6}
+    - {item_id: nightmare_essence, quantity: 2}
+  gold: 200
+  min_level: 15

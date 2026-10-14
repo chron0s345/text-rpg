@@ -246,6 +246,42 @@ Viele Händler haben **Aufträge**. Steht ein Auftraggeber im Raum, zeigt das Pa
 | Pelze aus Schatten | Der Händler ohne Gesicht | 14 | 4× Schattenfell bringen |
 | Schlaflose Nächte | Wirtin Hanne | 15 | 3× Albtraum besiegen |
 
+## Handwerk
+
+Manche Händler sind auch **Handwerker**. Steht einer im Raum, zeigt das Panel „Handwerk“ seine Rezepte: was entsteht, welche Zutaten nötig sind (in Klammern, wie viele du hast) und was es kostet. Herstellen geht nur bei ihm und nicht im Kampf.
+
+- Zutaten werden aus dem Rucksack genommen (nicht ausgerüstete und nicht im Handel angebotene), dazu die Gebühr in Gold.
+- Das Ergebnis muss ins Inventar passen, sonst wird nichts genommen. Ein Stapel, den die Zutaten aufbrauchen, macht dafür Platz.
+- Manche Stücke gibt es nur beim Handwerker, etwa den Frostpelzmantel oder die Leerenschneide.
+
+| Ergebnis | Handwerker | ab Stufe | Zutaten | Gold |
+|---|---|---|---|---|
+| 2× Heiltrank | Alchemistin Elira | 1 | 3× Moorkraut | 2 |
+| Großer Heiltrank | Alchemistin Elira | 3 | Heiltrank, 3× Moorkraut | 5 |
+| Elixier des Lebens | Alchemistin Elira | 7 | 2× Großer Heiltrank, Spinnenseide | 15 |
+| Wildlederweste | Schmied Brandt | 2 | 4× Wildschweinfell | 20 |
+| Knochenschild | Schmied Brandt | 4 | Holzschild, 4× Knochenstaub | 25 |
+| Hauerkeule | Schmied Brandt | 5 | 2× Trollhauer | 30 |
+| Silberring | Goldschmied Aurel | 1 | 2× Goldzahn | 20 |
+| Krallenamulett | Goldschmied Aurel | 6 | Knochenamulett, 4× Ghulkralle | 30 |
+| Perlenring | Goldschmied Aurel | 7 | Silberring, Schwarze Perle | 60 |
+| 2× Eintopf vom Goldenen Krug | Wirtin Hanne | 1 | 2× Wildschweinkeule, Frisches Brot | 0 |
+| 2× Geweihtes Wasser | Schwester Liora | 3 | 4× Knochenstaub | 5 |
+| 2× Räucherfisch | Fischerin Maren | 1 | 3× Krabbenfleisch | 0 |
+| Sturmamulett | Fischerin Maren | 7 | Korallenamulett, 3× Sturmessenz | 30 |
+| Eisenbeschlagene Stiefel | Waffenmeisterin Brunhild | 6 | Lederstiefel, 2× Ewiges Eis | 15 |
+| Frostpelzmantel | Waffenmeisterin Brunhild | 7 | 3× Frostwolfpelz, Weißes Wolfsfell | 40 |
+| Drachenschuppenhelm | Waffenmeisterin Brunhild | 10 | Eisenhelm, 3× Drachenschuppe | 80 |
+| Elfenbrot | Waldläuferin Nimriel | 8 | 4× Silberblatt | 5 |
+| Rindenschild | Waldläuferin Nimriel | 9 | Holzschild, 3× Dryadenrinde | 30 |
+| Dornenring | Waldläuferin Nimriel | 10 | Blattring, 3× Dornenstachel | 50 |
+| Phönixtrank | Kundschafterin Ilva | 11 | Elixier des Lebens, 2× Glutkern | 20 |
+| Salamanderstiefel | Kundschafterin Ilva | 11 | Obsidianstiefel, 4× Salamanderschuppe | 40 |
+| 2× Seetangsalbe | Taucher Brack | 11 | 4× Seetang | 10 |
+| Wappenschild von Aelmar | Taucher Brack | 12 | Zwergischer Turmschild, 3× Wappen von Aelmar, Lebende Koralle | 80 |
+| Sternenlichttonikum | Der Händler ohne Gesicht | 14 | 2× Mondlilie, Albtraumessenz | 60 |
+| Leerenschneide | Der Händler ohne Gesicht | 15 | Leerenbrecher, 6× Leerensplitter, 2× Albtraumessenz | 200 |
+
 ## Händler & Bank
 
 - **Elira** (Kaufmannsstand) verkauft Heiltränke, Brot und Kleine Taschen und kauft alles Verkaufbare an.
