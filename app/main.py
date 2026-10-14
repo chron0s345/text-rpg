@@ -107,6 +107,11 @@ def create_app(
                 clock=clock,
                 rng_factory=rng_factory,
                 login_guard=guard,
+                log_retention=(
+                    timedelta(days=settings.log_retention_days)
+                    if settings.log_retention_days > 0
+                    else None
+                ),
             )
             ticker_task = asyncio.create_task(ticker.run(stop), name="world-ticker")
         try:

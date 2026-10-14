@@ -57,6 +57,12 @@ Hinweise für den Produktivbetrieb (siehe auch *Deployment* in `ARCHITECTURE.md`
 | `SESSION_SECRET` | zufällig pro Prozess | Signiert das Session-Cookie; für alle Worker gleich setzen |
 | `SESSION_HTTPS_ONLY` | `0` | `1`: Session-Cookie nur über HTTPS |
 | `WORLD_TICKER` | `1` | `0` schaltet den Hintergrund-Ticker ab (Respawns, Aufräumen, Fristen, Überfälle) |
+| `LOGIN_ATTEMPTS_PER_USER` | `5` | Login-Versuche pro Benutzername und Zeitfenster, danach Sperre |
+| `LOGIN_ATTEMPTS_PER_ADDRESS` | `30` | Login-Versuche pro Client-Adresse und Zeitfenster |
+| `REGISTRATIONS_PER_ADDRESS` | `10` | Registrierungen pro Client-Adresse und Zeitfenster |
+| `LOGIN_WINDOW_SECONDS` | `900` | Länge des Zeitfensters für die Zähler |
+| `LOGIN_LOCKOUT_SECONDS` | `900` | Dauer der Sperre nach einem Versuch zu viel |
+| `LOG_RETENTION_DAYS` | `30` | Log-Einträge älter als das löscht der Ticker stündlich; `0` behält alles |
 | `WEB_CONCURRENCY` | `1` | Anzahl uvicorn-Worker (nur Container) |
 | `PORT` | `8000` | Port im Container |
 | `FORWARDED_ALLOW_IPS` | `127.0.0.1` | Wessen `X-Forwarded-*`-Header vertraut wird (Adresse des Reverse Proxys) |

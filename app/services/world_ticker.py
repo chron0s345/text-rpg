@@ -10,6 +10,7 @@
 7. offline characters still in a group leave it (normally done right after the logout)
 8. active trades whose traders are no longer both here and free end (normally done right after
    the action that broke them)
+9. log entries older than the retention (at most hourly; ``LOG_RETENTION_DAYS``)
 
 The decisions ("is due", "gets ambushed") are made by the engine; the ticker only finds
 candidates (unlocked reads), locks, applies and publishes after the commit. Steps 4 and 5 go
@@ -58,11 +59,13 @@ from app.services.action_service import (
 )
 from app.services.events import EventPublisher
 from app.services.log import write_log
+from app.services.log_retention import purge_log
 from app.services.login_guard import LoginGuard
 
 logger = logging.getLogger(__name__)
 
 TICKER_LOCK: Final = "text-rpg:world-ticker"
+LOG_PURGE_INTERVAL: Final = timedelta(hours=1)
 
 
 @dataclass
@@ -79,6 +82,7 @@ class TickReport:
     offline_members_removed: int = 0
     trades_ended: int = 0
     login_throttles_removed: int = 0
+    log_entries_removed: int = 0
 
 
 class WorldTicker:
@@ -93,6 +97,7 @@ class WorldTicker:
         clock: Callable[[], datetime] = utc_now,
         rng_factory: Callable[[], random.Random] = random.SystemRandom,
         login_guard: LoginGuard | None = None,
+        log_retention: timedelta | None = None,
     ) -> None:
         self.engine = engine
         self.login_guard = login_guard
@@ -102,6 +107,9 @@ class WorldTicker:
         self.publisher = publisher
         self.clock = clock
         self.rng_factory = rng_factory
+        # None: keep the log forever; otherwise purged at most once per LOG_PURGE_INTERVAL
+        self.log_retention = log_retention
+        self._log_purged_at: datetime | None = None
         self._lock_connection: AsyncConnection | None = None
 
     # --- loop & leadership ------------------------------------------------------------------
@@ -181,6 +189,7 @@ class WorldTicker:
             self._remove_expired_requests,
             self._remove_offline_members,
             self._end_broken_trades,
+            self._purge_log,
         )
         for step in steps:
             try:
@@ -188,6 +197,16 @@ class WorldTicker:
             except Exception:
                 logger.exception("world ticker step %s failed", step.__name__)
         return report
+
+    # 9. old log entries
+
+    async def _purge_log(self, now: datetime, report: TickReport) -> None:
+        if self.log_retention is None:
+            return
+        if self._log_purged_at is not None and now - self._log_purged_at < LOG_PURGE_INTERVAL:
+            return
+        self._log_purged_at = now
+        report.log_entries_removed = await purge_log(self.sessions, now, self.log_retention)
 
     async def _publish(self, events: Sequence[GameEvent]) -> None:
         if not events:

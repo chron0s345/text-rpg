@@ -701,6 +701,9 @@ Ein Hintergrund-Task läuft alle `ticker_interval_seconds` und erledigt in getre
 4. Abgelaufene Disconnect-Fristen verarbeiten
 5. Überfall-Würfe für verweilende Spieler
 6. Abgelaufene Gruppeneinladungen, Handelsanfragen und nicht mehr relevante Login-Zähler löschen
+7. Log-Einträge löschen, die älter als `LOG_RETENTION_DAYS` sind (Standard 30, `0` = nie; höchstens stündlich)
+
+Log-Aufbewahrung (`services/log_retention.py`): Log-IDs wachsen mit der Schreibzeit, daher findet eine Binärsuche über den Primärschlüssel die Grenze (gemessen: 0,08 s bei einer Million Einträgen), gelöscht wird nach ID-Bereichen in kurzen Transaktionen zu je 5000 (667.000 Einträge in 2,8 s). Ein Index auf `created_at` ist dafür nicht nötig.
 
 Bei mehreren Server-Prozessen holt sich der Ticker vorher ein PostgreSQL Advisory Lock (`pg_try_advisory_lock`), sodass nur ein Prozess tickt. Die Entscheidungen ("ist fällig", "wird überfallen") liegen in der Engine; der Ticker orchestriert nur.
 
