@@ -69,17 +69,21 @@ app/
 │   ├── trade.py         # Handelsablauf zwischen zwei Spielern
 │   ├── bank.py          # Einlagern & Abheben
 │   ├── merchant.py      # Kaufen & Verkaufen bei NPCs
+│   ├── quests.py        # Aufträge: Annehmen, Abgeben, Abbrechen, Schritte, Kill-/Besuchszählung
+│   ├── crafting.py      # Herstellen bei Handwerkern
+│   ├── materials.py     # Gegenstände abgeben/erhalten (Quest-Lieferungen, Zutaten, Belohnungen)
 │   ├── progression.py   # XP, Level-Up
 │   ├── death.py         # Tod, Verlustwürfe, Wiederbelebung
 │   ├── presence.py      # Ein-/Ausloggen, Verbindungsabbruch
 │   ├── respawn.py       # Fällige Monster-Respawns bestimmen
 │   ├── cleanup.py       # Abgelaufene Floor-Items bestimmen
-│   ├── stats.py         # Effektive Werte berechnen
+│   ├── stats.py         # Effektive Werte berechnen (inkl. Set-Boni)
 │   └── events.py        # Ergebnis-Events
 ├── content/
 │   ├── schemas.py
 │   ├── loader.py
 │   ├── prices.py        # Kauf-/Verkaufspreise (Engine & Validierung)
+│   ├── describe.py      # Kurztexte zu Items und Set-Boni („Waffe · +3 Angriff“)
 │   └── registry.py
 ├── db/
 │   ├── models.py        # SQLModel-Tabellen (nur veränderlicher Zustand)
@@ -105,6 +109,9 @@ data/
 ├── monsters.yaml
 ├── items.yaml
 ├── merchants.yaml
+├── quests.yaml          # Aufträge (optional)
+├── recipes.yaml         # Handwerk (optional)
+├── sets.yaml            # Ausrüstungssets (optional)
 └── rules.yaml           # XP-Kurve, Startwerte, Todesstrafe, Zeiten & Limits
 migrations/
 tests/
@@ -120,6 +127,50 @@ docker-compose.yml
 - `engine/` importiert **nichts** aus `api/`, `db/`, `realtime/` oder `web/`.
 - `api/` enthält keine Spiellogik, sondern ruft `services/` auf.
 - `services/` ist die einzige Schicht, die Engine, Datenbank und Event-Bus zusammenbringt.
+
+```mermaid
+flowchart TB
+    browser(["Browser<br>HTMX + SSE"])
+    subgraph api["api/ – dünne HTTP-Schicht"]
+        routes["actions.py · views.py<br>auth.py · characters.py"]
+        stream["stream.py<br>GET /stream (SSE)"]
+    end
+    subgraph services["services/ – Orchestrierung"]
+        action["ActionService<br>sperren → Engine → schreiben → Commit → publizieren"]
+        view["ViewService<br>lesende Spielansicht"]
+        ticker["WorldTicker<br>Respawn, Aufräumen, Fristen"]
+    end
+    subgraph engine["engine/ – reine Spiellogik"]
+        resolve["resolve_*(snapshot, content, rules, now, rng)<br>→ ActionResult(changes, events)"]
+    end
+    content[("content/ + data/*.yaml<br>ContentRegistry, beim Start geladen")]
+    subgraph db["db/"]
+        repo["Repository<br>load_action_snapshot · apply_changes"]
+    end
+    pg[("PostgreSQL<br>Zustand + LISTEN/NOTIFY")]
+    realtime["realtime/<br>EventBus · ConnectionManager"]
+    web["web/<br>Jinja2-Templates"]
+
+    browser -- "POST /ui/actions" --> routes
+    browser <-. "SSE" .-> stream
+    routes --> action
+    routes --> view
+    routes --> web
+    stream --> realtime
+    stream --> web
+    action --> repo
+    action --> resolve
+    action -- "nach Commit" --> realtime
+    ticker --> repo
+    ticker --> resolve
+    view --> repo
+    view -. "abgeleitete Werte" .-> resolve
+    resolve -. "liest" .-> content
+    repo --> pg
+    realtime <--> pg
+```
+
+Die Engine kennt weder Datenbank noch HTTP: Sie bekommt einen gesperrten Snapshot und gibt Änderungen und Events zurück. Nur `services/` verbindet die Schichten.
 
 ## Grundprinzip: Content vs. Zustand
 
@@ -806,6 +857,37 @@ Jede Aktion und jeder Ticker-Schritt ist **eine Datenbanktransaktion**. Nach dem
 
 Umsetzung: `ActionService.execute` (`app/services/action_service.py`).
 
+```mermaid
+sequenceDiagram
+    autonumber
+    participant B as Browser
+    participant R as Route (api/)
+    participant S as ActionService
+    participant Repo as Repository
+    participant E as Engine
+    participant PG as PostgreSQL
+    participant Bus as EventBus
+    participant O as SSE anderer Spieler
+
+    B->>R: POST /ui/actions (z. B. attack)
+    R->>S: execute(player_id, action)
+    S->>PG: pg_try_advisory_xact_lock, Rate Limit (ungesperrt)
+    S->>Repo: load_action_snapshot()
+    Repo->>PG: SELECT … FOR UPDATE (feste Reihenfolge)
+    Repo-->>S: ActionSnapshot
+    S->>E: resolve_attack(snapshot, content, rules, now, rng)
+    E-->>S: ActionResult(changes, events)
+    S->>Repo: apply_changes(changes) + Log-Einträge
+    S->>PG: COMMIT
+    S->>Bus: publish(events) – erst nach dem Commit
+    Bus->>PG: NOTIFY game_events
+    PG-->>O: (jeder Prozess per LISTEN) → passende Verbindungen
+    S-->>R: Ergebnis
+    R-->>B: Log-Zeilen + alle Panels (hx-swap-oob)
+```
+
+Scheitert das Sperren an einem veränderten Zustand (`SnapshotChangedError`, Deadlock, Serialisierungsfehler), beginnt der Ablauf ab Schritt 4 in einer neuen Transaktion – höchstens dreimal.
+
 - Vor der Aktion werden fällige Monster im Raum lazy respawnt (`engine/respawn.py`).
 - Rate Limit: Aktionen innerhalb von `min_action_interval_ms` nach der letzten werden mit „Nicht so schnell.“ abgelehnt – ohne Zustandsänderung und ohne Log-Eintrag. Schon **vor** jeder Zeilensperre wird abgewiesen, wenn die ungesperrte Vorab-Lesung zu kurz nach der letzten Aktion liegt oder bereits eine andere Aktion desselben Spielers läuft (nicht blockierendes `pg_try_advisory_xact_lock` pro Spieler). So kann ein Client mit vielen parallelen Anfragen weder Verbindungen binden noch andere Spieler im Raum ausbremsen. Verbindlich bleibt die Prüfung am gesperrten Datensatz. Eine rückwärts gestellte Uhr sperrt niemanden aus.
 - Veröffentlichen ist „best effort“: Schlägt es nach dem Commit fehl, wird das geloggt und die Aktion trotzdem als erfolgreich beantwortet (sonst würde der Client sie erneut senden). Empfänger holen verpasste Events über ihre Log-Einträge nach.
@@ -820,6 +902,11 @@ Umsetzung: `ActionService.execute` (`app/services/action_service.py`).
 
 - `SELECT ... FOR UPDATE` auf betroffene Zeilen.
 - **Feste Sperrreihenfolge**, um Deadlocks zu vermeiden: (`Account`, nur beim Anlegen von Charakteren für das Charakterlimit) → `Group` → `Trade` → `Player` (sortiert nach ID) → `InventoryItem` → `BankItem` → `QuestProgress` → `MonsterInstance` → `FloorItem` → `ItemSpawnState`.
+
+  ```mermaid
+  flowchart LR
+      A["Account<br>(nur Anlegen)"] -.-> G[Group] --> T[Trade] --> P["Player<br>nach ID"] --> I[InventoryItem] --> BI[BankItem] --> Q[QuestProgress] --> M[MonsterInstance] --> F[FloorItem] --> SP[ItemSpawnState]
+  ```
 - Die Handelsausführung sperrt den `Trade`, beide Spieler und alle beteiligten Inventar-Einträge. Damit kann ein Item nicht gleichzeitig gehandelt und fallengelassen werden.
 - Beutevergabe in Gruppen sperrt die Gruppe und alle Empfänger, damit Round-Robin und Inventar konsistent bleiben.
 - Überfälle aus dem Ticker sperren Monster und Opfer in derselben Reihenfolge wie Spieleraktionen.
