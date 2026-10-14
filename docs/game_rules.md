@@ -172,6 +172,7 @@ Danach kannst du nur noch **am Checkpoint erwachen** – mit vollen HP.
 - **Ausrüstung** trägst du an acht Plätzen gleichzeitig: Waffe, Schild, Kopf, Brust, Beine, Füße, Amulett und Ring, je ein Stück. Ein neues Stück ersetzt das alte am selben Platz, das alte wandert in den Rucksack. Was ein Gegenstand bringt (z. B. „Waffe · +3 Angriff“, „heilt 15“), steht im Inventar, in der Bank und beim Händler unter seinem Namen. Ein Klick auf den Namen (auch am Boden und im Laden) schreibt die ganze Beschreibung ins Log.
 - Das Panel **„Ausrüstung“** zeigt alle acht Plätze und deine Taschen, auch leere Plätze, dazu deine Gesamtwerte und Set-Boni. Liegt im Rucksack etwas Besseres für einen Platz, ist er grün umrandet.
 - **Vergleich:** Bei jedem ausrüstbaren Gegenstand – im Rucksack, beim Händler, am Boden und in der Bank – steht, was sich ändern würde, wenn du ihn statt des getragenen Stücks anlegst: **▲ besser**, **▼ schlechter**, **◆ gemischt** (manches besser, manches schlechter) oder **= gleichwertig**, mit den genauen Werten. Set-Boni, die du dabei gewinnst oder verlierst, sind eingerechnet.
+- **Bestes anlegen:** Ein Knopf im Ausrüstungsfeld (nur sichtbar, wenn es etwas zu verbessern gibt) legt alles aus dem Rucksack an, was **▲ besser** ist – also mindestens einen Wert erhöht und keinen senkt, Set-Boni eingerechnet. Das größte Plus zuerst, so lange, bis nichts mehr besser wird. Gemischte Stücke, Taschen und im Handel angebotene Gegenstände bleiben, wo sie sind.
 - **Schilde, Amulette und Ringe** gibt es bei jedem Ausrüstungshändler entlang des Weges (Brandt, Brunhild, Ilva, der Händler ohne Gesicht) und beim Goldschmied in Oakhaven. Die besten Stücke lassen nur die Bosse fallen.
 - **Taschen** werden ausgerüstet (bis zu `inventory.bag_slots` gleichzeitig) und geben zusätzliche Plätze (Kleine Tasche: +2). Eine Tasche ablegen geht nur, wenn danach noch alles passt.
 - Passt beim Aufheben nicht alles, nimmst du so viel, wie passt; der Rest bleibt liegen.
@@ -340,6 +341,7 @@ Manche Ausrüstungsstücke gehören zu einem **Set**; das steht unter dem Namen 
 
 - **Elira** (Kaufmannsstand) verkauft Heiltränke, Brot und Kleine Taschen und kauft alles Verkaufbare an.
 - Kaufen kostet den Listenpreis (sonst Wert × `merchant.buy_ratio`), Verkaufen bringt **abgerundet** Wert × `merchant.sell_ratio`. Ausgerüstete und angebotene Gegenstände kannst du nicht verkaufen; verkaufte Gegenstände verschwinden.
+- **Ramsch verkaufen:** Bei jedem Händler, der etwas davon annimmt, verkauft ein Knopf alles auf einmal, was du nicht brauchst – mit Anzahl und Erlös vorab auf dem Knopf. Ramsch sind: Waffen und Rüstungen, die **▼ schlechter** oder **= gleichwertig** zu deinem getragenen Stück sind (außer Set-Teilen), und Beute, die kein Rezept und kein Auftrag verlangt. Nie Ramsch: Verbrauchsgegenstände, Taschen, Getragenes, Angebotenes, Set-Teile und alles, was ein Rezept oder eine Lieferung braucht.
 - Die **Bank** (Bank von Oakhaven) hat `bank.slots` Plätze pro Charakter – nicht pro Account. Einlagern und Abheben nur dort und nicht im Kampf. **Gold** kann nicht eingelagert werden.
 
 ## Ausloggen & Verbindung

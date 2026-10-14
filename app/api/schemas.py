@@ -35,6 +35,10 @@ class EquipAction(BaseModel):
     inventory_item_id: UUID
 
 
+class EquipBestAction(BaseModel):
+    type: Literal["equip_best"] = "equip_best"
+
+
 class UnequipAction(BaseModel):
     type: Literal["unequip"] = "unequip"
     inventory_item_id: UUID
@@ -158,6 +162,11 @@ class SellAction(BaseModel):
     quantity: PositiveInt = 1
 
 
+class SellJunkAction(BaseModel):
+    type: Literal["sell_junk"] = "sell_junk"
+    merchant_id: str = Field(min_length=1, max_length=64)
+
+
 class RespawnAction(BaseModel):
     type: Literal["respawn"] = "respawn"
 
@@ -210,6 +219,7 @@ GameAction = Annotated[
     | FleeAction
     | UseItemAction
     | EquipAction
+    | EquipBestAction
     | UnequipAction
     | PickUpAction
     | DropAction
@@ -232,6 +242,7 @@ GameAction = Annotated[
     | BankWithdrawAction
     | BuyAction
     | SellAction
+    | SellJunkAction
     | RespawnAction
     | LookAction
     | RestAction

@@ -37,6 +37,7 @@ from app.api.schemas import (
     CraftAction,
     DropAction,
     EquipAction,
+    EquipBestAction,
     FleeAction,
     GameAction,
     GroupAcceptAction,
@@ -58,6 +59,7 @@ from app.api.schemas import (
     RestAction,
     SayAction,
     SellAction,
+    SellJunkAction,
     TradeAcceptAction,
     TradeCancelAction,
     TradeConfirmAction,
@@ -96,12 +98,13 @@ from app.engine.groups import (
 from app.engine.inventory_actions import (
     resolve_drop,
     resolve_equip,
+    resolve_equip_best,
     resolve_inventory,
     resolve_pick_up,
     resolve_unequip,
     resolve_use_item,
 )
-from app.engine.merchant import resolve_buy, resolve_sell
+from app.engine.merchant import resolve_buy, resolve_sell, resolve_sell_junk
 from app.engine.movement import resolve_move
 from app.engine.presence import (
     LOGGED_OUT,
@@ -672,6 +675,8 @@ class ActionService:
                 return resolve_use_item(*args, action.inventory_item_id)
             case EquipAction():
                 return resolve_equip(*args, action.inventory_item_id)
+            case EquipBestAction():
+                return resolve_equip_best(*args)
             case UnequipAction():
                 return resolve_unequip(*args, action.inventory_item_id)
             case PickUpAction():
@@ -686,6 +691,8 @@ class ActionService:
                 return resolve_sell(
                     *args, action.merchant_id, action.inventory_item_id, action.quantity
                 )
+            case SellJunkAction():
+                return resolve_sell_junk(*args, action.merchant_id)
             case BankDepositAction():
                 return resolve_bank_deposit(*args, action.inventory_item_id, action.quantity)
             case BankWithdrawAction():

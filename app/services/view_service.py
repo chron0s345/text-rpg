@@ -8,8 +8,9 @@ the same engine functions the actions use, so the page and the rules cannot disa
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import select
@@ -43,6 +44,7 @@ from app.db.models import (
     Trade,
     TradeOffer,
 )
+from app.engine.gear import best_upgrade, junk_for
 from app.engine.inventory import calculate_inventory_capacity, get_occupied_slots
 from app.engine.materials import count_available, quantity_text
 from app.engine.movement import DIRECTION_NAMES
@@ -184,6 +186,8 @@ class ShopView:
     name: str
     greeting: str
     offers: list[OfferView]
+    junk: list[str] = field(default_factory=list)  # "2x Rattenschwanz", ... (sell_junk)
+    junk_gold: int = 0
 
 
 @dataclass(frozen=True)
@@ -311,6 +315,7 @@ class EquipmentView:
     bags: list[ItemView]  # worn bags
     bag_slots: int
     sets: list[SetView]
+    can_improve: bool = False  # equip_best would put something on
 
 
 @dataclass(frozen=True)
@@ -491,11 +496,12 @@ class ViewService:
                 name=merchant.name,
                 greeting=merchant.greeting,
                 offers=[self._offer(offer, row.gold, snapshot) for offer in merchant.sells],
+                **self._junk(snapshot, merchant),
             )
             for merchant in merchants
         ]
         bank_view = await self._bank(row.id, snapshot) if room.bank else None
-        equipment = self._equipment(items, inventory_view)
+        equipment = self._equipment(items, inventory_view, snapshot)
         return GameView(
             player=player,
             room=room_view,
@@ -681,7 +687,21 @@ class ViewService:
             compare(player, item.id, self.content),
         )
 
-    def _equipment(self, items: list[ItemView], inventory: InventoryView) -> EquipmentView:
+    def _junk(self, player: PlayerSnapshot, merchant: MerchantTemplate) -> dict[str, Any]:
+        junk = junk_for(player, merchant, self.content, self.content.rules)
+        return {
+            "junk": [
+                f"{j.entry.quantity}x {self.content.items[j.entry.item_id].name}"
+                if j.entry.quantity > 1
+                else self.content.items[j.entry.item_id].name
+                for j in junk
+            ],
+            "junk_gold": sum(j.price * j.entry.quantity for j in junk),
+        }
+
+    def _equipment(
+        self, items: list[ItemView], inventory: InventoryView, player: PlayerSnapshot
+    ) -> EquipmentView:
         worn = {i.equipped_slot: i for i in items if i.equipped_slot not in (None, "bag")}
         better: dict[str, str] = {}
         for carried in inventory.carried:
@@ -697,6 +717,7 @@ class ViewService:
             bags=[i for i in items if i.equipped_slot == "bag"],
             bag_slots=inventory.bag_slots,
             sets=inventory.sets,
+            can_improve=best_upgrade(player, player.inventory, self.content) is not None,
         )
 
     async def _bank(self, player_id: UUID, player: PlayerSnapshot) -> BankView:

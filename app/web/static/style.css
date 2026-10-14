@@ -171,6 +171,7 @@ button.link.item-name:hover { color: var(--accent); }
 .slot-item .item-summary { flex-basis: 100%; }
 .slot > button.small { position: absolute; top: .2rem; right: .25rem; padding: 0 .35rem; line-height: 1.4; }
 .slot .upgrade { color: var(--good); }
+.quick-action { margin: .5rem 0 0; }
 .bags { display: flex; flex-wrap: wrap; gap: .3rem .8rem; align-items: center; margin: .6rem 0 0; }
 .bag { display: inline-flex; align-items: center; gap: .25rem; }
 button.small { font-size: .75rem; }
