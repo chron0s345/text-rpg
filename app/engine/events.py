@@ -82,6 +82,7 @@ class PlayerUpdate(BaseModel):
 
 class MonsterUpdate(BaseModel):
     monster_instance_id: UUID
+    monster_id: str | None = None  # a respawn may switch to/from a rare variant
     hp: int | None = None
     alive: bool | None = None
     last_combat_at: datetime | None = None

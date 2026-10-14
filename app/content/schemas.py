@@ -60,6 +60,13 @@ class LootEntry(BaseModel):
     max_qty: PositiveInt = 1
 
 
+class RareVariant(BaseModel):
+    """On every respawn the monster comes back as ``monster_id`` with this chance."""
+
+    monster_id: str
+    chance: float = Field(gt=0, le=1)
+
+
 class MonsterTemplate(BaseModel):
     id: str
     name: str
@@ -73,6 +80,7 @@ class MonsterTemplate(BaseModel):
     regen: Regeneration | None = None  # None = regeneriert nicht
     ambush: Ambush | None = None  # None = greift nie von selbst an
     loot_table: list[LootEntry] = Field(default_factory=list)
+    rare_variant: RareVariant | None = None  # seltene Form, gewürfelt bei jedem Respawn
 
 
 class StatModifier(BaseModel):

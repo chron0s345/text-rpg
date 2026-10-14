@@ -543,7 +543,7 @@ class ActionService:
             if mode.player_action:
                 actor.last_action_at = now
             respawns: ActionResult = (
-                respawn_due_monsters(snapshot, self.content, now)
+                respawn_due_monsters(snapshot, self.content, now, rng)
                 if mode.lazy_respawn and isinstance(snapshot, ActionSnapshot)
                 else ActionResult()
             )
