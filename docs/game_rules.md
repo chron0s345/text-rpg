@@ -18,6 +18,7 @@ Neue Charaktere starten auf Stufe 1 auf dem **Marktplatz von Oakhaven**.
 |---|---|
 | Marktplatz von Oakhaven | Startpunkt, sicher, Checkpoint |
 | Bank von Oakhaven (nördlich) | sicher, Bank |
+| Goldschmiede (östlich der Bank) | sicher, Goldschmied Aurel (Ringe und Amulette für Einsteiger) |
 | Kaufmannsstand (östlich) | sicher, Alchemistin Elira (Tränke, Proviant, Taschen) |
 | Schmiede (westlich) | sicher, Schmied Brandt (Waffen und Rüstung) |
 | Südtor zum Wald (südlich) | Übergang in die Wildnis |
@@ -124,6 +125,7 @@ Danach kannst du nur noch **am Checkpoint erwachen** – mit vollen HP.
 - `inventory.slots` Plätze. Jeder nicht ausgerüstete Stapel belegt einen Platz, egal wie viele Stück er enthält. Ausgerüstetes belegt keinen Platz, Gold auch nicht.
 - Stapelbare Gegenstände füllen zuerst vorhandene Stapel auf (bis zur Stapelgrenze des Gegenstands, z. B. 5 Heiltränke).
 - **Ausrüstung** trägst du an acht Plätzen gleichzeitig: Waffe, Schild, Kopf, Brust, Beine, Füße, Amulett und Ring, je ein Stück. Ein neues Stück ersetzt das alte am selben Platz, das alte wandert in den Rucksack. Was ein Gegenstand bringt (z. B. „Waffe · +3 Angriff“, „heilt 15“), steht im Inventar, in der Bank und beim Händler unter seinem Namen.
+- **Schilde, Amulette und Ringe** gibt es bei jedem Ausrüstungshändler entlang des Weges (Brandt, Brunhild, Ilva, der Händler ohne Gesicht) und beim Goldschmied in Oakhaven. Die besten Stücke lassen nur die Bosse fallen.
 - **Taschen** werden ausgerüstet (bis zu `inventory.bag_slots` gleichzeitig) und geben zusätzliche Plätze (Kleine Tasche: +2). Eine Tasche ablegen geht nur, wenn danach noch alles passt.
 - Passt beim Aufheben nicht alles, nimmst du so viel, wie passt; der Rest bleibt liegen.
 - **Fallengelassenes und Beute auf dem Boden** verschwindet nach `timings.floor_item_ttl_seconds` Sekunden. Gegenstände, die ein Charakter **deines eigenen Accounts** fallen gelassen hat, kannst du nicht aufheben.

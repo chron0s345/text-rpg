@@ -20,6 +20,7 @@
   bank: true
   exits:
     south: town_square
+    east: goldsmith_shop
   spawns: []
   items: []
 
@@ -566,4 +567,17 @@
   spawns:
     - monster_id: morvath
       count: 1
+  items: []
+
+# --- Oakhaven: Goldschmiede (Schmuck für die Plätze Amulett und Ring) ---
+
+- id: goldsmith_shop
+  name: "Goldschmiede"
+  description: "Eine enge Werkstatt voller Lupen, Zangen und winziger Schubladen. Im Fenster glitzern Ringe auf schwarzem Samt."
+  safe: true
+  checkpoint: false
+  bank: false
+  exits:
+    west: town_bank
+  spawns: []
   items: []

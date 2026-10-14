@@ -30,6 +30,8 @@ def gear_budget(level: int) -> int:
 
 
 def gear_bonus(stat: str, budget: int) -> int:
+    """Per slot the best value of ``stat`` among affordable items (a slight overestimate when
+    the best attack and the best defense of a slot sit on different items)."""
     best: dict[str, int] = {}
     for item in CONTENT.items.values():
         if item.slot is None or item.slot == "bag" or item.value > budget:
@@ -49,7 +51,7 @@ def damage_taken(monster: MonsterTemplate) -> tuple[int, int]:
     minimum = rules.combat.min_damage
     hits_needed = -(-monster.max_hp // max(minimum, attack - monster.defense))
     per_hit = max(minimum, monster.attack - defense)
-    return (hits_needed - 1) * per_hit, level.max_hp
+    return (hits_needed - 1) * per_hit, level.max_hp + gear_bonus("max_hp", budget)
 
 
 MONSTERS = sorted(CONTENT.monsters.values(), key=lambda m: (m.level, m.id))

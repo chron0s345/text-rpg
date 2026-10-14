@@ -869,3 +869,312 @@
   sellable: true
   stackable: true
   max_stack: 5
+
+# --- Schilde, Amulette, Ringe (alle Stufen) ---
+
+- id: wooden_shield
+  name: "Holzschild"
+  description: "Ein runder Schild aus Eichenbrettern mit Eisenrand."
+  kind: armor
+  slot: offhand
+  icon: "shield"
+  value: 15
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 1
+
+- id: iron_shield
+  name: "Eisenschild"
+  description: "Ein schwerer Schild mit Zwergenrunen am Buckel."
+  kind: armor
+  slot: offhand
+  icon: "shield"
+  value: 60
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 2
+
+- id: tower_shield
+  name: "Zwergischer Turmschild"
+  description: "Fast so groß wie ein Zwerg. Dahinter ist man sicher – und langsam."
+  kind: armor
+  slot: offhand
+  icon: "shield"
+  value: 150
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 3
+
+- id: obsidian_shield
+  name: "Obsidianschild"
+  description: "Schwarzes Glas in einem Rahmen aus Basalt. Klingen gleiten daran ab."
+  kind: armor
+  slot: offhand
+  icon: "shield"
+  value: 260
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 4
+
+- id: starsteel_shield
+  name: "Sternenstahlschild"
+  description: "Seine Oberfläche spiegelt einen Himmel, der nicht über dir ist."
+  kind: armor
+  slot: offhand
+  icon: "shield"
+  value: 450
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 5
+
+- id: drake_shield
+  name: "Drachenschuppenschild"
+  description: "Aus den Schuppen Hrimfangs gefertigt. Er bleibt immer eiskalt."
+  kind: armor
+  slot: offhand
+  icon: "shield"
+  value: 520
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 5
+    - type: stat
+      stat: max_hp
+      amount: 15
+
+- id: bone_amulet
+  name: "Knochenamulett"
+  description: "Ein Fingerknochen an einer Lederschnur. Abergläubisch, aber es hilft."
+  kind: armor
+  slot: neck
+  icon: "amulet"
+  value: 25
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: max_hp
+      amount: 5
+
+- id: amber_amulet
+  name: "Bernsteinamulett"
+  description: "Im Bernstein ist eine kleine Spinne eingeschlossen. Er fühlt sich warm an."
+  kind: armor
+  slot: neck
+  icon: "amulet"
+  value: 90
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: max_hp
+      amount: 15
+
+- id: ember_amulet
+  name: "Glutsteinamulett"
+  description: "Ein Stein aus dem Vulkan, der im Dunkeln schwach glimmt."
+  kind: armor
+  slot: neck
+  icon: "amulet"
+  value: 250
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: max_hp
+      amount: 30
+
+- id: moonstone_amulet
+  name: "Mondsteinamulett"
+  description: "Ein milchig blauer Stein, der das Licht der Zuflucht speichert."
+  kind: armor
+  slot: neck
+  icon: "amulet"
+  value: 500
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: max_hp
+      amount: 50
+    - type: stat
+      stat: defense
+      amount: 1
+
+- id: winter_heart
+  name: "Herz des Winters"
+  description: "Ein Splitter aus dem Herzen des Eisdrachen. Er schlägt noch, ganz langsam."
+  kind: armor
+  slot: neck
+  icon: "amulet"
+  value: 480
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: max_hp
+      amount: 40
+    - type: stat
+      stat: defense
+      amount: 2
+
+- id: soul_pendant
+  name: "Seelenanhänger"
+  description: "Morvaths Anhänger. Darin wispern Stimmen, die nicht deine sind."
+  kind: armor
+  slot: neck
+  icon: "amulet"
+  value: 900
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: max_hp
+      amount: 70
+    - type: stat
+      stat: attack
+      amount: 2
+
+- id: copper_ring
+  name: "Kupferring"
+  description: "Ein schlichter Ring, der beim Zuschlagen kribbelt."
+  kind: armor
+  slot: ring
+  icon: "ring"
+  value: 20
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 1
+
+- id: silver_ring
+  name: "Silberring"
+  description: "Fein graviert mit zwergischen Glückszeichen."
+  kind: armor
+  slot: ring
+  icon: "ring"
+  value: 80
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 2
+
+- id: ruby_ring
+  name: "Rubinring"
+  description: "Der Stein glüht, sobald du eine Waffe ziehst."
+  kind: armor
+  slot: ring
+  icon: "ring"
+  value: 220
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 3
+
+- id: star_ring
+  name: "Sternenring"
+  description: "Ein Ring aus Sternenstahl, kühl wie eine Winternacht."
+  kind: armor
+  slot: ring
+  icon: "ring"
+  value: 480
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 4
+    - type: stat
+      stat: max_hp
+      amount: 10
+
+- id: valen_ring
+  name: "Ring des Grabfürsten"
+  description: "Valens eigener Ring. Wer ihn trägt, fühlt eine fremde Kälte im Arm."
+  kind: armor
+  slot: ring
+  icon: "ring"
+  value: 120
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 2
+    - type: stat
+      stat: max_hp
+      amount: 5
+
+- id: spider_ring
+  name: "Ring der Spinnenkönigin"
+  description: "Acht winzige Rubine, wie Augen angeordnet."
+  kind: armor
+  slot: ring
+  icon: "ring"
+  value: 300
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 3
+    - type: stat
+      stat: max_hp
+      amount: 10
+
+- id: ignaros_ring
+  name: "Siegel des Glutfürsten"
+  description: "Ein Ring aus erstarrter Lava, in dessen Mitte ein Funke tanzt."
+  kind: armor
+  slot: ring
+  icon: "ring"
+  value: 560
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 4
+    - type: stat
+      stat: defense
+      amount: 1
+
+- id: shadow_ring
+  name: "Schattenring"
+  description: "Ein Ring aus Dunkelheit. Er hat kein Gewicht und keinen Glanz."
+  kind: armor
+  slot: ring
+  icon: "ring"
+  value: 850
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 5
+    - type: stat
+      stat: max_hp
+      amount: 20

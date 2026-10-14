@@ -231,8 +231,8 @@
 - id: ice_drake
   name: "Eisdrache Hrimfang"
   level: 10
-  max_hp: 260
-  attack: 36
+  max_hp: 320
+  attack: 38
   defense: 16
   xp_reward: 900
   gold_reward: [80, 160]
@@ -241,6 +241,10 @@
     delay_seconds: 20
     hp_per_second: 5.0
   loot_table:
+    - item_id: drake_shield
+      chance: 0.1
+    - item_id: winter_heart
+      chance: 0.08
     - item_id: drake_scale
       chance: 1.0
     - item_id: elixir
@@ -269,6 +273,8 @@
     chance_per_tick: 0.06
     max_level_difference: 2
   loot_table:
+    - item_id: silver_ring
+      chance: 0.02
     - item_id: ghoul_claw
       chance: 0.6
     - item_id: iron_greaves
@@ -301,8 +307,8 @@
 - id: spider_queen
   name: "Spinnenkönigin Ysvara"
   level: 9
-  max_hp: 190
-  attack: 34
+  max_hp: 250
+  attack: 37
   defense: 13
   xp_reward: 650
   gold_reward: [40, 90]
@@ -311,6 +317,8 @@
     delay_seconds: 20
     hp_per_second: 4.0
   loot_table:
+    - item_id: spider_ring
+      chance: 0.12
     - item_id: queen_fang
       chance: 1.0
     - item_id: elixir
@@ -411,6 +419,8 @@
     chance_per_tick: 0.0
     max_level_difference: 2
   loot_table:
+    - item_id: bone_amulet
+      chance: 0.06
     - item_id: bone_dust
       chance: 0.6
       min_qty: 1
@@ -433,6 +443,8 @@
     delay_seconds: 20
     hp_per_second: 3.0
   loot_table:
+    - item_id: valen_ring
+      chance: 0.2
     - item_id: valen_signet
       chance: 1.0
     - item_id: greater_potion
@@ -479,6 +491,8 @@
     chance_per_tick: 0.1
     max_level_difference: 2
   loot_table:
+    - item_id: ember_amulet
+      chance: 0.02
     - item_id: wraith_ash
       chance: 0.8
       min_qty: 1
@@ -540,6 +554,8 @@
     delay_seconds: 20
     hp_per_second: 8.0
   loot_table:
+    - item_id: ignaros_ring
+      chance: 0.12
     - item_id: ignaros_crown
       chance: 1.0
     - item_id: phoenix_draught
@@ -610,6 +626,8 @@
     chance_per_tick: 0.08
     max_level_difference: 2
   loot_table:
+    - item_id: moonstone_amulet
+      chance: 0.02
     - item_id: nightmare_essence
       chance: 0.7
     - item_id: moon_lily
@@ -647,6 +665,10 @@
     delay_seconds: 20
     hp_per_second: 10.0
   loot_table:
+    - item_id: soul_pendant
+      chance: 0.1
+    - item_id: shadow_ring
+      chance: 0.08
     - item_id: shadow_crown
       chance: 1.0
     - item_id: starlight_tonic
