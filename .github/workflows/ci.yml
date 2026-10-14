@@ -71,3 +71,41 @@ jobs:
         with:
           name: junit-${{ matrix.python-version }}
           path: report.xml
+
+  image:
+    name: Docker image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      # the image must build and come up healthy (migrations, seed, server) against PostgreSQL
+      - run: docker build -t text-rpg:ci .
+      - run: docker network create rpg
+      - run: >
+          docker run -d --name db --network rpg
+          -e POSTGRES_USER=rpg -e POSTGRES_PASSWORD=rpg -e POSTGRES_DB=rpg
+          --health-cmd "pg_isready -U rpg -d rpg" --health-interval 2s
+          postgres:16-alpine
+      - name: Wait for the database
+        run: |
+          for i in $(seq 1 30); do
+            [ "$(docker inspect -f '{{.State.Health.Status}}' db)" = healthy ] && exit 0
+            sleep 2
+          done
+          exit 1
+      - run: >
+          docker run -d --name app --network rpg -p 8000:8000
+          -e DATABASE_URL=postgresql+asyncpg://rpg:rpg@db:5432/rpg
+          -e SESSION_SECRET=ci-secret -e WEB_CONCURRENCY=2
+          text-rpg:ci
+      - name: Wait for the app
+        run: |
+          for i in $(seq 1 45); do
+            [ "$(docker inspect -f '{{.State.Health.Status}}' app)" = healthy ] && exit 0
+            sleep 2
+          done
+          docker logs app
+          exit 1
+      - run: curl --fail --silent http://127.0.0.1:8000/welcome > /dev/null
+      - if: failure()
+        run: docker logs app || true

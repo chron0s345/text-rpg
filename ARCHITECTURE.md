@@ -971,6 +971,7 @@ Nebenläufigkeitsfälle ohne eigenen Platz in den Feature-Tests stehen in `tests
 ## Deployment
 
 - Ein Container für die App (uvicorn, mehrere Worker möglich), ein Container für PostgreSQL.
+- Umsetzung: `Dockerfile` + `scripts/entrypoint.sh` (beim Start `alembic upgrade head`, Seed, dann uvicorn mit `--proxy-headers`), `docker compose --profile app up --build` startet App und Datenbank. Mit `WEB_CONCURRENCY > 1` verweigert der Container ohne `SESSION_SECRET` den Start. Die CI baut das Image und wartet, bis es gegen PostgreSQL gesund ist. Konfiguration: siehe `README.md`.
 - Reverse Proxy (z. B. Caddy oder nginx) muss für `/stream` Buffering deaktivieren und lange Verbindungen erlauben.
 - Hinter dem Proxy uvicorn mit `--proxy-headers --forwarded-allow-ips <Proxy-IP>` starten, sonst haben alle Clients die Adresse des Proxys und teilen sich ein Login-Limit.
 - Content-Änderungen erfordern einen Neustart; danach Seed-Befehl ausführen.

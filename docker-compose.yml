@@ -1,5 +1,8 @@
-# Development database. Start: `docker compose up -d db`, then `alembic upgrade head` and
+# Development database: `docker compose up -d db`, then `alembic upgrade head` and
 # `python -m app.db.seed`. Matches DEFAULT_DATABASE_URL in app/db/session.py.
+#
+# Whole game in containers: `docker compose --profile app up --build` -> http://localhost:8000
+# (set SESSION_SECRET for sessions that survive restarts, see README.md).
 services:
   db:
     image: postgres:16-alpine
@@ -16,6 +19,20 @@ services:
       interval: 2s
       timeout: 3s
       retries: 15
+
+  app:
+    profiles: ["app"]
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://rpg:rpg@db:5432/rpg
+      SESSION_SECRET: ${SESSION_SECRET:-}
+      SESSION_HTTPS_ONLY: ${SESSION_HTTPS_ONLY:-0}
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-1}
+    ports:
+      - "127.0.0.1:8000:8000"
 
 volumes:
   pgdata:
