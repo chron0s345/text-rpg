@@ -79,3 +79,16 @@ def test_monsters_can_be_beaten_and_bosses_need_help(monster: MonsterTemplate) -
     else:
         assert taken < max_hp
         assert taken > 0, "a monster that cannot hurt its own level is no threat"
+
+
+def test_rare_variants_are_worth_the_luck() -> None:
+    """A rare form is stronger than its base and rewards more: more XP and guaranteed loot."""
+    variants = [m for m in CONTENT.monsters.values() if m.rare_variant is not None]
+    assert len(variants) >= 5
+    for base in variants:
+        assert base.rare_variant is not None
+        rare = CONTENT.monsters[base.rare_variant.monster_id]
+        assert rare.max_hp > base.max_hp, rare.id
+        assert rare.xp_reward > base.xp_reward, rare.id
+        assert any(entry.chance == 1.0 for entry in rare.loot_table), rare.id
+        assert base.rare_variant.chance <= 0.1, "rare means rare"

@@ -1328,3 +1328,35 @@
   sellable: true
   stackable: true
   max_stack: 5
+
+# --- Trophäen seltener Monster ---
+
+- id: gold_tooth
+  name: "Goldzahn"
+  description: "Ein Goblinzahn aus purem Gold. Wie er da hineingekommen ist, bleibt ein Rätsel."
+  kind: misc
+  icon: "trophy"
+  value: 25
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: white_pelt
+  name: "Weißes Wolfsfell"
+  description: "Schneeweiß und makellos. Kürschner in Oakhaven zahlen gut dafür."
+  kind: misc
+  icon: "trophy"
+  value: 30
+  sellable: true
+  stackable: true
+  max_stack: 5
+
+- id: rat_crown
+  name: "Rattenkrone"
+  description: "Ein Knäuel ineinander verknoteter Rattenschwänze. Widerlich – und ein Sammlerstück."
+  kind: misc
+  icon: "trophy"
+  value: 15
+  sellable: true
+  stackable: true
+  max_stack: 5

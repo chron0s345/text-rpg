@@ -106,6 +106,19 @@ Ein **Stufenaufstieg** heilt vollständig (inklusive der HP aus Ausrüstung). Re
 
 Manche Monster haben eine **seltene Form**, etwa einen besonders starken oder reichen Verwandten. Jedes Mal, wenn ein solches Monster wieder auftaucht, besteht eine kleine Chance, dass stattdessen die seltene Form erscheint; das Log meldet dann „… taucht auf – ein seltener Anblick!“. Seltene Formen sind stärker und lassen bessere Beute fallen. Nach ihrem Tod kommt meist wieder die gewöhnliche Form.
 
+| Gewöhnlich | Selten (ca. 4–5 %) | Besondere Beute |
+|---|---|---|
+| Feldratte | Rattenkönig | Rattenkrone |
+| Goblin-Späher | Goldener Goblin | Goldzahn, viel Gold, Kupferring |
+| Hungriger Wolf | Weißer Wolf | Weißes Wolfsfell, Knochenamulett |
+| Moorschleicher | Uralter Moorschleicher | Moorkraut, Großer Heiltrank, Lederstiefel |
+| Skelettwächter | Skelettchampion | Langschwert |
+| Schmuggler | Schmugglerkönig Rask | Schmuggelware, Silberring, Harpune |
+| Grubenghul | Ghulfürst | Eiserne Beinschienen |
+| Frostwolf | Rudelführer Silberfang | Frostwolfpelze, Eisenstiefel, Silberring |
+| Magmagolem | Obsidiangolem | Glutkerne, Obsidianschild |
+| Albtraum | Nachtmahr | Sternenlichttonikum, Mondsteinamulett |
+
 ### Überfälle
 
 Manche Monster greifen **von selbst** an: beim Betreten ihres Raums oder während du dort verweilst. Das Monster schlägt zuerst zu, und du bist im Kampf. Nie in sicheren Räumen, nie gegen Tote oder Ausgeloggte, und Monster greifen keine Charaktere an, die ihnen um mehr als einige Stufen überlegen sind. Ein Monster, das bereits kämpft, überfällt niemanden sonst.
