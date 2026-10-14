@@ -14,6 +14,7 @@ from app.content.schemas import (
     ItemTemplate,
     MerchantTemplate,
     MonsterTemplate,
+    QuestTemplate,
     RoomTemplate,
     Rules,
 )
@@ -67,6 +68,8 @@ def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegist
     monsters = _parse_list(data_dir / "monsters.yaml", MonsterTemplate, lambda m: m.id)
     items = _parse_list(data_dir / "items.yaml", ItemTemplate, lambda i: i.id)
     merchants = _parse_list(data_dir / "merchants.yaml", MerchantTemplate, lambda m: m.id)
+    quests_path = data_dir / "quests.yaml"  # optional: a world without quests is valid
+    quests = _parse_list(quests_path, QuestTemplate, lambda q: q.id) if quests_path.exists() else {}
 
     rules_raw = load_yaml_file(data_dir / "rules.yaml")
     if not isinstance(rules_raw, dict):
@@ -90,6 +93,7 @@ def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegist
 
     validate_content(rooms, monsters, items, merchants, rules)
     validate_rare_variants(rooms, monsters)
+    validate_quests(quests, monsters, items, merchants)
     if icons_dir is not None:
         validate_icons(items, Path(icons_dir))
 
@@ -98,6 +102,7 @@ def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegist
         monsters=monsters,
         items=items,
         merchants=merchants,
+        quests=quests,
         rules=rules,
     )
 
@@ -134,6 +139,50 @@ def validate_rare_variants(
                     f"Room '{room.id}' spawns the rare variant '{spawn.monster_id}' directly; "
                     f"spawn '{owners[spawn.monster_id]}' instead"
                 )
+
+
+def validate_quests(
+    quests: dict[str, QuestTemplate],
+    monsters: dict[str, MonsterTemplate],
+    items: dict[str, ItemTemplate],
+    merchants: dict[str, MerchantTemplate],
+) -> None:
+    """Givers, items and monsters exist; prerequisites exist and form no cycle; kill quests
+    name a base monster (a rare variant counts for its base anyway)."""
+    variants = {m.rare_variant.monster_id for m in monsters.values() if m.rare_variant}
+    for quest in quests.values():
+        where = f"Quest '{quest.id}'"
+        if quest.giver_id not in merchants:
+            raise ContentValidationError(f"{where} has an unknown giver '{quest.giver_id}'")
+        objective = quest.objective
+        if objective.type == "deliver" and objective.item_id not in items:
+            raise ContentValidationError(f"{where} asks for an unknown item '{objective.item_id}'")
+        if objective.type == "kill":
+            if objective.monster_id not in monsters:
+                raise ContentValidationError(
+                    f"{where} asks to kill an unknown monster '{objective.monster_id}'"
+                )
+            if objective.monster_id in variants:
+                raise ContentValidationError(
+                    f"{where} names the rare variant '{objective.monster_id}'; name its base"
+                )
+        for reward in quest.reward.items:
+            if reward.item_id not in items:
+                raise ContentValidationError(f"{where} rewards an unknown item '{reward.item_id}'")
+        for required in quest.requires:
+            if required not in quests:
+                raise ContentValidationError(f"{where} requires an unknown quest '{required}'")
+
+    def visit(quest_id: str, path: tuple[str, ...]) -> None:
+        if quest_id in path:
+            raise ContentValidationError(
+                "Quest prerequisites form a cycle: " + " -> ".join((*path, quest_id))
+            )
+        for required in quests[quest_id].requires:
+            visit(required, (*path, quest_id))
+
+    for quest_id in quests:
+        visit(quest_id, ())
 
 
 def validate_icons(items: dict[str, ItemTemplate], icons_dir: Path) -> None:

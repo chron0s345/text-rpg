@@ -241,6 +241,19 @@ class MerchantTemplate(BaseModel):
 class MerchantOffer(BaseModel):
     item_id: str
     price: PositiveInt | None = None  # None = Item-value × rules.merchant.buy_ratio
+
+
+class QuestTemplate(BaseModel):  # quests.yaml (optional)
+    id: str
+    name: str
+    giver_id: str  # MerchantTemplate.id
+    description: str
+    completion_text: str
+    objective: DeliverObjective | KillObjective  # deliver(item, qty) / kill(monster, count)
+    reward: QuestReward  # xp, gold, items: [RewardItem(item_id, quantity)]
+    min_level: PositiveInt = 1
+    requires: list[str] = []  # Quest-IDs, die vorher erledigt sein müssen
+    repeatable: bool = False
 ```
 
 Pro Ausrüstungsplatz (`EquipSlot`) trägt ein Charakter genau ein Stück, Taschen ausgenommen (bis `inventory.bag_slots`). Die Engine behandelt alle Plätze gleich; neue Plätze brauchen nur das Literal, die Check-Constraint (Migration) und einen Namen in `app/content/describe.py`. Dort entsteht auch die Kurzbeschreibung, die die Oberfläche unter jedem Itemnamen zeigt (`item_summary`, z. B. „Waffe · +3 Angriff“).
@@ -617,6 +630,17 @@ Umsetzung (`engine/bank.py`): Für Bankaktionen lädt und sperrt `load_action_sn
 
 Umsetzung (`engine/merchant.py`, Preise in `content/prices.py`, gemeinsam für Engine und Content-Validierung): Kaufen ist „alles oder nichts“ – die ganze Menge muss bezahlbar sein und ins Inventar passen. Ein berechneter Kaufpreis ist mindestens 1 Gold. Verkaufen geht stück- oder stapelweise; stehen mehrere Händler im Raum, zeigt die Oberfläche das beste Angebot.
 
+### Quests
+
+- Quests sind Content (`quests.yaml`); Auftraggeber ist ein Händler. Annehmen und Abgeben geht nur in dessen Raum und nicht im Kampf, Abbrechen jederzeit.
+- **Liefern** (`deliver`): Beim Abgeben werden die Gegenstände aus freien, nicht ausgerüsteten und nicht im Handel angebotenen Stapeln genommen. Der Fortschritt wird nicht gespeichert, sondern immer aus dem Rucksack gezählt.
+- **Besiegen** (`kill`): `rewards.resolve_kill` ruft `quests.count_kill` für alle Mitglieder der Partei auf, die den Kill gutgeschrieben bekommt und im Raum ist – also dieselben, die Gold und Beute bekommen. Seltene Varianten zählen für ihre Grundform. Mehr als die geforderte Anzahl wird nicht gezählt.
+- Belohnung: XP (mit Stufenaufstieg wie bei Kämpfen), Gold, Gegenstände. Passen die Gegenstände nicht vollständig ins Inventar, wird nicht abgegeben.
+- Voraussetzungen: `min_level` und `requires` (Ketten). Höchstens 10 offene Aufträge gleichzeitig.
+- Zustand: `quest_progress` (`player_id`, `quest_id`, `status` active|completed, `progress`, `times_completed`). Wiederholbare Quests werden beim erneuten Annehmen wieder `active`; Abbrechen löscht die Zeile, bei schon einmal erledigten wiederholbaren Quests stellt es `completed` wieder her.
+- Die Zeilen gehören zu Spielern im Aktions-Snapshot und werden mit ihnen geladen und gesperrt (`Repository.lock_quests`). Neue Zeilen entstehen nur für gesperrte Spieler; die Spielersperre serialisiert sie.
+- Validierung beim Laden: Auftraggeber, Items und Monster existieren, Voraussetzungen existieren und bilden keinen Zyklus, Besiegen-Quests nennen die Grundform statt einer seltenen Variante.
+
 ### Schutz vor Item-Transfer zwischen eigenen Charakteren
 
 Da Charaktere desselben Accounts nicht miteinander handeln dürfen, werden auch die naheliegenden Umwege gesperrt:
@@ -767,7 +791,7 @@ Umsetzung: `ActionService.execute` (`app/services/action_service.py`).
 ### Locking
 
 - `SELECT ... FOR UPDATE` auf betroffene Zeilen.
-- **Feste Sperrreihenfolge**, um Deadlocks zu vermeiden: (`Account`, nur beim Anlegen von Charakteren für das Charakterlimit) → `Group` → `Trade` → `Player` (sortiert nach ID) → `InventoryItem` → `BankItem` → `MonsterInstance` → `FloorItem` → `ItemSpawnState`.
+- **Feste Sperrreihenfolge**, um Deadlocks zu vermeiden: (`Account`, nur beim Anlegen von Charakteren für das Charakterlimit) → `Group` → `Trade` → `Player` (sortiert nach ID) → `InventoryItem` → `BankItem` → `QuestProgress` → `MonsterInstance` → `FloorItem` → `ItemSpawnState`.
 - Die Handelsausführung sperrt den `Trade`, beide Spieler und alle beteiligten Inventar-Einträge. Damit kann ein Item nicht gleichzeitig gehandelt und fallengelassen werden.
 - Beutevergabe in Gruppen sperrt die Gruppe und alle Empfänger, damit Round-Robin und Inventar konsistent bleiben.
 - Überfälle aus dem Ticker sperren Monster und Opfer in derselben Reihenfolge wie Spieleraktionen.

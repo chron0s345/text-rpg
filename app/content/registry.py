@@ -6,6 +6,7 @@ from app.content.schemas import (
     ItemTemplate,
     MerchantTemplate,
     MonsterTemplate,
+    QuestTemplate,
     RoomTemplate,
     Rules,
 )
@@ -20,6 +21,7 @@ class ContentRegistry:
     monsters: dict[str, MonsterTemplate] = field(default_factory=dict)
     items: dict[str, ItemTemplate] = field(default_factory=dict)
     merchants: dict[str, MerchantTemplate] = field(default_factory=dict)
+    quests: dict[str, QuestTemplate] = field(default_factory=dict)
 
     def get_room(self, room_id: str) -> RoomTemplate:
         if room_id not in self.rooms:
@@ -38,6 +40,11 @@ class ContentRegistry:
             if template.rare_variant is not None and template.rare_variant.monster_id == monster_id:
                 return template.id
         return monster_id
+
+    def get_quest(self, quest_id: str) -> QuestTemplate:
+        if quest_id not in self.quests:
+            raise KeyError(f"Quest '{quest_id}' not found in registry")
+        return self.quests[quest_id]
 
     def get_item(self, item_id: str) -> ItemTemplate:
         if item_id not in self.items:

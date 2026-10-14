@@ -1,0 +1,174 @@
+# Aufträge (ARCHITECTURE.md, "Quests"). Angenommen und abgegeben beim Auftraggeber (giver_id = Händler).
+# objective: deliver (Gegenstände abgeben, sie werden genommen) oder kill (Monster besiegen,
+# zählt für jedes Mitglied der Partei im Raum; seltene Varianten zählen für ihre Grundform).
+
+# --- Oakhaven und Umgebung (Stufe 1–5) ---
+
+- id: rat_plague
+  name: "Rattenplage"
+  giver_id: miller
+  description: "Die Biester fressen mir das Korn aus den Säcken! Bring mir fünf Rattenschwänze, damit ich weiß, dass du es ernst meinst."
+  completion_text: "Fünf weniger! Hier, nimm Kuchen – und komm wieder, wenn du Hunger hast."
+  objective: {type: deliver, item_id: rat_tail, quantity: 5}
+  reward: {xp: 40, gold: 15, items: [{item_id: apple_pie, quantity: 2}]}
+
+- id: boar_roast
+  name: "Wildbret für den Krug"
+  giver_id: innkeeper
+  description: "Die Gäste wollen Braten, und mein Jäger ist seit dem Leuchtturm-Gerede verschwunden. Drei Wildschweinkeulen, und du isst eine Woche umsonst – na ja, fast."
+  completion_text: "Das riecht schon roh nach Feiertag. Hier, Eintopf auf Kosten des Hauses."
+  objective: {type: deliver, item_id: boar_ham, quantity: 3}
+  reward: {xp: 60, gold: 20, items: [{item_id: stew, quantity: 2}]}
+
+- id: goblin_research
+  name: "Ohren für die Wissenschaft"
+  giver_id: alchemist
+  description: "Goblinohren sind eine hervorragende Grundlage für Heiltränke. Frag nicht. Sechs Stück, bitte."
+  completion_text: "Wunderbar frisch! Zwei Tränke für dich – aus genau solchen Ohren gebraut."
+  objective: {type: deliver, item_id: goblin_ear, quantity: 6}
+  reward: {xp: 60, gold: 25, items: [{item_id: healing_potion, quantity: 2}]}
+
+- id: wolves_at_the_gate
+  name: "Wölfe vor den Toren"
+  giver_id: smith
+  description: "Die Wölfe im Wald werden frech, letzte Woche haben sie den Wachposten angefallen. Erlege vier, und ich schmiede dir eine Kappe."
+  completion_text: "Gute Arbeit. Die Kappe passt – ich hab Augenmaß."
+  objective: {type: kill, monster_id: wolf, count: 4}
+  reward: {xp: 90, gold: 30, items: [{item_id: leather_cap}]}
+  min_level: 2
+
+- id: rest_for_the_dead
+  name: "Ruhe für die Toten"
+  giver_id: priestess
+  description: "Auf dem Alten Friedhof wandeln die Toten. Gib fünf von ihnen die Ruhe zurück, die man ihnen genommen hat."
+  completion_text: "Das Licht dankt dir. Doch solange die Gruft offen ist, werden sie wieder aufstehen …"
+  objective: {type: kill, monster_id: shambling_corpse, count: 5}
+  reward: {xp: 150, gold: 30, items: [{item_id: holy_water, quantity: 2}]}
+  min_level: 3
+
+- id: valen_ring
+  name: "Der Ring der Valen"
+  giver_id: priestess
+  description: "Der Grabfürst trägt den Siegelring seiner Familie. Bring ihn mir – nur geweiht kann er die Toten nicht mehr rufen."
+  completion_text: "Spürst du, wie still es geworden ist? Trag dieses Amulett. Es wird dich an diesen Tag erinnern."
+  objective: {type: deliver, item_id: valen_signet, quantity: 1}
+  reward: {xp: 300, gold: 80, items: [{item_id: light_charm}]}
+  min_level: 4
+  requires: [rest_for_the_dead]
+
+- id: golden_tooth
+  name: "Ein Zahn aus Gold"
+  giver_id: goldsmith
+  description: "Man erzählt von einem Goblin mit goldenen Zähnen. Unsinn, sagst du? Bring mir einen, und ich mache dir einen Ring daraus."
+  completion_text: "Echtes Gold, tatsächlich! Wie versprochen."
+  objective: {type: deliver, item_id: gold_tooth, quantity: 1}
+  reward: {gold: 20, items: [{item_id: silver_ring}]}
+
+# --- Sturmküste (Stufe 4–7) ---
+
+- id: shells_and_claws
+  name: "Scheren und Schalen"
+  giver_id: fisherwoman
+  description: "Aus Krabbenpanzern machen wir Knöpfe und Schalen. Fünf Stück, und ich räuchere dir was Feines."
+  completion_text: "Schöne, dicke Panzer. Hier, frisch aus dem Rauch."
+  objective: {type: deliver, item_id: crab_shell, quantity: 5}
+  reward: {xp: 120, gold: 25, items: [{item_id: smoked_fish, quantity: 3}]}
+  min_level: 4
+
+- id: silence_the_song
+  name: "Das Lied verstummen lassen"
+  giver_id: fisherwoman
+  description: "Die Frau im Leuchtturm singt, und unsere Männer fahren auf die Klippen. Mach, dass sie schweigt. Für immer."
+  completion_text: "Heute Nacht ist es still am Meer. Zum ersten Mal seit Jahren. Danke."
+  objective: {type: kill, monster_id: sea_witch, count: 1}
+  reward: {xp: 500, gold: 100, items: [{item_id: coral_amulet}]}
+  min_level: 6
+
+# --- Grauzahn-Gebirge und Tiefen (Stufe 6–10) ---
+
+- id: winter_furs
+  name: "Pelze für den Winter"
+  giver_id: dwarf_armorer
+  description: "Der Winter auf dem Posten ist lang. Vier Frostwolfpelze, und du bekommst Stiefel, die nicht einmal ein Golem durchtritt."
+  completion_text: "Warm wie eine Esse. Hier, deine Stiefel."
+  objective: {type: deliver, item_id: frost_pelt, quantity: 4}
+  reward: {xp: 300, gold: 60, items: [{item_id: iron_boots}]}
+  min_level: 7
+
+- id: ice_for_the_forge
+  name: "Eis für die Esse"
+  giver_id: dwarf_armorer
+  description: "Ewiges Eis kühlt den Stahl besser als jedes Wasser. Ich nehme alles, was du bringst – drei Splitter pro Fuhre."
+  completion_text: "Gutes Eis. Bring mehr, wenn du welches findest."
+  objective: {type: deliver, item_id: ice_shard, quantity: 3}
+  reward: {xp: 120, gold: 50}
+  min_level: 8
+  repeatable: true
+
+- id: spider_silk
+  name: "Seide aus der Tiefe"
+  giver_id: alchemist
+  description: "Spinnenseide hält Verbände, die nicht reißen. Sechs Stränge aus der Spinnengrotte, und ich gebe dir mein bestes Elixier."
+  completion_text: "Wie zäh sie ist! Das Elixier hast du dir verdient."
+  objective: {type: deliver, item_id: spider_silk, quantity: 6}
+  reward: {xp: 280, gold: 50, items: [{item_id: elixir}]}
+  min_level: 7
+
+- id: heal_the_grove
+  name: "Den Hain heilen"
+  giver_id: elf_ranger
+  description: "Die Dryaden waren meine Schwestern. Jetzt sind ihre Augen schwarz. Erlöse vier von ihnen."
+  completion_text: "Sie sind frei. Doch der Hüter trinkt noch immer vom Schatten …"
+  objective: {type: kill, monster_id: dryad, count: 4}
+  reward: {xp: 700, gold: 80, items: [{item_id: leaf_ring}]}
+  min_level: 9
+
+- id: return_the_heart
+  name: "Das Herz der Erde"
+  giver_id: elf_ranger
+  description: "Wer den Hüter erlöst, gebe sein Herz der Erde zurück – so steht es auf den Grenzsteinen. Bring mir sein Herzholz."
+  completion_text: "Ich pflanze es unter den Uralten Baum. Vielleicht wächst etwas Neues daraus. Trag meinen Mantel, Freund."
+  objective: {type: deliver, item_id: warden_heartwood, quantity: 1}
+  reward: {xp: 1500, gold: 200, items: [{item_id: elven_cloak}]}
+  min_level: 10
+  requires: [heal_the_grove]
+
+# --- Feuerschlund, Aelmar, Schattenreich (Stufe 11–15) ---
+
+- id: ember_cores
+  name: "Glutkerne"
+  giver_id: crater_scout
+  description: "Die Zwerge zahlen ein Vermögen für Glutkerne, und ich bin zu klug, um selbst gegen Golems zu kämpfen. Drei Stück?"
+  completion_text: "Ha! Die Zwerge werden staunen. Nimm die Tränke, du siehst aus, als bräuchtest du sie."
+  objective: {type: deliver, item_id: ember_core, quantity: 3}
+  reward: {xp: 900, gold: 120, items: [{item_id: phoenix_draught, quantity: 2}]}
+  min_level: 12
+
+- id: crests_of_aelmar
+  name: "Die Wappen von Aelmar"
+  giver_id: old_diver
+  description: "Die Ritter dort unten waren meine Vorfahren. Bring mir vier ihrer Wappen, damit ich sie oben begraben kann."
+  completion_text: "Blubb … Verzeihung. Danke. Wirklich."
+  objective: {type: deliver, item_id: knight_crest, quantity: 4}
+  reward: {xp: 1000, gold: 150, items: [{item_id: kelp_salve, quantity: 3}]}
+  min_level: 12
+
+- id: shards_of_void
+  name: "Splitter der Leere"
+  giver_id: faceless_merchant
+  description: "Leerensplitter. Fünf. Frag nicht, wofür."
+  completion_text: "Gut. Komm wieder, wenn du mehr hast."
+  objective: {type: deliver, item_id: void_shard, quantity: 5}
+  reward: {xp: 600, gold: 200, items: [{item_id: starlight_tonic}]}
+  min_level: 14
+  repeatable: true
+
+- id: the_last_king
+  name: "Der letzte König"
+  giver_id: priestess
+  description: "Unter der Mine sitzt ein König, der älter ist als die Sterne. Alles, was uns plagt, kommt von ihm. Ich bitte dich nicht. Ich bete für dich."
+  completion_text: "Die Kerzen brennen heller als je zuvor. Was immer du dort unten getan hast – das Licht wird es nicht vergessen."
+  objective: {type: kill, monster_id: morvath, count: 1}
+  reward: {xp: 3000, gold: 500, items: [{item_id: phoenix_draught, quantity: 3}]}
+  min_level: 15
+  requires: [valen_ring]

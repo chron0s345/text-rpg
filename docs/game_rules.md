@@ -196,6 +196,36 @@ Gruppenchat und Flüstern gehen auch, wenn du tot bist. Chatten zählt wie jede 
 - Angebotene Gegenstände bleiben bis zum Abschluss bei dir, können aber nicht benutzt, ausgerüstet, verkauft, eingelagert oder fallen gelassen werden.
 - Der Handel bricht ab, wenn jemand den Raum verlässt, in einen Kampf gerät, stirbt, sich ausloggt oder die Verbindung verliert.
 
+## Aufträge
+
+Viele Händler haben **Aufträge**. Steht ein Auftraggeber im Raum, zeigt das Panel „Aufträge“ seine Angebote mit Aufgabe und Belohnung; annehmen und abgeben geht nur bei ihm und nicht im Kampf.
+
+- **Bringen:** Beim Abgeben werden die Gegenstände aus dem Rucksack genommen (nicht ausgerüstete und nicht im Handel angebotene).
+- **Besiegen:** Jeder Sieg zählt für alle Mitglieder deiner Gruppe im Raum, die den Auftrag haben – wie Gold und Beute. Seltene Formen zählen für ihre gewöhnliche Form.
+- Belohnungen sind Erfahrung, Gold und Gegenstände; ist im Rucksack kein Platz für die Gegenstände, kannst du noch nicht abgeben.
+- Manche Aufträge setzen eine Stufe oder einen anderen Auftrag voraus, manche lassen sich wiederholen. Höchstens 10 Aufträge gleichzeitig; abbrechen geht jederzeit, der Fortschritt ist dann verloren.
+
+| Auftrag | Auftraggeber | ab Stufe | Aufgabe |
+|---|---|---|---|
+| Rattenplage | Müllerin Grete | 1 | 5× Rattenschwanz bringen |
+| Wildbret für den Krug | Wirtin Hanne | 1 | 3× Wildschweinkeule bringen |
+| Ohren für die Wissenschaft | Alchemistin Elira | 1 | 6× Goblinohr bringen |
+| Wölfe vor den Toren | Schmied Brandt | 2 | 4× Hungriger Wolf besiegen |
+| Ruhe für die Toten | Schwester Liora | 3 | 5× Wandelnder Leichnam besiegen |
+| Der Ring der Valen | Schwester Liora | 4 | 1× Siegelring der Valen bringen (nach „Ruhe für die Toten“) |
+| Ein Zahn aus Gold | Goldschmied Aurel | 1 | 1× Goldzahn bringen |
+| Scheren und Schalen | Fischerin Maren | 4 | 5× Krabbenpanzer bringen |
+| Das Lied verstummen lassen | Fischerin Maren | 6 | 1× Seehexe Morwenna besiegen |
+| Pelze für den Winter | Waffenmeisterin Brunhild | 7 | 4× Frostwolfpelz bringen |
+| Eis für die Esse | Waffenmeisterin Brunhild | 8 | 3× Ewiges Eis bringen (wiederholbar) |
+| Seide aus der Tiefe | Alchemistin Elira | 7 | 6× Spinnenseide bringen |
+| Den Hain heilen | Waldläuferin Nimriel | 9 | 4× Verdorbene Dryade besiegen |
+| Das Herz der Erde | Waldläuferin Nimriel | 10 | 1× Herzholz des Hüters bringen (nach „Den Hain heilen“) |
+| Glutkerne | Kundschafterin Ilva | 12 | 3× Glutkern bringen |
+| Die Wappen von Aelmar | Taucher Brack | 12 | 4× Wappen von Aelmar bringen |
+| Splitter der Leere | Der Händler ohne Gesicht | 14 | 5× Leerensplitter bringen (wiederholbar) |
+| Der letzte König | Schwester Liora | 15 | 1× Schattenkönig Morvath besiegen (nach „Der Ring der Valen“) |
+
 ## Händler & Bank
 
 - **Elira** (Kaufmannsstand) verkauft Heiltränke, Brot und Kleine Taschen und kauft alles Verkaufbare an.

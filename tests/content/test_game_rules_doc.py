@@ -54,3 +54,16 @@ def test_room_table_lists_every_room() -> None:
     rooms = yaml.safe_load((DOC.parents[1] / "data" / "rooms.yaml").read_text())
 
     assert sorted(documented) == sorted(room["name"] for room in rooms)
+
+
+def test_quest_table_lists_every_quest() -> None:
+    lines = DOC.read_text().splitlines()
+    start = lines.index("| Auftrag | Auftraggeber | ab Stufe | Aufgabe |") + 2
+    documented = []
+    for line in lines[start:]:
+        if not line.startswith("|"):
+            break
+        documented.append(line.split("|")[1].strip())
+    quests = yaml.safe_load((DOC.parents[1] / "data" / "quests.yaml").read_text())
+
+    assert sorted(documented) == sorted(quest["name"] for quest in quests)

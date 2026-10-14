@@ -159,3 +159,44 @@ def test_rare_variants_are_validated() -> None:
     )
     with pytest.raises(ContentValidationError, match="spawns the rare variant 'golden' directly"):
         validate_rare_variants({"vault": direct}, ok)
+
+
+def test_quests_are_validated() -> None:
+    from app.content.loader import validate_quests
+    from app.content.schemas import QuestTemplate
+
+    real = load_content(Path("data"))
+
+    def quest(quest_id: str = "q", **fields: object) -> QuestTemplate:
+        return QuestTemplate.model_validate(
+            {
+                "id": quest_id,
+                "name": "Q",
+                "giver_id": "alchemist",
+                "description": "",
+                "completion_text": "",
+                "objective": {"type": "deliver", "item_id": "goblin_ear"},
+                **fields,
+            }
+        )
+
+    def check(*quests: QuestTemplate) -> None:
+        validate_quests({q.id: q for q in quests}, real.monsters, real.items, real.merchants)
+
+    check(quest())
+    with pytest.raises(ContentValidationError, match="unknown giver"):
+        check(quest(giver_id="nobody"))
+    with pytest.raises(ContentValidationError, match="unknown item 'nope'"):
+        check(quest(objective={"type": "deliver", "item_id": "nope"}))
+    with pytest.raises(ContentValidationError, match="unknown monster"):
+        check(quest(objective={"type": "kill", "monster_id": "nope"}))
+    with pytest.raises(ContentValidationError, match="rewards an unknown item"):
+        check(quest(reward={"items": [{"item_id": "nope"}]}))
+    with pytest.raises(ContentValidationError, match="requires an unknown quest"):
+        check(quest(requires=["missing"]))
+    with pytest.raises(ContentValidationError, match="form a cycle"):
+        check(quest("a", requires=["b"]), quest("b", requires=["a"]))
+    variants = [m.rare_variant.monster_id for m in real.monsters.values() if m.rare_variant]
+    if variants:
+        with pytest.raises(ContentValidationError, match="rare variant"):
+            check(quest(objective={"type": "kill", "monster_id": variants[0]}))

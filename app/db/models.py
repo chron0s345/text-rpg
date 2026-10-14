@@ -247,6 +247,28 @@ class BankItem(SQLModel, table=True):
     quantity: int = 1
 
 
+QUEST_STATUSES = ("active", "completed")
+
+
+class QuestProgress(SQLModel, table=True):
+    """One row per character and quest it ever accepted. ``progress`` counts kills of a kill
+    quest (delivery quests count the inventory on turn-in). A repeatable, completed quest
+    becomes ``active`` again when accepted anew."""
+
+    __tablename__ = "quest_progress"
+    __table_args__ = (
+        CheckConstraint(_in("status", QUEST_STATUSES), name="status"),
+        CheckConstraint("progress >= 0", name="progress"),
+        CheckConstraint("times_completed >= 0", name="times_completed"),
+    )
+
+    player_id: UUID = Field(foreign_key="player.id", ondelete="CASCADE", primary_key=True)
+    quest_id: str = Field(primary_key=True)
+    status: str = "active"
+    progress: int = 0
+    times_completed: int = 0
+
+
 class Trade(SQLModel, table=True):
     __tablename__ = "trade"
     __table_args__ = (

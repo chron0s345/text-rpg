@@ -1,0 +1,39 @@
+{% set p = view.player %}{% set q = view.quests %}
+<section id="quests" class="panel quests" aria-labelledby="quests-title"{% if not q.offers and not q.active %} hidden{% endif %}{% if oob %} hx-swap-oob="true"{% endif %}>
+  <h2 id="quests-title">Aufträge{% if q.completed %} <span class="muted">{{ q.completed }} erledigt</span>{% endif %}</h2>
+  {% if q.active %}
+  <ul class="list quest-list">
+    {% for a in q.active %}
+    <li>
+      <span>
+        <strong>{{ a.name }}</strong> <span class="muted">{{ a.done }}/{{ a.needed }}</span>
+        <small class="item-summary">{{ a.objective }} · bei {{ a.giver }}</small>
+      </span>
+      <span class="buttons">
+        {% if a.can_turn_in and p.state == 'exploring' %}
+        <button class="primary" hx-post="/ui/actions" hx-vals='{{ {"type": "quest_turn_in", "quest_id": a.id} | tojson }}'>Abgeben</button>
+        {% endif %}
+        <button class="subtle" hx-post="/ui/actions" hx-confirm="„{{ a.name }}“ wirklich abbrechen? Der Fortschritt geht verloren." hx-vals='{{ {"type": "quest_abandon", "quest_id": a.id} | tojson }}'>Abbrechen</button>
+      </span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% if q.offers %}
+  <h3>Angebote</h3>
+  <ul class="list quest-list">
+    {% for o in q.offers %}
+    <li>
+      <span>
+        <strong>{{ o.name }}</strong> <span class="muted">von {{ o.giver }}</span>
+        <small class="quest-text">„{{ o.description }}“</small>
+        <small class="item-summary">{{ o.objective }}{% if o.reward %} · Belohnung: {{ o.reward }}{% endif %}</small>
+      </span>
+      {% if p.state == 'exploring' %}
+      <button hx-post="/ui/actions" hx-vals='{{ {"type": "quest_accept", "quest_id": o.id} | tojson }}'>Annehmen</button>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</section>
