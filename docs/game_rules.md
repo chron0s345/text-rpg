@@ -200,7 +200,9 @@ Gruppenchat und Flüstern gehen auch, wenn du tot bist. Chatten zählt wie jede 
 
 Viele Händler haben **Aufträge**. Steht ein Auftraggeber im Raum, zeigt das Panel „Aufträge“ seine Angebote mit Aufgabe und Belohnung; annehmen und abgeben geht nur bei ihm und nicht im Kampf.
 
-- **Bringen:** Beim Abgeben werden die Gegenstände aus dem Rucksack genommen (nicht ausgerüstete und nicht im Handel angebotene).
+- **Bringen:** Immer der letzte Schritt. Beim Abgeben werden die Gegenstände aus dem Rucksack genommen (nicht ausgerüstete und nicht im Handel angebotene).
+- **Schritte:** Manche Aufträge haben mehrere Schritte, die der Reihe nach erledigt werden (z. B. „Gehe zu: Alter Friedhof → Besiege 3× Wandelnder Leichnam → Gehe zu: Gruft der Familie Valen“). Das Panel zeigt den aktuellen Schritt („Schritt 2/3“); ist einer erledigt, sagt dir das Log, was als Nächstes kommt.
+- **Gehe zu:** Der Schritt ist erledigt, sobald du den Raum betrittst – oder sofort, wenn du schon dort stehst.
 - **Besiegen:** Jeder Sieg zählt für alle Mitglieder deiner Gruppe im Raum, die den Auftrag haben – wie Gold und Beute. Seltene Formen zählen für ihre gewöhnliche Form.
 - Belohnungen sind Erfahrung, Gold und Gegenstände; ist im Rucksack kein Platz für die Gegenstände, kannst du noch nicht abgeben.
 - Manche Aufträge setzen eine Stufe oder einen anderen Auftrag voraus, manche lassen sich wiederholen. Höchstens 10 Aufträge gleichzeitig; abbrechen geht jederzeit, der Fortschritt ist dann verloren.
@@ -258,6 +260,15 @@ Viele Händler haben **Aufträge**. Steht ein Auftraggeber im Raum, zeigt das Pa
 | Laternen unter Wasser | Taucher Brack | 12 | 4× Ertrunkener Ritter besiegen (nach „Die Asche der Kundschafter“) |
 | Was die Laternen fürchten | Der Händler ohne Gesicht | 14 | 5× Schattenpirscher besiegen (nach „Laternen unter Wasser“) |
 | Das letzte Siegel | Schwester Liora | 15 | 3× Siegel der Wächter bringen (nach „Was die Laternen fürchten“) |
+| Ein Brief für Grete | Wirtin Hanne | 1 | Gehe zu: Mühle am Bach → Besiege 3× Feldratte |
+| Wache am Südtor | Schmied Brandt | 2 | Gehe zu: Südtor zum Wald → Besiege 3× Goblin-Späher → Bringe 3× Goblinohr |
+| Nachtwache | Schwester Liora | 3 | Gehe zu: Alter Friedhof → Besiege 3× Wandelnder Leichnam → Gehe zu: Gruft der Familie Valen |
+| Das Feuer im Moor | Alchemistin Elira | 3 | Gehe zu: Lagerfeuer am Moor → Besiege 3× Moorschleicher → Bringe 4× Moorkraut |
+| Hinauf zum Licht | Fischerin Maren | 7 | Gehe zu: Treppe zum Leuchtturm → Besiege 3× Sturmgeist → Gehe zu: Laterne des Leuchtturms (nach „Das Lied verstummen lassen“) |
+| Grenzgang | Waldläuferin Nimriel | 8 | Gehe zu: Alte Grenzsteine → Gehe zu: Silberhain → Besiege 3× Irrlicht → Bringe 5× Silberblatt |
+| Vermessung des Kraters | Kundschafterin Ilva | 12 | Gehe zu: Basaltstiege → Gehe zu: Lavastrom → Gehe zu: Schmiede der Feuerriesen → Besiege 2× Feuerriese |
+| Karte von Aelmar | Taucher Brack | 12 | Gehe zu: Versunkener Platz → Gehe zu: Halle der Ertrunkenen Ritter → Gehe zu: Korallenpalast → Besiege 2× Korallenwächter |
+| Durch die Dunkelheit | Der Händler ohne Gesicht | 14 | Gehe zu: Schattenriss → Gehe zu: Brücke über das Nichts → Gehe zu: Halle der Stille → Besiege 2× Schattenwächter |
 
 ## Handwerk
 
