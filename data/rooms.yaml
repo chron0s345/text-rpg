@@ -290,6 +290,7 @@
   bank: false
   exits:
     up: spider_grotto
+    down: shadow_rift
   spawns:
     - monster_id: spider_queen
       count: 1
@@ -478,5 +479,91 @@
     down: giant_forge
   spawns:
     - monster_id: ignaros
+      count: 1
+  items: []
+
+# --- Schattenreich (Stufe 14–15), durch einen Riss unter dem Spinnennest ---
+
+- id: shadow_rift
+  name: "Schattenriss"
+  description: "Unter dem Nest klafft ein Spalt, aus dem Dunkelheit wie Wasser sickert. Dahinter gibt es kein Oben und kein Unten mehr."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    up: spider_nest
+    north: void_bridge
+  spawns:
+    - monster_id: shadow_stalker
+      count: 2
+  items: []
+
+- id: void_bridge
+  name: "Brücke über das Nichts"
+  description: "Ein Steg aus schwarzem Stein, links und rechts nur Leere. Gerüstete Gestalten halten Wache, ohne zu atmen."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    south: shadow_rift
+    north: last_refuge
+  spawns:
+    - monster_id: void_knight
+      count: 2
+  items: []
+
+- id: last_refuge
+  name: "Letzte Zuflucht"
+  description: "Ein Kreis aus Laternen, deren Licht die Schatten nicht überschreiten. Ein Händler ohne Gesicht wartet hier, als hätte er immer gewartet."
+  safe: true
+  checkpoint: true
+  bank: true
+  exits:
+    south: void_bridge
+    west: withered_garden
+    north: silent_hall
+  spawns: []
+  items: []
+
+- id: withered_garden
+  name: "Verdorrter Garten"
+  description: "Schwarze Bäume tragen keine Blätter, nur silberne Lilien, die im Dunkeln leuchten. Etwas Großes schleicht zwischen den Stämmen."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    east: last_refuge
+  spawns:
+    - monster_id: nightmare
+      count: 2
+  items:
+    - item_id: moon_lily
+      quantity: 2
+      respawn_seconds: 300
+
+- id: silent_hall
+  name: "Halle der Stille"
+  description: "Kein Schritt hallt, kein Atem ist zu hören. Reihen steinerner Wächter säumen den Weg zu einem Tor aus Nacht."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    south: last_refuge
+    north: shadow_throne
+  spawns:
+    - monster_id: shadow_warden
+      count: 2
+  items: []
+
+- id: shadow_throne
+  name: "Thron der Schatten"
+  description: "Ein Saal ohne Wände unter einem Himmel ohne Sterne. Auf dem Thron sitzt ein König, dessen Krone das Licht frisst."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    south: silent_hall
+  spawns:
+    - monster_id: morvath
       count: 1
   items: []

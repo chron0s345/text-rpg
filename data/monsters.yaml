@@ -550,3 +550,110 @@
       chance: 0.12
     - item_id: ember_plate
       chance: 0.2
+
+# --- Schattenreich ---
+
+- id: shadow_stalker
+  name: "Schattenpirscher"
+  level: 14
+  max_hp: 150
+  attack: 60
+  defense: 30
+  xp_reward: 600
+  gold_reward: [20, 45]
+  respawn_seconds: 150
+  regen:
+    delay_seconds: 15
+    hp_per_second: 5.0
+  ambush:
+    chance_on_enter: 0.3
+    chance_per_tick: 0.1
+    max_level_difference: 2
+  loot_table:
+    - item_id: shadow_pelt
+      chance: 0.7
+    - item_id: starlight_tonic
+      chance: 0.05
+
+- id: void_knight
+  name: "Leerenritter"
+  level: 14
+  max_hp: 200
+  attack: 56
+  defense: 36
+  xp_reward: 680
+  gold_reward: [30, 60]
+  respawn_seconds: 180
+  # Wächter der Brücke: greift nicht von selbst an, heilt sich nicht
+  loot_table:
+    - item_id: void_shard
+      chance: 0.8
+      min_qty: 1
+      max_qty: 2
+    - item_id: voidbreaker
+      chance: 0.02
+
+- id: nightmare
+  name: "Albtraum"
+  level: 15
+  max_hp: 170
+  attack: 66
+  defense: 32
+  xp_reward: 750
+  gold_reward: [25, 55]
+  respawn_seconds: 150
+  regen:
+    delay_seconds: 15
+    hp_per_second: 5.0
+  ambush:
+    chance_on_enter: 0.25
+    chance_per_tick: 0.08
+    max_level_difference: 2
+  loot_table:
+    - item_id: nightmare_essence
+      chance: 0.7
+    - item_id: moon_lily
+      chance: 0.3
+
+- id: shadow_warden
+  name: "Schattenwächter"
+  level: 15
+  max_hp: 230
+  attack: 62
+  defense: 38
+  xp_reward: 850
+  gold_reward: [40, 80]
+  respawn_seconds: 240
+  ambush:
+    chance_on_enter: 0.2
+    chance_per_tick: 0.0
+    max_level_difference: 2
+  loot_table:
+    - item_id: warden_sigil
+      chance: 0.6
+    - item_id: starlight_tonic
+      chance: 0.08
+
+- id: morvath
+  name: "Schattenkönig Morvath"
+  level: 15
+  max_hp: 800
+  attack: 64
+  defense: 34
+  xp_reward: 3000
+  gold_reward: [300, 600]
+  respawn_seconds: 1800
+  regen:
+    delay_seconds: 20
+    hp_per_second: 10.0
+  loot_table:
+    - item_id: shadow_crown
+      chance: 1.0
+    - item_id: starlight_tonic
+      chance: 0.6
+      min_qty: 1
+      max_qty: 2
+    - item_id: shadow_blade
+      chance: 0.15
+    - item_id: voidbreaker
+      chance: 0.1
