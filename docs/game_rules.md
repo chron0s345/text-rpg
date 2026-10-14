@@ -31,6 +31,12 @@ Neue Charaktere starten auf Stufe 1 auf dem **Marktplatz von Oakhaven**.
 | Alter Friedhof (südlich des Feldwegs) | drei Wandelnde Leichname |
 | Gruft der Familie Valen (unter dem Friedhof) | zwei Gruftritter |
 | Grabkammer des Grabfürsten (nördlich der Gruft) | Grabfürst Valen – nur für Gruppen |
+| Klippenpfad (westlich des Waldes) | zwei Felsenkrabben – greifen nur an, wenn man sie stört; Miesmuscheln am Fels |
+| Fischerdorf Möwenstein (nördlich des Klippenpfads) | sicher, Checkpoint, Fischerin Maren (Räucherfisch, Harpune, Ölzeug) |
+| Gezeitenhöhlen (unter dem Klippenpfad) | zwei Ertrunkene Seeleute |
+| Schmugglerversteck (westlich der Höhlen) | zwei Schmuggler |
+| Treppe zum Leuchtturm (westlich des Klippenpfads) | zwei Sturmgeister |
+| Laterne des Leuchtturms (oben) | Seehexe Morwenna – nur für Gruppen |
 | Moorpfad (südlich des Waldes) | Moorschleicher und Hungriger Wolf, Moorkraut wächst am Weg |
 | Lagerfeuer am Moor (östlich des Moorpfads) | sicher, Checkpoint |
 | Eingestürztes Tor (südlich des Moorpfads) | ein Skelettwächter |
@@ -58,7 +64,7 @@ Neue Charaktere starten auf Stufe 1 auf dem **Marktplatz von Oakhaven**.
 | Halle der Stille (nördlich der Zuflucht) | zwei Schattenwächter |
 | Thron der Schatten (nördlich der Halle) | Schattenkönig Morvath – der letzte Gegner, nur für Gruppen |
 
-Die Welt wird nach außen gefährlicher: Rund um Oakhaven, im Wald und in den **Kornfeldern** östlich der Stadt kommt man mit Stufe 1–3 zurecht; Moor, Ruine, Mine und die Gruft unter dem Alten Friedhof sind für Stufe 3–5. Das **Grauzahn-Gebirge** östlich des Moors und **die Tiefen** unter der Mine sind für Stufe 6–10; die beiden Bosse dort (Spinnenkönigin, Eisdrache) schafft man nur in der Gruppe oder mit vielen Tränken. Im Zwergenposten gibt es eine zweite Bank. Nördlich des Zwergenpostens liegt der **Feuerschlund** für Stufe 11–13, mit dem Glutfürsten Ignaros im Herzen des Vulkans. Ganz unten, durch einen Riss unter dem Nest der Spinnenkönigin, liegt das **Schattenreich** für Stufe 14–15. Dort wartet der Schattenkönig Morvath, der stärkste Gegner des Spiels.
+Die Welt wird nach außen gefährlicher: Rund um Oakhaven, im Wald und in den **Kornfeldern** östlich der Stadt kommt man mit Stufe 1–3 zurecht; Moor, Ruine, Mine und die Gruft unter dem Alten Friedhof sind für Stufe 3–5. Die **Sturmküste** westlich des Waldes schlägt die Brücke zu Stufe 6–7, mit der Seehexe Morwenna im Leuchtturm. Das **Grauzahn-Gebirge** östlich des Moors und **die Tiefen** unter der Mine sind für Stufe 6–10; die beiden Bosse dort (Spinnenkönigin, Eisdrache) schafft man nur in der Gruppe oder mit vielen Tränken. Im Zwergenposten gibt es eine zweite Bank. Nördlich des Zwergenpostens liegt der **Feuerschlund** für Stufe 11–13, mit dem Glutfürsten Ignaros im Herzen des Vulkans. Ganz unten, durch einen Riss unter dem Nest der Spinnenkönigin, liegt das **Schattenreich** für Stufe 14–15. Dort wartet der Schattenkönig Morvath, der stärkste Gegner des Spiels.
 
 In **sicheren Räumen** wird nicht gekämpft und niemand wird überfallen. Betrittst du einen **Checkpoint**, merkt sich dein Charakter diesen Ort; dort erwachst du nach dem Tod.
 

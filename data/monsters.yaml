@@ -679,3 +679,108 @@
       chance: 0.15
     - item_id: voidbreaker
       chance: 0.1
+
+# --- Sturmküste ---
+
+- id: rock_crab
+  name: "Felsenkrabbe"
+  level: 4
+  max_hp: 35
+  attack: 10
+  defense: 7
+  xp_reward: 60
+  gold_reward: [0, 0]
+  respawn_seconds: 90
+  regen:
+    delay_seconds: 15
+    hp_per_second: 1.5
+  # gepanzert und träge: greift nur an, wenn man sie stört
+  loot_table:
+    - item_id: crab_meat
+      chance: 0.6
+    - item_id: crab_shell
+      chance: 0.5
+
+- id: drowned_sailor
+  name: "Ertrunkener Seemann"
+  level: 5
+  max_hp: 45
+  attack: 14
+  defense: 5
+  xp_reward: 95
+  gold_reward: [3, 12]
+  respawn_seconds: 120
+  ambush:
+    chance_on_enter: 0.15
+    chance_per_tick: 0.05
+    max_level_difference: 2
+  loot_table:
+    - item_id: old_compass
+      chance: 0.3
+    - item_id: coral_amulet
+      chance: 0.02
+    - item_id: healing_potion
+      chance: 0.1
+
+- id: smuggler
+  name: "Schmuggler"
+  level: 6
+  max_hp: 55
+  attack: 19
+  defense: 8
+  xp_reward: 120
+  gold_reward: [10, 25]
+  respawn_seconds: 150
+  regen:
+    delay_seconds: 15
+    hp_per_second: 2.0
+  ambush:
+    chance_on_enter: 0.25
+    chance_per_tick: 0.0
+    max_level_difference: 2
+  loot_table:
+    - item_id: contraband
+      chance: 0.6
+    - item_id: silver_ring
+      chance: 0.03
+    - item_id: healing_potion
+      chance: 0.2
+
+- id: storm_spirit
+  name: "Sturmgeist"
+  level: 7
+  max_hp: 50
+  attack: 24
+  defense: 9
+  xp_reward: 140
+  gold_reward: [0, 0]
+  respawn_seconds: 120
+  ambush:
+    chance_on_enter: 0.3
+    chance_per_tick: 0.08
+    max_level_difference: 2
+  loot_table:
+    - item_id: storm_essence
+      chance: 0.6
+
+- id: sea_witch
+  name: "Seehexe Morwenna"
+  level: 7
+  max_hp: 300
+  attack: 32
+  defense: 10
+  xp_reward: 600
+  gold_reward: [50, 110]
+  respawn_seconds: 600
+  regen:
+    delay_seconds: 20
+    hp_per_second: 4.0
+  loot_table:
+    - item_id: black_pearl
+      chance: 1.0
+    - item_id: witch_trident
+      chance: 0.15
+    - item_id: coral_amulet
+      chance: 0.15
+    - item_id: elixir
+      chance: 0.2

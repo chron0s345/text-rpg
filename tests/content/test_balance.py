@@ -20,7 +20,15 @@ from app.content.schemas import MonsterTemplate
 
 # (lowest level of the tier, gear budget per item in gold)
 TIERS = [(1, 0), (6, 100), (11, 300)]
-BOSSES = {"cave_troll", "grave_lord", "spider_queen", "ice_drake", "ignaros", "morvath"}
+BOSSES = {
+    "cave_troll",
+    "grave_lord",
+    "sea_witch",
+    "spider_queen",
+    "ice_drake",
+    "ignaros",
+    "morvath",
+}
 
 CONTENT = load_content(Path(__file__).resolve().parents[2] / "data")
 
