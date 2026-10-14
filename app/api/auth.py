@@ -1,13 +1,17 @@
-"""Registration, login and logout of an account."""
+"""Registration, login, logout and password change of an account."""
 
 from __future__ import annotations
 
+from uuid import UUID
+
 from fastapi import APIRouter, HTTPException, Request, status
 
-from app.api.deps import ServicesDep, current_account_id, session_player_id
-from app.api.schemas import AccountOut, Credentials, LogoutRequest
-from app.services.account_service import AccountError, UsernameTakenError
+from app.api.deps import AccountId, Services, ServicesDep, current_account_id, session_player_id
+from app.api.schemas import AccountOut, Credentials, LogoutRequest, PasswordChange
+from app.api.session_guard import remember_login
+from app.services.account_service import AccountError, UsernameTakenError, WrongPasswordError
 from app.services.login_guard import TooManyAttemptsError
+from app.services.session_service import ConfirmDeathRequiredError, SessionConflictError
 
 router = APIRouter(tags=["auth"])
 
@@ -37,8 +41,7 @@ async def register(body: Credentials, request: Request, services: ServicesDep) -
         raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
     except AccountError as exc:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
-    request.session.clear()
-    request.session["account_id"] = str(account.id)
+    remember_login(request.session, account.id, account.session_version)
     return AccountOut(id=account.id, username=account.username)
 
 
@@ -52,8 +55,7 @@ async def login(body: Credentials, request: Request, services: ServicesDep) -> A
         raise too_many(exc) from exc
     if account is None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Benutzername oder Passwort falsch.")
-    request.session.clear()
-    request.session["account_id"] = str(account.id)
+    remember_login(request.session, account.id, account.session_version)
     return AccountOut(id=account.id, username=account.username)
 
 
@@ -78,3 +80,51 @@ async def logout(
         if result.status == "rejected":
             raise HTTPException(status.HTTP_409_CONFLICT, "Versuche es gleich noch einmal.")
     request.session.clear()
+
+
+async def change_password(
+    request: Request,
+    services: Services,
+    account_id: UUID,
+    current_password: str,
+    new_password: str,
+    *,
+    confirm_death: bool = False,
+) -> None:
+    """Checks the current password, logs out the account's characters (they may be played from
+    a stolen session), stores the new password and keeps only this session logged in.
+
+    Raises ``AccountError``, ``TooManyAttemptsError``, ``ConfirmDeathRequiredError`` and
+    ``SessionConflictError``; nothing is changed then."""
+    services.accounts.validate_password(new_password)
+    await services.accounts.check_password(
+        account_id, current_password, address=client_address(request)
+    )
+    await services.presence.logout_account(account_id, confirm_death=confirm_death)
+    version = await services.accounts.set_password(account_id, new_password)
+    remember_login(request.session, account_id, version)
+
+
+@router.post("/password", status_code=status.HTTP_204_NO_CONTENT)
+async def password(
+    body: PasswordChange, request: Request, account_id: AccountId, services: ServicesDep
+) -> None:
+    """All other sessions of the account end; its characters are logged out (in combat only
+    with ``confirm_death``, otherwise 409)."""
+    try:
+        await change_password(
+            request,
+            services,
+            account_id,
+            body.current_password,
+            body.new_password,
+            confirm_death=body.confirm_death,
+        )
+    except TooManyAttemptsError as exc:
+        raise too_many(exc) from exc
+    except WrongPasswordError as exc:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, str(exc)) from exc
+    except AccountError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
+    except (ConfirmDeathRequiredError, SessionConflictError) as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc

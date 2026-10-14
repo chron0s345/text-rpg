@@ -822,6 +822,7 @@ Umsetzung (`app/api/stream.py`, `SessionService`):
 |---|---|---|
 | `POST` | `/register` | Account anlegen |
 | `POST` | `/login` / `/logout` | Account-Session verwalten |
+| `POST` | `/password` | Passwort ändern (beendet alle anderen Sessions des Accounts) |
 | `GET` | `/characters` | Charakterauswahl |
 | `POST` | `/characters` | Charakter anlegen |
 | `POST` | `/characters/{id}/play` | Charakter einloggen |
@@ -834,6 +835,7 @@ Umsetzung (`app/api/stream.py`, `SessionService`):
 Umsetzung (`app/api/`; die JSON-Routen oben bleiben neben den HTML-Seiten bestehen, z. B. für Tests und andere Clients):
 
 - Session: signiertes Cookie (`SessionMiddleware`, Secret aus `SESSION_SECRET`, `SameSite=Lax`, mit `SESSION_HTTPS_ONLY=1` nur über HTTPS) mit `account_id` und dem gewählten `player_id`. Ob der Charakter wirklich in der Welt ist, entscheidet immer `Player.online` in der Datenbank.
+- Passwort ändern (`POST /password`, im Browser auf der Charakterauswahl): verlangt das aktuelle Passwort, Fehlversuche zählen wie fehlgeschlagene Logins gegen das Login-Limit. Zuerst werden alle eingeloggten Charaktere des Accounts ausgeloggt (im Kampf nur mit `confirm_death`, sonst `409`), dann wird das neue Passwort gespeichert und `Account.session_version` erhöht. Das Cookie trägt die Version (`sv`), mit der es ausgestellt wurde; `SessionVersionGuard` (`app/api/session_guard.py`, reine ASGI-Middleware innerhalb von `SessionMiddleware`) leert jede Session mit veralteter Version, bevor eine Route sie sieht. So endet jede andere Session, auch eine gestohlene; die ändernde Session bekommt die neue Version. Kosten: ein Primärschlüssel-Lookup pro Anfrage mit Login-Cookie (statische Dateien ausgenommen). Cookies ohne `sv` (vor dieser Änderung ausgestellt) gelten als Version 0.
 - `POST /register` legt den Account an und meldet ihn an. Benutzernamen: 3–32 Zeichen `[A-Za-z0-9_.-]`, eindeutig ohne Groß-/Kleinschreibung; Passwort 8–128 Zeichen, argon2-Hash (im Worker-Thread; bei unbekanntem Benutzernamen wird gegen einen Dummy-Hash geprüft, damit die Antwortzeit nichts verrät).
 - Charakternamen: 3–20 Buchstaben (inkl. Umlaute). Neue Charaktere starten mit den Werten von Level 1 in `start_room_id` (zugleich Checkpoint). Das Limit `max_characters_per_account` hält auch bei gleichzeitigen Anfragen (Sperre auf die Account-Zeile).
 - `POST /characters/{id}/play` und `POST /logout` nehmen optional `{"confirm_death": true}`; ohne Bestätigung antworten sie im Kampf mit `409`. `POST /actions` mit `logout` liefert stattdessen das Event `session.confirm_death`.

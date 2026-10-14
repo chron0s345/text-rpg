@@ -21,6 +21,7 @@ a { color: var(--accent); }
 .muted { color: var(--muted); font-weight: normal; }
 .lead { color: var(--muted); }
 .error { color: var(--danger); }
+.notice { color: var(--good); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
 button {
@@ -46,6 +47,8 @@ label input { margin-top: .2rem; color: var(--text); }
 .cards { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
 .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 1rem; }
 .card.warning { border-color: var(--danger); }
+details.card summary { cursor: pointer; color: var(--muted); }
+details.card[open] summary { margin-bottom: .75rem; }
 .row { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
 .characters { list-style: none; padding: 0; }
 .characters li { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }

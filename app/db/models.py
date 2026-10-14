@@ -63,6 +63,8 @@ class Account(SQLModel, table=True):
     username: str = Field(max_length=32)
     password_hash: str
     created_at: datetime = Field(default_factory=utc_now, sa_type=DateTime(timezone=True))
+    # raised on a password change; session cookies of an older version are no longer valid
+    session_version: int = Field(default=0, sa_column_kwargs={"server_default": "0"})
 
 
 class Player(SQLModel, table=True):
