@@ -58,6 +58,7 @@
     north: forest_gate
     east: goblin_camp
     south: bog_path
+    west: coast_path
   spawns:
     - monster_id: goblin
       count: 1
@@ -580,4 +581,90 @@
   exits:
     west: town_bank
   spawns: []
+  items: []
+
+# --- Sturmküste (Stufe 4–7), westlich des Dunklen Waldes ---
+
+- id: coast_path
+  name: "Klippenpfad"
+  description: "Salzwind peitscht über die Klippen, unten donnert die Brandung. Zwischen den Felsen klappern Scheren."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    east: dark_forest
+    north: fishing_village
+    west: lighthouse_stairs
+    down: tidal_caves
+  spawns:
+    - monster_id: rock_crab
+      count: 2
+  items:
+    - item_id: mussels
+      quantity: 3
+      respawn_seconds: 180
+
+- id: fishing_village
+  name: "Fischerdorf Möwenstein"
+  description: "Ein Dutzend Hütten mit Netzen vor der Tür, es riecht nach Rauch und Fisch. Die Leute hier reden wenig und schauen oft zum Leuchtturm."
+  safe: true
+  checkpoint: true
+  bank: false
+  exits:
+    south: coast_path
+  spawns: []
+  items: []
+
+- id: tidal_caves
+  name: "Gezeitenhöhlen"
+  description: "Bei Ebbe begehbar, bei Flut ein Grab. In den Tümpeln liegen Dinge, die einmal Seeleute waren."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    up: coast_path
+    west: smugglers_den
+  spawns:
+    - monster_id: drowned_sailor
+      count: 2
+  items: []
+
+- id: smugglers_den
+  name: "Schmugglerversteck"
+  description: "Fässer, Kisten und eine Laterne, die hastig gelöscht wurde. Jemand flucht leise im Dunkeln."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    east: tidal_caves
+  spawns:
+    - monster_id: smuggler
+      count: 2
+  items: []
+
+- id: lighthouse_stairs
+  name: "Treppe zum Leuchtturm"
+  description: "Eine Wendeltreppe aus nassem Stein. Der Wind heult durch die Schießscharten wie eine Stimme."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    east: coast_path
+    up: lighthouse_top
+  spawns:
+    - monster_id: storm_spirit
+      count: 2
+  items: []
+
+- id: lighthouse_top
+  name: "Laterne des Leuchtturms"
+  description: "Statt eines Feuers brennt hier ein kaltes grünes Licht, das Schiffe auf die Klippen lockt. Davor singt eine Frau mit Haaren aus Seetang."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    down: lighthouse_stairs
+  spawns:
+    - monster_id: sea_witch
+      count: 1
   items: []

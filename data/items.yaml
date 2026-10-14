@@ -1178,3 +1178,153 @@
     - type: stat
       stat: max_hp
       amount: 20
+
+# --- Sturmküste (Stufe 4–7) ---
+
+- id: harpoon
+  name: "Harpune"
+  description: "Eine Walfängerharpune mit Widerhaken. Unhandlich, aber sie trifft hart."
+  kind: weapon
+  slot: weapon
+  icon: "axe"
+  value: 60
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 5
+
+- id: oilskin_coat
+  name: "Ölzeug"
+  description: "Ein gewachster Mantel der Fischer. Hält Regen, Gischt und so manchen Hieb ab."
+  kind: armor
+  slot: chest
+  icon: "armor"
+  value: 45
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 3
+
+- id: witch_trident
+  name: "Dreizack der Seehexe"
+  description: "Korallenbewachsen und immer feucht. Wer ihn hält, hört das Meer rauschen."
+  kind: weapon
+  slot: weapon
+  icon: "sword"
+  value: 160
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 7
+    - type: stat
+      stat: max_hp
+      amount: 5
+
+- id: coral_amulet
+  name: "Korallenamulett"
+  description: "Ein Zweig roter Koralle an einer Silberkette. Er riecht nach Salz."
+  kind: armor
+  slot: neck
+  icon: "amulet"
+  value: 70
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: max_hp
+      amount: 10
+
+- id: smoked_fish
+  name: "Räucherfisch"
+  description: "Goldbraun und salzig, eingewickelt in Zeitungspapier. Stellt 14 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "bread"
+  value: 9
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - type: heal
+      amount: 14
+
+- id: mussels
+  name: "Miesmuscheln"
+  description: "Frisch von den Felsen gebrochen. Stellen 5 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "herb"
+  value: 2
+  sellable: true
+  stackable: true
+  max_stack: 10
+  effects:
+    - type: heal
+      amount: 5
+
+- id: crab_meat
+  name: "Krabbenfleisch"
+  description: "Zart und süßlich, wenn man es aus dem Panzer bekommt. Stellt 9 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "bread"
+  value: 4
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - type: heal
+      amount: 9
+
+- id: crab_shell
+  name: "Krabbenpanzer"
+  description: "Hart wie Horn. Die Fischer machen Schalen und Knöpfe daraus."
+  kind: misc
+  icon: "trophy"
+  value: 5
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: old_compass
+  name: "Rostiger Kompass"
+  description: "Die Nadel zeigt nicht nach Norden, sondern zum Leuchtturm."
+  kind: misc
+  icon: "trophy"
+  value: 15
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: contraband
+  name: "Schmuggelware"
+  description: "Ein versiegeltes Päckchen. Besser nicht fragen, was drin ist."
+  kind: misc
+  icon: "trophy"
+  value: 20
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: storm_essence
+  name: "Sturmessenz"
+  description: "Ein Fläschchen, in dem ein winziger Wirbelsturm tobt."
+  kind: misc
+  icon: "trophy"
+  value: 18
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: black_pearl
+  name: "Schwarze Perle"
+  description: "Größer als ein Daumennagel und schwarz wie die Nacht. Morwennas Schatz."
+  kind: misc
+  icon: "trophy"
+  value: 80
+  sellable: true
+  stackable: true
+  max_stack: 5

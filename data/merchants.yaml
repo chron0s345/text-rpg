@@ -144,3 +144,18 @@
       price: 20
     - item_id: bone_amulet
       price: 25
+
+- id: fisherwoman
+  name: "Fischerin Maren"
+  room_id: fishing_village
+  greeting: "Frischer Fisch, warme Mäntel. Und wenn du zum Leuchtturm willst: Lass dein Testament hier."
+  buys: all
+  sells:
+    - item_id: smoked_fish
+      price: 9
+    - item_id: harpoon
+      price: 60
+    - item_id: oilskin_coat
+      price: 45
+    - item_id: healing_potion
+      price: 15
