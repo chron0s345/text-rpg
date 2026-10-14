@@ -78,8 +78,9 @@ def test_invalid_level_curve_rejected(levels: list[dict[str, int]]) -> None:
 def test_level_curve_may_be_unordered_in_yaml() -> None:
     raw = _raw_rules()
     raw["levels"] = list(reversed(raw["levels"]))
+    level_2 = next(level for level in raw["levels"] if level["level"] == 2)
     rules = Rules.model_validate(raw)
-    assert rules.level_rule(2).xp_required == 100
+    assert rules.level_rule(2).xp_required == level_2["xp_required"]
 
 
 def test_level_rule_unknown_level(rules: Rules) -> None:

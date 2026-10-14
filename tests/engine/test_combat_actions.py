@@ -166,7 +166,7 @@ def test_solo_kill_rewards_and_respawn(content: ContentRegistry, rules: Rules) -
 
 
 def test_kill_triggers_level_up(content: ContentRegistry, rules: Rules) -> None:
-    actor = make_player(xp=90)
+    actor = make_player(xp=rules.level_rule(2).xp_required - 1)
     monster = make_monster(hp=5)
     result = attack(ActionSnapshot(actor=actor, monsters=[monster]), content, rules, monster)
     level_2 = rules.level_rule(2)
@@ -180,7 +180,7 @@ def test_kill_triggers_level_up(content: ContentRegistry, rules: Rules) -> None:
 
 
 def test_level_up_fully_heals_including_equipment(content: ContentRegistry, rules: Rules) -> None:
-    actor = make_player(xp=90, hp=4)
+    actor = make_player(xp=rules.level_rule(2).xp_required - 1, hp=4)
     actor.inventory = [
         InventoryItemState(id=uuid4(), item_id="amulet", quantity=1, equipped_slot="head")
     ]

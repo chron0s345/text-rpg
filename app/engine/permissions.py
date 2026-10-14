@@ -47,6 +47,7 @@ ALLOWED_STATES: Final[dict[str, frozenset[str]]] = {
     "respawn": frozenset({"dead"}),
     "logout": _ALL,
     "look": _ALL,
+    "rest": _EXPLORING,
     "inventory": _ALL,
     "quest_accept": _EXPLORING,
     "quest_turn_in": _EXPLORING,
