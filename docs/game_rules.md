@@ -16,10 +16,16 @@ Neue Charaktere starten auf Stufe 1 auf dem **Marktplatz von Oakhaven**.
 |---|---|
 | Marktplatz von Oakhaven | Startpunkt, sicher, Checkpoint |
 | Bank von Oakhaven (nördlich) | sicher, Bank |
-| Kaufmannsstand (östlich) | sicher, Händlerin Elira |
+| Kaufmannsstand (östlich) | sicher, Alchemistin Elira (Tränke, Proviant, Taschen) |
+| Schmiede (westlich) | sicher, Schmied Brandt (Waffen und Rüstung) |
 | Südtor zum Wald (südlich) | Übergang in die Wildnis |
 | Dunkler Wald | Goblin-Späher und Hungriger Wolf |
-| Goblin-Lager (östlich des Waldes) | zwei Goblin-Späher, frisches Brot liegt aus |
+| Goblin-Lager (östlich des Waldes) | zwei Goblin-Späher und ein Goblin-Krieger, frisches Brot liegt aus |
+| Moorpfad (südlich des Waldes) | Moorschleicher und Hungriger Wolf, Moorkraut wächst am Weg |
+| Lagerfeuer am Moor (östlich des Moorpfads) | sicher, Checkpoint |
+| Eingestürztes Tor (südlich des Moorpfads) | ein Skelettwächter |
+| Halle der Ruine | zwei Skelettwächter, eine Treppe führt hinab |
+| Alte Mine (unter der Halle) | der Höhlentroll |
 
 In **sicheren Räumen** wird nicht gekämpft und niemand wird überfallen. Betrittst du einen **Checkpoint**, merkt sich dein Charakter diesen Ort; dort erwachst du nach dem Tod.
 
