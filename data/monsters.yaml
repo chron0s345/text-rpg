@@ -14,6 +14,9 @@
     chance_on_enter: 0.15
     chance_per_tick: 0.05
     max_level_difference: 3
+  rare_variant:
+    monster_id: golden_goblin
+    chance: 0.04
   loot_table:
     - item_id: goblin_ear
       chance: 0.8
@@ -40,6 +43,9 @@
     chance_on_enter: 0.2
     chance_per_tick: 0.08
     max_level_difference: 2
+  rare_variant:
+    monster_id: white_wolf
+    chance: 0.04
   loot_table:
     - item_id: healing_potion
       chance: 0.25
@@ -92,6 +98,9 @@
     chance_on_enter: 0.25
     chance_per_tick: 0.08
     max_level_difference: 2
+  rare_variant:
+    monster_id: ancient_lurker
+    chance: 0.04
   loot_table:
     - item_id: bog_herb
       chance: 0.5
@@ -120,6 +129,9 @@
     chance_on_enter: 0.3
     chance_per_tick: 0.0
     max_level_difference: 2
+  rare_variant:
+    monster_id: skeleton_champion
+    chance: 0.04
   loot_table:
     - item_id: bone_dust
       chance: 0.7
@@ -202,6 +214,9 @@
     chance_on_enter: 0.25
     chance_per_tick: 0.08
     max_level_difference: 2
+  rare_variant:
+    monster_id: silverfang
+    chance: 0.04
   loot_table:
     - item_id: frost_pelt
       chance: 0.6
@@ -272,6 +287,9 @@
     chance_on_enter: 0.2
     chance_per_tick: 0.06
     max_level_difference: 2
+  rare_variant:
+    monster_id: ghoul_lord
+    chance: 0.04
   loot_table:
     - item_id: silver_ring
       chance: 0.02
@@ -341,6 +359,9 @@
     chance_on_enter: 0.1
     chance_per_tick: 0.03
     max_level_difference: 2
+  rare_variant:
+    monster_id: rat_king
+    chance: 0.05
   loot_table:
     - item_id: rat_tail
       chance: 0.7
@@ -509,6 +530,9 @@
   xp_reward: 380
   gold_reward: [15, 35]
   respawn_seconds: 180
+  rare_variant:
+    monster_id: obsidian_golem
+    chance: 0.04
   loot_table:
     - item_id: ember_core
       chance: 0.7
@@ -625,6 +649,9 @@
     chance_on_enter: 0.25
     chance_per_tick: 0.08
     max_level_difference: 2
+  rare_variant:
+    monster_id: night_terror
+    chance: 0.04
   loot_table:
     - item_id: moonstone_amulet
       chance: 0.02
@@ -738,6 +765,9 @@
     chance_on_enter: 0.25
     chance_per_tick: 0.0
     max_level_difference: 2
+  rare_variant:
+    monster_id: smuggler_king
+    chance: 0.05
   loot_table:
     - item_id: contraband
       chance: 0.6
@@ -784,3 +814,225 @@
       chance: 0.15
     - item_id: elixir
       chance: 0.2
+
+# --- Seltene Varianten (erscheinen nur anstelle ihrer Grundform) ---
+
+- id: golden_goblin
+  name: "Goldener Goblin"
+  level: 2
+  max_hp: 20
+  attack: 6
+  defense: 2
+  xp_reward: 60
+  gold_reward: [20, 40]
+  respawn_seconds: 60
+  loot_table:
+    - item_id: gold_tooth
+      chance: 1.0
+    - item_id: copper_ring
+      chance: 0.2
+
+- id: white_wolf
+  name: "Weißer Wolf"
+  level: 3
+  max_hp: 30
+  attack: 9
+  defense: 3
+  xp_reward: 70
+  gold_reward: [0, 0]
+  respawn_seconds: 90
+  regen:
+    delay_seconds: 15
+    hp_per_second: 2.0
+  ambush:
+    chance_on_enter: 0.25
+    chance_per_tick: 0.08
+    max_level_difference: 2
+  loot_table:
+    - item_id: white_pelt
+      chance: 1.0
+    - item_id: bone_amulet
+      chance: 0.15
+
+- id: rat_king
+  name: "Rattenkönig"
+  level: 2
+  max_hp: 22
+  attack: 6
+  defense: 1
+  xp_reward: 45
+  gold_reward: [5, 15]
+  respawn_seconds: 45
+  loot_table:
+    - item_id: rat_crown
+      chance: 1.0
+    - item_id: rat_tail
+      chance: 1.0
+      min_qty: 3
+      max_qty: 5
+
+- id: ancient_lurker
+  name: "Uralter Moorschleicher"
+  level: 4
+  max_hp: 45
+  attack: 11
+  defense: 4
+  xp_reward: 130
+  gold_reward: [0, 0]
+  respawn_seconds: 120
+  regen:
+    delay_seconds: 15
+    hp_per_second: 2.5
+  ambush:
+    chance_on_enter: 0.25
+    chance_per_tick: 0.08
+    max_level_difference: 2
+  loot_table:
+    - item_id: bog_herb
+      chance: 1.0
+      min_qty: 3
+      max_qty: 5
+    - item_id: greater_potion
+      chance: 0.3
+    - item_id: leather_boots
+      chance: 0.2
+
+- id: skeleton_champion
+  name: "Skelettchampion"
+  level: 5
+  max_hp: 60
+  attack: 15
+  defense: 6
+  xp_reward: 170
+  gold_reward: [15, 30]
+  respawn_seconds: 150
+  ambush:
+    chance_on_enter: 0.3
+    chance_per_tick: 0.0
+    max_level_difference: 2
+  loot_table:
+    - item_id: bone_dust
+      chance: 1.0
+      min_qty: 2
+      max_qty: 4
+    - item_id: long_sword
+      chance: 0.25
+
+- id: smuggler_king
+  name: "Schmugglerkönig Rask"
+  level: 7
+  max_hp: 80
+  attack: 22
+  defense: 10
+  xp_reward: 260
+  gold_reward: [40, 90]
+  respawn_seconds: 150
+  regen:
+    delay_seconds: 15
+    hp_per_second: 2.0
+  ambush:
+    chance_on_enter: 0.25
+    chance_per_tick: 0.0
+    max_level_difference: 2
+  loot_table:
+    - item_id: contraband
+      chance: 1.0
+      min_qty: 2
+      max_qty: 4
+    - item_id: silver_ring
+      chance: 0.2
+    - item_id: harpoon
+      chance: 0.15
+
+- id: ghoul_lord
+  name: "Ghulfürst"
+  level: 7
+  max_hp: 75
+  attack: 24
+  defense: 9
+  xp_reward: 260
+  gold_reward: [10, 30]
+  respawn_seconds: 120
+  regen:
+    delay_seconds: 15
+    hp_per_second: 2.5
+  ambush:
+    chance_on_enter: 0.25
+    chance_per_tick: 0.06
+    max_level_difference: 2
+  loot_table:
+    - item_id: ghoul_claw
+      chance: 1.0
+      min_qty: 2
+      max_qty: 4
+    - item_id: iron_greaves
+      chance: 0.25
+
+- id: silverfang
+  name: "Rudelführer Silberfang"
+  level: 8
+  max_hp: 80
+  attack: 26
+  defense: 11
+  xp_reward: 300
+  gold_reward: [0, 0]
+  respawn_seconds: 120
+  regen:
+    delay_seconds: 15
+    hp_per_second: 3.0
+  ambush:
+    chance_on_enter: 0.3
+    chance_per_tick: 0.08
+    max_level_difference: 2
+  loot_table:
+    - item_id: frost_pelt
+      chance: 1.0
+      min_qty: 2
+      max_qty: 3
+    - item_id: iron_boots
+      chance: 0.2
+    - item_id: silver_ring
+      chance: 0.15
+
+- id: obsidian_golem
+  name: "Obsidiangolem"
+  level: 13
+  max_hp: 220
+  attack: 54
+  defense: 30
+  xp_reward: 700
+  gold_reward: [30, 70]
+  respawn_seconds: 180
+  loot_table:
+    - item_id: ember_core
+      chance: 1.0
+      min_qty: 2
+      max_qty: 3
+    - item_id: obsidian_shield
+      chance: 0.2
+
+- id: night_terror
+  name: "Nachtmahr"
+  level: 15
+  max_hp: 240
+  attack: 70
+  defense: 34
+  xp_reward: 1400
+  gold_reward: [60, 120]
+  respawn_seconds: 150
+  regen:
+    delay_seconds: 15
+    hp_per_second: 6.0
+  ambush:
+    chance_on_enter: 0.3
+    chance_per_tick: 0.1
+    max_level_difference: 2
+  loot_table:
+    - item_id: nightmare_essence
+      chance: 1.0
+      min_qty: 2
+      max_qty: 3
+    - item_id: starlight_tonic
+      chance: 0.3
+    - item_id: moonstone_amulet
+      chance: 0.15
