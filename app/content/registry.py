@@ -31,6 +31,14 @@ class ContentRegistry:
             raise KeyError(f"Monster '{monster_id}' not found in registry")
         return self.monsters[monster_id]
 
+    def base_monster_id(self, monster_id: str) -> str:
+        """The monster a rare variant belongs to (itself if it is no variant): spawn rules,
+        the seed and respawns all count variants as their base."""
+        for template in self.monsters.values():
+            if template.rare_variant is not None and template.rare_variant.monster_id == monster_id:
+                return template.id
+        return monster_id
+
     def get_item(self, item_id: str) -> ItemTemplate:
         if item_id not in self.items:
             raise KeyError(f"Item '{item_id}' not found in registry")

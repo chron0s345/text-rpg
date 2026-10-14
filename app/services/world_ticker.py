@@ -247,7 +247,7 @@ class WorldTicker:
             async with self.sessions() as session, session.begin():
                 repo = Repository(session)
                 monsters = [monster_snapshot(m) for m in await repo.lock_monsters_in_room(room_id)]
-                result = respawn_monsters(monsters, self.content, now)
+                result = respawn_monsters(monsters, self.content, now, self.rng_factory())
                 await self._apply(session, repo, result, now)
             report.monsters_respawned += len(result.changes.monsters)
             await self._publish(result.events)

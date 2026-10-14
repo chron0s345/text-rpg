@@ -18,16 +18,53 @@ Neue Charaktere starten auf Stufe 1 auf dem **Marktplatz von Oakhaven**.
 |---|---|
 | Marktplatz von Oakhaven | Startpunkt, sicher, Checkpoint |
 | Bank von Oakhaven (nördlich) | sicher, Bank |
+| Goldschmiede (östlich der Bank) | sicher, Goldschmied Aurel (Ringe und Amulette für Einsteiger) |
 | Kaufmannsstand (östlich) | sicher, Alchemistin Elira (Tränke, Proviant, Taschen) |
 | Schmiede (westlich) | sicher, Schmied Brandt (Waffen und Rüstung) |
 | Südtor zum Wald (südlich) | Übergang in die Wildnis |
 | Dunkler Wald | Goblin-Späher und Hungriger Wolf |
 | Goblin-Lager (östlich des Waldes) | zwei Goblin-Späher und ein Goblin-Krieger, frisches Brot liegt aus |
+| Feldweg (östlich des Kaufmannsstands) | drei Feldratten |
+| Weizenfelder (nördlich des Feldwegs) | zwei Riesenkrähen, wilde Äpfel am Baum |
+| Dornendickicht (östlich der Felder) | zwei Wildschweine – greifen nur an, wenn man sie stört |
+| Mühle am Bach (östlich des Feldwegs) | sicher, Checkpoint, Müllerin Grete (Proviant, Mistgabel) |
+| Alter Friedhof (südlich des Feldwegs) | drei Wandelnde Leichname |
+| Gruft der Familie Valen (unter dem Friedhof) | zwei Gruftritter |
+| Grabkammer des Grabfürsten (nördlich der Gruft) | Grabfürst Valen – nur für Gruppen |
+| Klippenpfad (westlich des Waldes) | zwei Felsenkrabben – greifen nur an, wenn man sie stört; Miesmuscheln am Fels |
+| Fischerdorf Möwenstein (nördlich des Klippenpfads) | sicher, Checkpoint, Fischerin Maren (Räucherfisch, Harpune, Ölzeug) |
+| Gezeitenhöhlen (unter dem Klippenpfad) | zwei Ertrunkene Seeleute |
+| Schmugglerversteck (westlich der Höhlen) | zwei Schmuggler |
+| Treppe zum Leuchtturm (westlich des Klippenpfads) | zwei Sturmgeister |
+| Laterne des Leuchtturms (oben) | Seehexe Morwenna – nur für Gruppen |
 | Moorpfad (südlich des Waldes) | Moorschleicher und Hungriger Wolf, Moorkraut wächst am Weg |
 | Lagerfeuer am Moor (östlich des Moorpfads) | sicher, Checkpoint |
 | Eingestürztes Tor (südlich des Moorpfads) | ein Skelettwächter |
 | Halle der Ruine | zwei Skelettwächter, eine Treppe führt hinab |
 | Alte Mine (unter der Halle) | der Höhlentroll |
+| Steiler Anstieg (östlich des Lagerfeuers) | zwei Felsharpyien |
+| Zwergenposten Khazdur (nördlich des Anstiegs) | sicher, Checkpoint, Bank, Waffenmeisterin Brunhild (Zwergenstahl, Elixiere) |
+| Frostklamm (östlich des Postens) | zwei Frostwölfe, Frostbeeren wachsen im Eis |
+| Gletscherhang (oberhalb der Klamm) | zwei Eisgolems |
+| Hort des Eisdrachen (nördlich des Hangs) | Eisdrache Hrimfang – nur für Gruppen |
+| Verlassene Grubenwache (unter der Mine) | sicher, Checkpoint |
+| Tiefe Stollen (östlich der Grubenwache) | zwei Grubenghule |
+| Spinnengrotte | drei Höhlenspinnen |
+| Nest der Spinnenkönigin (unter der Grotte) | Spinnenkönigin Ysvara – nur für Gruppen |
+| Basaltstiege (nördlich des Zwergenpostens) | zwei Feuersalamander |
+| Rastplatz am Kraterrand (nördlich der Stiege) | sicher, Checkpoint, Kundschafterin Ilva (Obsidian, Phönixtränke) |
+| Aschefelder (westlich des Rastplatzes) | zwei Aschegeister, Feuerblüten wachsen in der Asche |
+| Lavastrom (östlich des Rastplatzes) | zwei Magmagolems |
+| Schmiede der Feuerriesen (nördlich des Lavastroms) | zwei Feuerriesen |
+| Herz des Vulkans (über der Schmiede) | Glutfürst Ignaros – nur für Gruppen |
+| Schattenriss (unter dem Spinnennest) | zwei Schattenpirscher |
+| Brücke über das Nichts (nördlich des Risses) | zwei Leerenritter |
+| Letzte Zuflucht (nördlich der Brücke) | sicher, Checkpoint, Bank, der Händler ohne Gesicht (Sternenstahl, Tonika) |
+| Verdorrter Garten (westlich der Zuflucht) | zwei Albträume, Mondlilien leuchten zwischen den Bäumen |
+| Halle der Stille (nördlich der Zuflucht) | zwei Schattenwächter |
+| Thron der Schatten (nördlich der Halle) | Schattenkönig Morvath – der letzte Gegner, nur für Gruppen |
+
+Die Welt wird nach außen gefährlicher: Rund um Oakhaven, im Wald und in den **Kornfeldern** östlich der Stadt kommt man mit Stufe 1–3 zurecht; Moor, Ruine, Mine und die Gruft unter dem Alten Friedhof sind für Stufe 3–5. Die **Sturmküste** westlich des Waldes schlägt die Brücke zu Stufe 6–7, mit der Seehexe Morwenna im Leuchtturm. Das **Grauzahn-Gebirge** östlich des Moors und **die Tiefen** unter der Mine sind für Stufe 6–10; die beiden Bosse dort (Spinnenkönigin, Eisdrache) schafft man nur in der Gruppe oder mit vielen Tränken. Im Zwergenposten gibt es eine zweite Bank. Nördlich des Zwergenpostens liegt der **Feuerschlund** für Stufe 11–13, mit dem Glutfürsten Ignaros im Herzen des Vulkans. Ganz unten, durch einen Riss unter dem Nest der Spinnenkönigin, liegt das **Schattenreich** für Stufe 14–15. Dort wartet der Schattenkönig Morvath, der stärkste Gegner des Spiels.
 
 In **sicheren Räumen** wird nicht gekämpft und niemand wird überfallen. Betrittst du einen **Checkpoint**, merkt sich dein Charakter diesen Ort; dort erwachst du nach dem Tod.
 
@@ -42,6 +79,16 @@ Jeder Charakter hat **Lebenspunkte (HP)**, **Angriff** und **Verteidigung**. Die
 | 3 | 250 | 33 | 9 | 4 |
 | 4 | 500 | 42 | 12 | 5 |
 | 5 | 900 | 52 | 15 | 7 |
+| 6 | 1400 | 63 | 18 | 8 |
+| 7 | 2000 | 75 | 21 | 9 |
+| 8 | 2800 | 88 | 24 | 11 |
+| 9 | 3800 | 102 | 27 | 12 |
+| 10 | 5000 | 118 | 31 | 14 |
+| 11 | 6500 | 135 | 35 | 16 |
+| 12 | 8200 | 153 | 39 | 18 |
+| 13 | 10200 | 172 | 43 | 20 |
+| 14 | 12500 | 192 | 47 | 22 |
+| 15 | 15000 | 215 | 52 | 25 |
 
 Ein **Stufenaufstieg** heilt vollständig (inklusive der HP aus Ausrüstung). Reicht die Erfahrung für mehrere Stufen auf einmal, steigst du direkt bis zur höchsten erreichten auf.
 
@@ -54,6 +101,10 @@ Ein **Stufenaufstieg** heilt vollständig (inklusive der HP aus Ausrüstung). Re
 - **Fliehen** gelingt mit Wahrscheinlichkeit `combat.flee_chance`. Gelingt es, endet der Kampf ohne Gegenschlag; misslingt es, schlägt das Monster zu.
 - **Regeneration:** Monster, die eine Weile nicht im Kampf waren, heilen sich langsam (z. B. der Goblin-Späher 1 HP pro Sekunde nach 10 Sekunden Ruhe). Wer ein Monster angeschlagen stehen lässt, findet es später wieder gesund vor.
 - Ein besiegtes Monster **erscheint nach seiner Respawn-Zeit wieder** (Goblin-Späher 60 s, Hungriger Wolf 90 s).
+
+### Seltene Monster
+
+Manche Monster haben eine **seltene Form**, etwa einen besonders starken oder reichen Verwandten. Jedes Mal, wenn ein solches Monster wieder auftaucht, besteht eine kleine Chance, dass stattdessen die seltene Form erscheint; das Log meldet dann „… taucht auf – ein seltener Anblick!“. Seltene Formen sind stärker und lassen bessere Beute fallen. Nach ihrem Tod kommt meist wieder die gewöhnliche Form.
 
 ### Überfälle
 
@@ -84,6 +135,7 @@ Danach kannst du nur noch **am Checkpoint erwachen** – mit vollen HP.
 - `inventory.slots` Plätze. Jeder nicht ausgerüstete Stapel belegt einen Platz, egal wie viele Stück er enthält. Ausgerüstetes belegt keinen Platz, Gold auch nicht.
 - Stapelbare Gegenstände füllen zuerst vorhandene Stapel auf (bis zur Stapelgrenze des Gegenstands, z. B. 5 Heiltränke).
 - **Ausrüstung** trägst du an acht Plätzen gleichzeitig: Waffe, Schild, Kopf, Brust, Beine, Füße, Amulett und Ring, je ein Stück. Ein neues Stück ersetzt das alte am selben Platz, das alte wandert in den Rucksack. Was ein Gegenstand bringt (z. B. „Waffe · +3 Angriff“, „heilt 15“), steht im Inventar, in der Bank und beim Händler unter seinem Namen. Ein Klick auf den Namen (auch am Boden und im Laden) schreibt die ganze Beschreibung ins Log.
+- **Schilde, Amulette und Ringe** gibt es bei jedem Ausrüstungshändler entlang des Weges (Brandt, Brunhild, Ilva, der Händler ohne Gesicht) und beim Goldschmied in Oakhaven. Die besten Stücke lassen nur die Bosse fallen.
 - **Taschen** werden ausgerüstet (bis zu `inventory.bag_slots` gleichzeitig) und geben zusätzliche Plätze (Kleine Tasche: +2). Eine Tasche ablegen geht nur, wenn danach noch alles passt.
 - Passt beim Aufheben nicht alles, nimmst du so viel, wie passt; der Rest bleibt liegen.
 - **Fallengelassenes und Beute auf dem Boden** verschwindet nach `timings.floor_item_ttl_seconds` Sekunden. Gegenstände, die ein Charakter **deines eigenen Accounts** fallen gelassen hat, kannst du nicht aufheben.

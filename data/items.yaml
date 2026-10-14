@@ -199,3 +199,1132 @@
   sellable: true
   stackable: true
   max_stack: 5
+
+# --- Grauzahn-Gebirge & Tiefen (Stufe 6–10) ---
+
+- id: leather_leggings
+  name: "Lederbeinlinge"
+  description: "Weiche Lederhosen mit eingenähten Polstern."
+  kind: armor
+  slot: legs
+  icon: "armor"
+  value: 15
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 1
+
+- id: iron_greaves
+  name: "Eiserne Beinschienen"
+  description: "Zwergische Schienen, die Knie und Schienbeine schützen."
+  kind: armor
+  slot: legs
+  icon: "armor"
+  value: 50
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 2
+
+- id: iron_helm
+  name: "Eisenhelm"
+  description: "Ein schwerer Helm mit Nasenschutz, geschmiedet in Khazdur."
+  kind: armor
+  slot: head
+  icon: "armor"
+  value: 45
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 2
+
+- id: iron_boots
+  name: "Eisenbeschlagene Stiefel"
+  description: "Stiefel mit Stahlkappen. Schwer, aber nichts dringt durch."
+  kind: armor
+  slot: feet
+  icon: "armor"
+  value: 45
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 2
+
+- id: dwarven_plate
+  name: "Zwergischer Plattenpanzer"
+  description: "Ineinandergreifende Stahlplatten, so fein gearbeitet, dass sie kaum klirren."
+  kind: armor
+  slot: chest
+  icon: "armor"
+  value: 260
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 6
+
+- id: war_axe
+  name: "Kriegsaxt"
+  description: "Eine zweischneidige Axt mit Eichenstiel. Die Klinge trägt zwergische Runen."
+  kind: weapon
+  slot: weapon
+  icon: "axe"
+  value: 180
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 8
+
+- id: runed_hammer
+  name: "Runenhammer"
+  description: "Ein Hammer, dessen Runen bei jedem Schlag kurz aufglühen."
+  kind: weapon
+  slot: weapon
+  icon: "axe"
+  value: 320
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 10
+
+- id: frost_blade
+  name: "Frostklinge"
+  description: "Aus einer Kralle des Eisdrachen geschmiedet. Die Klinge ist immer kalt wie der Gletscher."
+  kind: weapon
+  slot: weapon
+  icon: "sword"
+  value: 500
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 12
+
+- id: elixir
+  name: "Elixier des Lebens"
+  description: "Golden schimmernd und schwer wie Honig. Stellt sofort 60 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "potion"
+  value: 90
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - type: heal
+      amount: 60
+
+- id: frost_berries
+  name: "Frostbeeren"
+  description: "Leuchtend rote Beeren, die im Eis reifen. Stellen 8 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "herb"
+  value: 3
+  sellable: true
+  stackable: true
+  max_stack: 10
+  effects:
+    - type: heal
+      amount: 8
+
+- id: harpy_feather
+  name: "Harpyienfeder"
+  description: "Eine lange, stahlgraue Schwungfeder. Pfeilmacher zahlen gut dafür."
+  kind: misc
+  icon: "trophy"
+  value: 8
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: frost_pelt
+  name: "Frostwolfpelz"
+  description: "Dichtes, silbrig weißes Fell. Wärmt selbst im Gletscherwind."
+  kind: misc
+  icon: "trophy"
+  value: 14
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: ice_shard
+  name: "Ewiges Eis"
+  description: "Ein Splitter, der nicht schmilzt, egal wie warm es ist."
+  kind: misc
+  icon: "trophy"
+  value: 12
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: drake_scale
+  name: "Drachenschuppe"
+  description: "Eine handtellergroße Schuppe, hart wie Stahl und blau wie Gletschereis."
+  kind: misc
+  icon: "trophy"
+  value: 60
+  sellable: true
+  stackable: true
+  max_stack: 5
+
+- id: ghoul_claw
+  name: "Ghulkralle"
+  description: "Schwarz, gekrümmt und unangenehm scharf."
+  kind: misc
+  icon: "trophy"
+  value: 10
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: spider_silk
+  name: "Spinnenseide"
+  description: "Ein Strang reißfester Seide. Schneider in Oakhaven reißen sich darum."
+  kind: misc
+  icon: "trophy"
+  value: 9
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: queen_fang
+  name: "Giftzahn der Königin"
+  description: "Ein Giftzahn so lang wie ein Dolch. Er glänzt noch feucht."
+  kind: misc
+  icon: "trophy"
+  value: 45
+  sellable: true
+  stackable: true
+  max_stack: 5
+
+# --- Kornfelder (Stufe 1–5) ---
+
+- id: pitchfork
+  name: "Mistgabel"
+  description: "Drei rostige Zinken an einem langen Stiel. Für Heu gedacht, nicht für Ratten."
+  kind: weapon
+  slot: weapon
+  icon: "axe"
+  value: 15
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 3
+
+- id: valen_blade
+  name: "Valens Klinge"
+  description: "Ein schwarzes Schwert mit grünlich schimmernder Schneide. Es fühlt sich kälter an, als es sollte."
+  kind: weapon
+  slot: weapon
+  icon: "sword"
+  value: 150
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 7
+
+- id: wild_apple
+  name: "Wilder Apfel"
+  description: "Klein, sauer und voller Würmer – aber nahrhaft. Stellt 3 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "herb"
+  value: 1
+  sellable: true
+  stackable: true
+  max_stack: 10
+  effects:
+    - type: heal
+      amount: 3
+
+- id: apple_pie
+  name: "Apfelkuchen"
+  description: "Noch warm aus Gretes Ofen. Stellt 12 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "bread"
+  value: 8
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - type: heal
+      amount: 12
+
+- id: cheese
+  name: "Bauernkäse"
+  description: "Ein würziger Laib aus der Mühle. Stellt 8 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "bread"
+  value: 5
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - type: heal
+      amount: 8
+
+- id: boar_ham
+  name: "Wildschweinkeule"
+  description: "Ein ordentliches Stück Fleisch, über dem Feuer gebraten. Stellt 10 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "bread"
+  value: 5
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - type: heal
+      amount: 10
+
+- id: rat_tail
+  name: "Rattenschwanz"
+  description: "Lang, kahl und eklig. Der Rattenfänger in Oakhaven zahlt pro Stück."
+  kind: misc
+  icon: "trophy"
+  value: 1
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: crow_feather
+  name: "Krähenfeder"
+  description: "Eine glänzend schwarze Feder. Schreiber nehmen sie gern als Kiel."
+  kind: misc
+  icon: "trophy"
+  value: 2
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: boar_hide
+  name: "Wildschweinfell"
+  description: "Borstig und zäh. Gerber verarbeiten es zu Stiefeln."
+  kind: misc
+  icon: "trophy"
+  value: 6
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: valen_signet
+  name: "Siegelring der Valen"
+  description: "Ein schwerer Goldring mit dem Wappen einer erloschenen Familie."
+  kind: misc
+  icon: "trophy"
+  value: 40
+  sellable: true
+  stackable: true
+  max_stack: 5
+
+# --- Feuerschlund (Stufe 11–13) ---
+
+- id: obsidian_helm
+  name: "Obsidianhelm"
+  description: "Aus vulkanischem Glas geschliffen, leicht und härter als Stahl."
+  kind: armor
+  slot: head
+  icon: "armor"
+  value: 120
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 3
+
+- id: obsidian_greaves
+  name: "Obsidianbeinschienen"
+  description: "Schwarze Platten, die bei jedem Schritt leise klirren."
+  kind: armor
+  slot: legs
+  icon: "armor"
+  value: 130
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 3
+
+- id: obsidian_boots
+  name: "Obsidianstiefel"
+  description: "Ihre Sohlen halten selbst glühender Asche stand."
+  kind: armor
+  slot: feet
+  icon: "armor"
+  value: 120
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 3
+
+- id: obsidian_blade
+  name: "Obsidianklinge"
+  description: "Eine Klinge aus Vulkanglas, scharf genug, um Licht zu schneiden."
+  kind: weapon
+  slot: weapon
+  icon: "sword"
+  value: 280
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 9
+
+- id: magma_hammer
+  name: "Magmahammer"
+  description: "Der Kopf ist ein Klumpen erstarrter Lava, in dessen Rissen es noch glüht."
+  kind: weapon
+  slot: weapon
+  icon: "axe"
+  value: 450
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 11
+
+- id: flame_sword
+  name: "Flammenschwert"
+  description: "Die Klinge brennt, ohne zu verbrennen. Ignaros trug es tausend Jahre."
+  kind: weapon
+  slot: weapon
+  icon: "sword"
+  value: 600
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 13
+
+- id: ember_plate
+  name: "Glutpanzer"
+  description: "Ein Brustpanzer aus der Schmiede der Riesen, innen warm wie ein Ofen."
+  kind: armor
+  slot: chest
+  icon: "armor"
+  value: 480
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 8
+
+- id: fire_blossom
+  name: "Feuerblüte"
+  description: "Eine glühende Blume aus den Aschefeldern. Gegessen stellt sie 20 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "flame"
+  value: 6
+  sellable: true
+  stackable: true
+  max_stack: 10
+  effects:
+    - type: heal
+      amount: 20
+
+- id: phoenix_draught
+  name: "Phönixtrank"
+  description: "Ein Trank, der im Glas leise knistert. Stellt sofort 100 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "potion"
+  value: 160
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - type: heal
+      amount: 100
+
+- id: salamander_scale
+  name: "Salamanderschuppe"
+  description: "Eine Schuppe, die noch Stunden nach dem Kampf warm bleibt."
+  kind: misc
+  icon: "trophy"
+  value: 18
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: wraith_ash
+  name: "Geisterasche"
+  description: "Asche, die sich in der Hand bewegt, als wollte sie fliehen."
+  kind: misc
+  icon: "trophy"
+  value: 15
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: ember_core
+  name: "Glutkern"
+  description: "Das Herz eines Magmagolems. Zwergenschmiede zahlen ein Vermögen dafür."
+  kind: misc
+  icon: "flame"
+  value: 25
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: giant_tooth
+  name: "Riesenzahn"
+  description: "Ein Backenzahn so groß wie eine Faust."
+  kind: misc
+  icon: "trophy"
+  value: 35
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: ignaros_crown
+  name: "Krone des Glutfürsten"
+  description: "Ein Reif aus erstarrter Lava, in dem noch ein Funke glimmt."
+  kind: misc
+  icon: "trophy"
+  value: 120
+  sellable: true
+  stackable: true
+  max_stack: 5
+
+# --- Schattenreich (Stufe 14–15) ---
+
+- id: starsteel_helm
+  name: "Sternenstahlhelm"
+  description: "Geschmiedet aus Metall, das vom Himmel fiel. Er schimmert wie eine klare Nacht."
+  kind: armor
+  slot: head
+  icon: "armor"
+  value: 400
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 4
+
+- id: starsteel_greaves
+  name: "Sternenstahlbeinschienen"
+  description: "Leicht wie Leder, hart wie der Fels, aus dem sie geschlagen wurden."
+  kind: armor
+  slot: legs
+  icon: "armor"
+  value: 420
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 4
+
+- id: starsteel_boots
+  name: "Sternenstahlstiefel"
+  description: "Wer sie trägt, hinterlässt Spuren aus schwachem Licht."
+  kind: armor
+  slot: feet
+  icon: "armor"
+  value: 400
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 4
+
+- id: starsteel_plate
+  name: "Sternenstahlharnisch"
+  description: "Die beste Rüstung, die man für Gold kaufen kann – und sehr viel Gold."
+  kind: armor
+  slot: chest
+  icon: "armor"
+  value: 900
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 10
+
+- id: voidbreaker
+  name: "Leerenbrecher"
+  description: "Eine Axt, deren Klinge aus nichts zu bestehen scheint. Wo sie trifft, bleibt eine Kerbe in der Welt."
+  kind: weapon
+  slot: weapon
+  icon: "axe"
+  value: 750
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 14
+
+- id: shadow_blade
+  name: "Schattenklinge"
+  description: "Morvaths eigenes Schwert. Es wirft kein Spiegelbild und keinen Schatten."
+  kind: weapon
+  slot: weapon
+  icon: "sword"
+  value: 900
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 15
+
+- id: moon_lily
+  name: "Mondlilie"
+  description: "Eine silbern leuchtende Blüte aus dem Verdorrten Garten. Stellt 40 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "herb"
+  value: 12
+  sellable: true
+  stackable: true
+  max_stack: 10
+  effects:
+    - type: heal
+      amount: 40
+
+- id: starlight_tonic
+  name: "Sternenlichttonikum"
+  description: "In der Flasche funkelt ein Stück Nachthimmel. Stellt sofort 160 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "potion"
+  value: 260
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - type: heal
+      amount: 160
+
+- id: shadow_pelt
+  name: "Schattenfell"
+  description: "Ein Fell, das sich anfühlt wie kalter Rauch."
+  kind: misc
+  icon: "trophy"
+  value: 28
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: void_shard
+  name: "Leerensplitter"
+  description: "Ein Splitter aus schwarzem Glas, in dem sich nichts spiegelt."
+  kind: misc
+  icon: "trophy"
+  value: 30
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: nightmare_essence
+  name: "Albtraumessenz"
+  description: "Eine Phiole mit wirbelndem Dunst. Wer zu lange hineinsieht, träumt schlecht."
+  kind: misc
+  icon: "trophy"
+  value: 35
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: warden_sigil
+  name: "Siegel der Wächter"
+  description: "Ein steinernes Abzeichen mit einem geschlossenen Auge."
+  kind: misc
+  icon: "trophy"
+  value: 45
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: shadow_crown
+  name: "Krone der Schatten"
+  description: "Morvaths Krone. Sie ist schwer, kalt und frisst das Licht um sich herum."
+  kind: misc
+  icon: "trophy"
+  value: 250
+  sellable: true
+  stackable: true
+  max_stack: 5
+
+# --- Schilde, Amulette, Ringe (alle Stufen) ---
+
+- id: wooden_shield
+  name: "Holzschild"
+  description: "Ein runder Schild aus Eichenbrettern mit Eisenrand."
+  kind: armor
+  slot: offhand
+  icon: "shield"
+  value: 15
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 1
+
+- id: iron_shield
+  name: "Eisenschild"
+  description: "Ein schwerer Schild mit Zwergenrunen am Buckel."
+  kind: armor
+  slot: offhand
+  icon: "shield"
+  value: 60
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 2
+
+- id: tower_shield
+  name: "Zwergischer Turmschild"
+  description: "Fast so groß wie ein Zwerg. Dahinter ist man sicher – und langsam."
+  kind: armor
+  slot: offhand
+  icon: "shield"
+  value: 150
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 3
+
+- id: obsidian_shield
+  name: "Obsidianschild"
+  description: "Schwarzes Glas in einem Rahmen aus Basalt. Klingen gleiten daran ab."
+  kind: armor
+  slot: offhand
+  icon: "shield"
+  value: 260
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 4
+
+- id: starsteel_shield
+  name: "Sternenstahlschild"
+  description: "Seine Oberfläche spiegelt einen Himmel, der nicht über dir ist."
+  kind: armor
+  slot: offhand
+  icon: "shield"
+  value: 450
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 5
+
+- id: drake_shield
+  name: "Drachenschuppenschild"
+  description: "Aus den Schuppen Hrimfangs gefertigt. Er bleibt immer eiskalt."
+  kind: armor
+  slot: offhand
+  icon: "shield"
+  value: 520
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 5
+    - type: stat
+      stat: max_hp
+      amount: 15
+
+- id: bone_amulet
+  name: "Knochenamulett"
+  description: "Ein Fingerknochen an einer Lederschnur. Abergläubisch, aber es hilft."
+  kind: armor
+  slot: neck
+  icon: "amulet"
+  value: 25
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: max_hp
+      amount: 5
+
+- id: amber_amulet
+  name: "Bernsteinamulett"
+  description: "Im Bernstein ist eine kleine Spinne eingeschlossen. Er fühlt sich warm an."
+  kind: armor
+  slot: neck
+  icon: "amulet"
+  value: 90
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: max_hp
+      amount: 15
+
+- id: ember_amulet
+  name: "Glutsteinamulett"
+  description: "Ein Stein aus dem Vulkan, der im Dunkeln schwach glimmt."
+  kind: armor
+  slot: neck
+  icon: "amulet"
+  value: 250
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: max_hp
+      amount: 30
+
+- id: moonstone_amulet
+  name: "Mondsteinamulett"
+  description: "Ein milchig blauer Stein, der das Licht der Zuflucht speichert."
+  kind: armor
+  slot: neck
+  icon: "amulet"
+  value: 500
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: max_hp
+      amount: 50
+    - type: stat
+      stat: defense
+      amount: 1
+
+- id: winter_heart
+  name: "Herz des Winters"
+  description: "Ein Splitter aus dem Herzen des Eisdrachen. Er schlägt noch, ganz langsam."
+  kind: armor
+  slot: neck
+  icon: "amulet"
+  value: 480
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: max_hp
+      amount: 40
+    - type: stat
+      stat: defense
+      amount: 2
+
+- id: soul_pendant
+  name: "Seelenanhänger"
+  description: "Morvaths Anhänger. Darin wispern Stimmen, die nicht deine sind."
+  kind: armor
+  slot: neck
+  icon: "amulet"
+  value: 900
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: max_hp
+      amount: 70
+    - type: stat
+      stat: attack
+      amount: 2
+
+- id: copper_ring
+  name: "Kupferring"
+  description: "Ein schlichter Ring, der beim Zuschlagen kribbelt."
+  kind: armor
+  slot: ring
+  icon: "ring"
+  value: 20
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 1
+
+- id: silver_ring
+  name: "Silberring"
+  description: "Fein graviert mit zwergischen Glückszeichen."
+  kind: armor
+  slot: ring
+  icon: "ring"
+  value: 80
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 2
+
+- id: ruby_ring
+  name: "Rubinring"
+  description: "Der Stein glüht, sobald du eine Waffe ziehst."
+  kind: armor
+  slot: ring
+  icon: "ring"
+  value: 220
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 3
+
+- id: star_ring
+  name: "Sternenring"
+  description: "Ein Ring aus Sternenstahl, kühl wie eine Winternacht."
+  kind: armor
+  slot: ring
+  icon: "ring"
+  value: 480
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 4
+    - type: stat
+      stat: max_hp
+      amount: 10
+
+- id: valen_ring
+  name: "Ring des Grabfürsten"
+  description: "Valens eigener Ring. Wer ihn trägt, fühlt eine fremde Kälte im Arm."
+  kind: armor
+  slot: ring
+  icon: "ring"
+  value: 120
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 2
+    - type: stat
+      stat: max_hp
+      amount: 5
+
+- id: spider_ring
+  name: "Ring der Spinnenkönigin"
+  description: "Acht winzige Rubine, wie Augen angeordnet."
+  kind: armor
+  slot: ring
+  icon: "ring"
+  value: 300
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 3
+    - type: stat
+      stat: max_hp
+      amount: 10
+
+- id: ignaros_ring
+  name: "Siegel des Glutfürsten"
+  description: "Ein Ring aus erstarrter Lava, in dessen Mitte ein Funke tanzt."
+  kind: armor
+  slot: ring
+  icon: "ring"
+  value: 560
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 4
+    - type: stat
+      stat: defense
+      amount: 1
+
+- id: shadow_ring
+  name: "Schattenring"
+  description: "Ein Ring aus Dunkelheit. Er hat kein Gewicht und keinen Glanz."
+  kind: armor
+  slot: ring
+  icon: "ring"
+  value: 850
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 5
+    - type: stat
+      stat: max_hp
+      amount: 20
+
+# --- Sturmküste (Stufe 4–7) ---
+
+- id: harpoon
+  name: "Harpune"
+  description: "Eine Walfängerharpune mit Widerhaken. Unhandlich, aber sie trifft hart."
+  kind: weapon
+  slot: weapon
+  icon: "axe"
+  value: 60
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 5
+
+- id: oilskin_coat
+  name: "Ölzeug"
+  description: "Ein gewachster Mantel der Fischer. Hält Regen, Gischt und so manchen Hieb ab."
+  kind: armor
+  slot: chest
+  icon: "armor"
+  value: 45
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 3
+
+- id: witch_trident
+  name: "Dreizack der Seehexe"
+  description: "Korallenbewachsen und immer feucht. Wer ihn hält, hört das Meer rauschen."
+  kind: weapon
+  slot: weapon
+  icon: "sword"
+  value: 160
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 7
+    - type: stat
+      stat: max_hp
+      amount: 5
+
+- id: coral_amulet
+  name: "Korallenamulett"
+  description: "Ein Zweig roter Koralle an einer Silberkette. Er riecht nach Salz."
+  kind: armor
+  slot: neck
+  icon: "amulet"
+  value: 70
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: max_hp
+      amount: 10
+
+- id: smoked_fish
+  name: "Räucherfisch"
+  description: "Goldbraun und salzig, eingewickelt in Zeitungspapier. Stellt 14 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "bread"
+  value: 9
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - type: heal
+      amount: 14
+
+- id: mussels
+  name: "Miesmuscheln"
+  description: "Frisch von den Felsen gebrochen. Stellen 5 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "herb"
+  value: 2
+  sellable: true
+  stackable: true
+  max_stack: 10
+  effects:
+    - type: heal
+      amount: 5
+
+- id: crab_meat
+  name: "Krabbenfleisch"
+  description: "Zart und süßlich, wenn man es aus dem Panzer bekommt. Stellt 9 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "bread"
+  value: 4
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - type: heal
+      amount: 9
+
+- id: crab_shell
+  name: "Krabbenpanzer"
+  description: "Hart wie Horn. Die Fischer machen Schalen und Knöpfe daraus."
+  kind: misc
+  icon: "trophy"
+  value: 5
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: old_compass
+  name: "Rostiger Kompass"
+  description: "Die Nadel zeigt nicht nach Norden, sondern zum Leuchtturm."
+  kind: misc
+  icon: "trophy"
+  value: 15
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: contraband
+  name: "Schmuggelware"
+  description: "Ein versiegeltes Päckchen. Besser nicht fragen, was drin ist."
+  kind: misc
+  icon: "trophy"
+  value: 20
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: storm_essence
+  name: "Sturmessenz"
+  description: "Ein Fläschchen, in dem ein winziger Wirbelsturm tobt."
+  kind: misc
+  icon: "trophy"
+  value: 18
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: black_pearl
+  name: "Schwarze Perle"
+  description: "Größer als ein Daumennagel und schwarz wie die Nacht. Morwennas Schatz."
+  kind: misc
+  icon: "trophy"
+  value: 80
+  sellable: true
+  stackable: true
+  max_stack: 5

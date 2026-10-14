@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import dataclasses
 import random
 from collections.abc import AsyncIterator, Iterator
 from datetime import timedelta
@@ -13,7 +14,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlmodel import col
 
-from app.content.schemas import Ambush
+from app.content.schemas import Ambush, RareVariant
 from app.db.models import (
     CombatParticipation,
     FloorItem,
@@ -104,6 +105,39 @@ async def test_dead_monsters_come_back_when_due(
             )
         ).all()
     assert kinds == ["monster.respawned"]
+
+
+async def test_a_rare_variant_respawn_is_stored(
+    harness: ServiceHarness, engine: AsyncEngine
+) -> None:
+    h = harness
+    goblin = h.content.monsters["goblin"]
+    golden = goblin.model_copy(update={"id": "golden_goblin", "name": "Goldener Goblin"})
+    always = dataclasses.replace(
+        h.content,
+        monsters={
+            **h.content.monsters,
+            "goblin": goblin.model_copy(
+                update={"rare_variant": RareVariant(monster_id="golden_goblin", chance=1.0)}
+            ),
+            "golden_goblin": golden,
+        },
+    )
+    room = h.scratch_room()
+    dead = MonsterInstance(
+        monster_id="goblin", room_id=room, hp=0, alive=False, respawn_at=h.clock.now
+    )
+    await add(h, dead)
+    ticker = WorldTicker(engine, h.service.sessions, always, h.service, h.publisher, clock=h.clock)
+    try:
+        await ticker.tick()
+    finally:
+        await ticker.release_lock()
+
+    back = await get(h, MonsterInstance, dead.id)
+    assert (back.monster_id, back.alive) == ("golden_goblin", True)
+    [event] = [e for e in h.publisher.published if e.kind == "monster.respawned"]
+    assert event.text == "Goldener Goblin taucht auf – ein seltener Anblick!"
 
 
 async def test_one_broken_room_does_not_stop_the_others(

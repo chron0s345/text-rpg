@@ -170,6 +170,12 @@ class MonsterTemplate(BaseModel):
     regen: Regeneration | None = None  # None = regeneriert nicht
     ambush: Ambush | None = None  # None = greift nie von selbst an
     loot_table: list[LootEntry] = []
+    rare_variant: RareVariant | None = None  # seltene Form, gewürfelt bei jedem Respawn
+
+
+class RareVariant(BaseModel):
+    monster_id: str  # eigenes MonsterTemplate, spawnt nie direkt
+    chance: float = Field(gt=0, le=1)
 
 
 class Regeneration(BaseModel):
@@ -691,6 +697,7 @@ Umsetzung: Engine `engine/presence.py` (`resolve_login`, `resolve_logout`), Kont
 ### Respawn & Aufräumen
 
 - **Monster:** Fällige `MonsterInstance` (`alive = false`, `respawn_at <= now`) werden mit vollen HP zurückgesetzt. Zusätzlich gibt es einen Lazy Check beim Betreten eines Raums.
+- **Seltene Varianten:** Hat das Template einer respawnenden Instanz (bzw. ihre Grundform) eine `rare_variant`, wird gewürfelt: Mit `chance` kommt sie als Variante zurück (`MonsterInstance.monster_id` wechselt), sonst als Grundform. Eine getötete Variante kommt also meist als Grundform wieder. Die Variante füllt die Spawn-Regel ihrer Grundform (`ContentRegistry.base_monster_id`), auch für den Seed; Raum-Spawns dürfen sie nicht direkt nennen (Validierung beim Laden). Das Event `monster.respawned` trägt dann `rare: true` und einen eigenen Text.
 - **Spawn-Items:** Wird ein Spawn-Item aufgehoben und hat es `respawn_seconds`, wird `next_spawn_at` gesetzt und das Item erscheint danach wieder.
 - **Floor-Items** mit `source = "drop"` oder `"loot"` bekommen `expires_at = now + floor_item_ttl_seconds` und werden danach gelöscht. Abgelaufene Items werden beim Anzeigen sofort herausgefiltert, auch wenn der Ticker sie noch nicht gelöscht hat.
 

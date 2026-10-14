@@ -45,13 +45,18 @@ def plan_seed(
     """Pure: what is missing, given existing monster counts per (room, monster) and the
     (room, item) pairs that already have an ``ItemSpawnState``."""
     plan = SeedPlan()
+    # a rare variant stands in for its base: it fills the base's spawn rule
+    counts: dict[tuple[str, str], int] = {}
+    for (room_id, monster_id), count in monster_counts.items():
+        key = (room_id, content.base_monster_id(monster_id))
+        counts[key] = counts.get(key, 0) + count
     for room in content.rooms.values():
         wanted: dict[str, int] = {}
         for spawn in room.spawns:
             wanted[spawn.monster_id] = wanted.get(spawn.monster_id, 0) + spawn.count
         for monster_id, count in wanted.items():
             template = content.get_monster(monster_id)
-            missing = count - monster_counts.get((room.id, monster_id), 0)
+            missing = count - counts.get((room.id, monster_id), 0)
             plan.monsters.extend(
                 MonsterInstance(monster_id=monster_id, room_id=room.id, hp=template.max_hp)
                 for _ in range(max(0, missing))

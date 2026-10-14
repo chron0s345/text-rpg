@@ -20,6 +20,7 @@
   bank: true
   exits:
     south: town_square
+    east: goldsmith_shop
   spawns: []
   items: []
 
@@ -31,6 +32,7 @@
   bank: false
   exits:
     west: town_square
+    east: farm_road
   spawns: []
   items: []
 
@@ -56,6 +58,7 @@
     north: forest_gate
     east: goblin_camp
     south: bog_path
+    west: coast_path
   spawns:
     - monster_id: goblin
       count: 1
@@ -120,6 +123,7 @@
   bank: false
   exits:
     west: bog_path
+    east: mountain_trail
   spawns: []
   items: []
 
@@ -159,7 +163,508 @@
   bank: false
   exits:
     up: ruins_hall
+    down: mine_watch
   spawns:
     - monster_id: cave_troll
+      count: 1
+  items: []
+
+# --- Grauzahn-Gebirge (Stufe 6–10), östlich des Lagerfeuers ---
+
+- id: mountain_trail
+  name: "Steiler Anstieg"
+  description: "Ein schmaler Pfad windet sich zwischen Felsblöcken nach oben. Über dir kreisen Schatten mit ledrigen Schwingen."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    west: bog_camp
+    north: dwarf_outpost
+  spawns:
+    - monster_id: mountain_harpy
+      count: 2
+  items: []
+
+- id: dwarf_outpost
+  name: "Zwergenposten Khazdur"
+  description: "Eine in den Fels gehauene Feste mit glühenden Kohlebecken. Zwerge in schweren Rüstungen nicken dir knapp zu."
+  safe: true
+  checkpoint: true
+  bank: true
+  exits:
+    south: mountain_trail
+    east: frost_gorge
+    north: basalt_stairs
+  spawns: []
+  items: []
+
+- id: frost_gorge
+  name: "Frostklamm"
+  description: "Eisige Winde heulen durch die enge Schlucht. Zwischen vereisten Felsen leuchten rote Beeren."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    west: dwarf_outpost
+    up: glacier_slope
+  spawns:
+    - monster_id: frost_wolf
+      count: 2
+  items:
+    - item_id: frost_berries
+      quantity: 3
+      respawn_seconds: 240
+
+- id: glacier_slope
+  name: "Gletscherhang"
+  description: "Blankes Eis, so weit das Auge reicht. Manche der Eisblöcke stehen auffällig aufrecht – und bewegen sich."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    down: frost_gorge
+    north: drake_lair
+  spawns:
+    - monster_id: ice_golem
+      count: 2
+  items: []
+
+- id: drake_lair
+  name: "Hort des Eisdrachen"
+  description: "Eine gewaltige Eishöhle, übersät mit Knochen und gefrorenem Gold. Aus der Tiefe dringt ein kalter, langsamer Atem."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    south: glacier_slope
+  spawns:
+    - monster_id: ice_drake
+      count: 1
+  items: []
+
+# --- Die Tiefen (Stufe 6–9), unter der Alten Mine ---
+
+- id: mine_watch
+  name: "Verlassene Grubenwache"
+  description: "Eine verbarrikadierte Kammer mit Pritschen und einer erloschenen Laterne. Hier ist man vor dem, was in den Stollen haust, sicher."
+  safe: true
+  checkpoint: true
+  bank: false
+  exits:
+    up: old_mine
+    east: deep_tunnels
+  spawns: []
+  items: []
+
+- id: deep_tunnels
+  name: "Tiefe Stollen"
+  description: "Die Stützbalken sind zersplittert, der Boden klebrig. Irgendwo schabt etwas mit langen Krallen über Stein."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    west: mine_watch
+    east: spider_grotto
+  spawns:
+    - monster_id: mine_ghoul
+      count: 2
+  items: []
+
+- id: spider_grotto
+  name: "Spinnengrotte"
+  description: "Dicke Seidenstränge spannen sich von Wand zu Wand. In den Netzen hängen eingesponnene Bündel, manche zucken noch."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    west: deep_tunnels
+    down: spider_nest
+  spawns:
+    - monster_id: cave_spider
+      count: 3
+  items: []
+
+- id: spider_nest
+  name: "Nest der Spinnenkönigin"
+  description: "Eine Kuppel aus Seide und Knochen. In ihrer Mitte thront ein Leib so groß wie ein Fuhrwerk, umgeben von glänzenden Augen."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    up: spider_grotto
+    down: shadow_rift
+  spawns:
+    - monster_id: spider_queen
+      count: 1
+  items: []
+
+# --- Kornfelder (Stufe 1–5), östlich des Kaufmannsstands ---
+
+- id: farm_road
+  name: "Feldweg"
+  description: "Ein ausgefahrener Karrenweg zwischen niedrigen Steinmauern. Im Graben raschelt es verdächtig."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    west: town_market
+    north: wheat_fields
+    east: mill
+    south: old_cemetery
+  spawns:
+    - monster_id: field_rat
+      count: 3
+  items: []
+
+- id: wheat_fields
+  name: "Weizenfelder"
+  description: "Goldene Ähren wiegen sich im Wind, am Rand steht ein krummer Apfelbaum. Krähen beobachten dich von einer zerzausten Vogelscheuche."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    south: farm_road
+    east: boar_thicket
+  spawns:
+    - monster_id: giant_crow
+      count: 2
+  items:
+    - item_id: wild_apple
+      quantity: 3
+      respawn_seconds: 150
+
+- id: boar_thicket
+  name: "Dornendickicht"
+  description: "Zertrampeltes Unterholz und aufgewühlte Erde. Hier wühlt etwas Großes mit Hauern."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    west: wheat_fields
+  spawns:
+    - monster_id: wild_boar
+      count: 2
+  items: []
+
+- id: mill
+  name: "Mühle am Bach"
+  description: "Das große Wasserrad knarrt gemächlich. Im Hof duftet es nach frischem Brot und Apfelkuchen."
+  safe: true
+  checkpoint: true
+  bank: false
+  exits:
+    west: farm_road
+  spawns: []
+  items: []
+
+- id: old_cemetery
+  name: "Alter Friedhof"
+  description: "Schiefe Grabsteine versinken im Nebel. Manche Gräber sind offen – von innen aufgegraben."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    north: farm_road
+    down: valen_crypt
+  spawns:
+    - monster_id: shambling_corpse
+      count: 3
+  items: []
+
+- id: valen_crypt
+  name: "Gruft der Familie Valen"
+  description: "Steinsärge stehen in Nischen, ihre Deckel verschoben. Am Ende des Gangs flackert ein kaltes, grünes Licht."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    up: old_cemetery
+    north: valen_tomb
+  spawns:
+    - monster_id: crypt_knight
+      count: 2
+  items: []
+
+- id: valen_tomb
+  name: "Grabkammer des Grabfürsten"
+  description: "Ein Thron aus Gebeinen. Darauf sitzt eine Gestalt in schwarzer Rüstung, die Augen glimmen grün."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    south: valen_crypt
+  spawns:
+    - monster_id: grave_lord
+      count: 1
+  items: []
+
+# --- Feuerschlund (Stufe 11–13), nördlich des Zwergenpostens ---
+
+- id: basalt_stairs
+  name: "Basaltstiege"
+  description: "Schwarze Säulen bilden eine Treppe ins Glühen. Zwischen den Steinen huschen Echsen mit brennenden Rücken."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    south: dwarf_outpost
+    north: crater_camp
+  spawns:
+    - monster_id: fire_salamander
+      count: 2
+  items: []
+
+- id: crater_camp
+  name: "Rastplatz am Kraterrand"
+  description: "Ein paar Zelte im Windschatten eines Felsens, mit Asche bestäubt. Von hier sieht man den Krater rot pulsieren."
+  safe: true
+  checkpoint: true
+  bank: false
+  exits:
+    south: basalt_stairs
+    west: ash_fields
+    east: lava_flow
+  spawns: []
+  items: []
+
+- id: ash_fields
+  name: "Aschefelder"
+  description: "Graue Asche, knöcheltief und still. Nur zwischen verkohlten Stämmen wachsen glühend orangefarbene Blüten."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    east: crater_camp
+  spawns:
+    - monster_id: ash_wraith
+      count: 2
+  items:
+    - item_id: fire_blossom
+      quantity: 2
+      respawn_seconds: 240
+
+- id: lava_flow
+  name: "Lavastrom"
+  description: "Ein Fluss aus flüssigem Gestein wälzt sich durch die Schlucht. Die Hitze lässt die Luft flimmern – und manche Felsen stehen auf."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    west: crater_camp
+    north: giant_forge
+  spawns:
+    - monster_id: magma_golem
+      count: 2
+  items: []
+
+- id: giant_forge
+  name: "Schmiede der Feuerriesen"
+  description: "Ambosse so groß wie Häuser, Hämmer aus ganzen Felsblöcken. Die Riesen, die hier arbeiten, mögen keine Zuschauer."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    south: lava_flow
+    up: caldera
+  spawns:
+    - monster_id: fire_giant
+      count: 2
+  items: []
+
+- id: caldera
+  name: "Herz des Vulkans"
+  description: "Eine Insel aus Basalt inmitten eines Lavasees. Auf einem Thron aus Glut erhebt sich eine Gestalt aus Flammen und Stein."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    down: giant_forge
+  spawns:
+    - monster_id: ignaros
+      count: 1
+  items: []
+
+# --- Schattenreich (Stufe 14–15), durch einen Riss unter dem Spinnennest ---
+
+- id: shadow_rift
+  name: "Schattenriss"
+  description: "Unter dem Nest klafft ein Spalt, aus dem Dunkelheit wie Wasser sickert. Dahinter gibt es kein Oben und kein Unten mehr."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    up: spider_nest
+    north: void_bridge
+  spawns:
+    - monster_id: shadow_stalker
+      count: 2
+  items: []
+
+- id: void_bridge
+  name: "Brücke über das Nichts"
+  description: "Ein Steg aus schwarzem Stein, links und rechts nur Leere. Gerüstete Gestalten halten Wache, ohne zu atmen."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    south: shadow_rift
+    north: last_refuge
+  spawns:
+    - monster_id: void_knight
+      count: 2
+  items: []
+
+- id: last_refuge
+  name: "Letzte Zuflucht"
+  description: "Ein Kreis aus Laternen, deren Licht die Schatten nicht überschreiten. Ein Händler ohne Gesicht wartet hier, als hätte er immer gewartet."
+  safe: true
+  checkpoint: true
+  bank: true
+  exits:
+    south: void_bridge
+    west: withered_garden
+    north: silent_hall
+  spawns: []
+  items: []
+
+- id: withered_garden
+  name: "Verdorrter Garten"
+  description: "Schwarze Bäume tragen keine Blätter, nur silberne Lilien, die im Dunkeln leuchten. Etwas Großes schleicht zwischen den Stämmen."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    east: last_refuge
+  spawns:
+    - monster_id: nightmare
+      count: 2
+  items:
+    - item_id: moon_lily
+      quantity: 2
+      respawn_seconds: 300
+
+- id: silent_hall
+  name: "Halle der Stille"
+  description: "Kein Schritt hallt, kein Atem ist zu hören. Reihen steinerner Wächter säumen den Weg zu einem Tor aus Nacht."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    south: last_refuge
+    north: shadow_throne
+  spawns:
+    - monster_id: shadow_warden
+      count: 2
+  items: []
+
+- id: shadow_throne
+  name: "Thron der Schatten"
+  description: "Ein Saal ohne Wände unter einem Himmel ohne Sterne. Auf dem Thron sitzt ein König, dessen Krone das Licht frisst."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    south: silent_hall
+  spawns:
+    - monster_id: morvath
+      count: 1
+  items: []
+
+# --- Oakhaven: Goldschmiede (Schmuck für die Plätze Amulett und Ring) ---
+
+- id: goldsmith_shop
+  name: "Goldschmiede"
+  description: "Eine enge Werkstatt voller Lupen, Zangen und winziger Schubladen. Im Fenster glitzern Ringe auf schwarzem Samt."
+  safe: true
+  checkpoint: false
+  bank: false
+  exits:
+    west: town_bank
+  spawns: []
+  items: []
+
+# --- Sturmküste (Stufe 4–7), westlich des Dunklen Waldes ---
+
+- id: coast_path
+  name: "Klippenpfad"
+  description: "Salzwind peitscht über die Klippen, unten donnert die Brandung. Zwischen den Felsen klappern Scheren."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    east: dark_forest
+    north: fishing_village
+    west: lighthouse_stairs
+    down: tidal_caves
+  spawns:
+    - monster_id: rock_crab
+      count: 2
+  items:
+    - item_id: mussels
+      quantity: 3
+      respawn_seconds: 180
+
+- id: fishing_village
+  name: "Fischerdorf Möwenstein"
+  description: "Ein Dutzend Hütten mit Netzen vor der Tür, es riecht nach Rauch und Fisch. Die Leute hier reden wenig und schauen oft zum Leuchtturm."
+  safe: true
+  checkpoint: true
+  bank: false
+  exits:
+    south: coast_path
+  spawns: []
+  items: []
+
+- id: tidal_caves
+  name: "Gezeitenhöhlen"
+  description: "Bei Ebbe begehbar, bei Flut ein Grab. In den Tümpeln liegen Dinge, die einmal Seeleute waren."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    up: coast_path
+    west: smugglers_den
+  spawns:
+    - monster_id: drowned_sailor
+      count: 2
+  items: []
+
+- id: smugglers_den
+  name: "Schmugglerversteck"
+  description: "Fässer, Kisten und eine Laterne, die hastig gelöscht wurde. Jemand flucht leise im Dunkeln."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    east: tidal_caves
+  spawns:
+    - monster_id: smuggler
+      count: 2
+  items: []
+
+- id: lighthouse_stairs
+  name: "Treppe zum Leuchtturm"
+  description: "Eine Wendeltreppe aus nassem Stein. Der Wind heult durch die Schießscharten wie eine Stimme."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    east: coast_path
+    up: lighthouse_top
+  spawns:
+    - monster_id: storm_spirit
+      count: 2
+  items: []
+
+- id: lighthouse_top
+  name: "Laterne des Leuchtturms"
+  description: "Statt eines Feuers brennt hier ein kaltes grünes Licht, das Schiffe auf die Klippen lockt. Davor singt eine Frau mit Haaren aus Seetang."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    down: lighthouse_stairs
+  spawns:
+    - monster_id: sea_witch
       count: 1
   items: []
