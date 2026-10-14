@@ -1461,3 +1461,145 @@
   value: 2
   sellable: true
   stackable: false
+
+# --- Silberhain (Stufe 8–10) ---
+
+- id: elven_bow
+  name: "Elfenbogen"
+  description: "Ein Langbogen aus Silberholz, dessen Sehne nie reißt. Der Hüter trug ihn, bevor er verdarb."
+  kind: weapon
+  slot: weapon
+  icon: "sword"
+  value: 340
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 9
+    - type: stat
+      stat: defense
+      amount: 1
+
+- id: elven_blade
+  name: "Elfenklinge"
+  description: "Schmal, leicht und so scharf, dass sie im Wind singt."
+  kind: weapon
+  slot: weapon
+  icon: "sword"
+  value: 190
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 7
+
+- id: elven_cloak
+  name: "Elfenmantel"
+  description: "Ein Umhang aus gewebtem Blattwerk. Pfeile und Klingen gleiten an ihm ab."
+  kind: armor
+  slot: chest
+  icon: "armor"
+  value: 210
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 5
+    - type: stat
+      stat: max_hp
+      amount: 10
+
+- id: leaf_ring
+  name: "Blattring"
+  description: "Ein Ring aus einem einzigen, versteinerten Silberblatt."
+  kind: armor
+  slot: ring
+  icon: "ring"
+  value: 130
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 2
+    - type: stat
+      stat: max_hp
+      amount: 5
+
+- id: silverleaf
+  name: "Silberblatt"
+  description: "Ein Blatt des Silberhains. Gekaut stellt es 15 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "herb"
+  value: 4
+  sellable: true
+  stackable: true
+  max_stack: 10
+  effects:
+    - type: heal
+      amount: 15
+
+- id: elven_bread
+  name: "Elfenbrot"
+  description: "Ein flaches, honigsüßes Brot, eingewickelt in Blätter. Stellt 30 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "bread"
+  value: 22
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - type: heal
+      amount: 30
+
+- id: wisp_light
+  name: "Gefangenes Irrlicht"
+  description: "Ein Glasfläschchen, in dem ein bleiches Licht flackert und gegen die Wände stößt."
+  kind: misc
+  icon: "trophy"
+  value: 20
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: dryad_bark
+  name: "Dryadenrinde"
+  description: "Ein Stück schwarz verfärbter Rinde, das noch leise atmet."
+  kind: misc
+  icon: "trophy"
+  value: 24
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: thorn_spike
+  name: "Dornenstachel"
+  description: "Ein Stachel, lang wie ein Unterarm. Die Spitze glänzt feucht."
+  kind: misc
+  icon: "trophy"
+  value: 28
+  sellable: true
+  stackable: true
+  max_stack: 10
+
+- id: warden_heartwood
+  name: "Herzholz des Hüters"
+  description: "Das Herz des Uralten Baums, schwarz bis auf einen silbernen Kern."
+  kind: misc
+  icon: "trophy"
+  value: 90
+  sellable: true
+  stackable: true
+  max_stack: 5
+
+- id: elven_inscription
+  name: "Elfische Inschrift"
+  description: "Eine Abreibung von einem der Grenzsteine, mit einer Übersetzung am Rand: »Wir hüteten den Hain, bis der Schatten aus der Tiefe in die Wurzeln kroch. Der Hüter trank davon. Nun hütet er nichts mehr. Wer ihn erlöst, gebe sein Herz der Erde zurück.«"
+  kind: misc
+  icon: "scroll"
+  value: 2
+  sellable: true
+  stackable: false

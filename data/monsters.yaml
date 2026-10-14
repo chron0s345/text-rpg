@@ -1042,3 +1042,87 @@
       chance: 0.3
     - item_id: moonstone_amulet
       chance: 0.15
+
+# --- Silberhain ---
+
+- id: will_o_wisp
+  name: "Irrlicht"
+  level: 8
+  max_hp: 70
+  attack: 27
+  defense: 12
+  xp_reward: 220
+  gold_reward: [5, 15]
+  respawn_seconds: 120
+  # lockt nur, greift nicht von selbst an – der Hain warnt, bevor er tötet
+  loot_table:
+    - item_id: wisp_light
+      chance: 0.7
+    - item_id: silverleaf
+      chance: 0.3
+
+- id: dryad
+  name: "Verdorbene Dryade"
+  level: 9
+  max_hp: 90
+  attack: 30
+  defense: 12
+  xp_reward: 300
+  gold_reward: [10, 25]
+  respawn_seconds: 150
+  regen:
+    delay_seconds: 15
+    hp_per_second: 3.0
+  ambush:
+    chance_on_enter: 0.2
+    chance_per_tick: 0.05
+    max_level_difference: 2
+  loot_table:
+    - item_id: dryad_bark
+      chance: 0.7
+    - item_id: leaf_ring
+      chance: 0.03
+
+- id: thorn_beast
+  name: "Dornenbestie"
+  level: 10
+  max_hp: 120
+  attack: 34
+  defense: 15
+  xp_reward: 420
+  gold_reward: [15, 35]
+  respawn_seconds: 180
+  regen:
+    delay_seconds: 15
+    hp_per_second: 3.0
+  ambush:
+    chance_on_enter: 0.25
+    chance_per_tick: 0.06
+    max_level_difference: 2
+  loot_table:
+    - item_id: thorn_spike
+      chance: 0.7
+    - item_id: elven_cloak
+      chance: 0.03
+
+- id: corrupted_warden
+  name: "Der Verderbte Hüter"
+  level: 10
+  max_hp: 420
+  attack: 40
+  defense: 18
+  xp_reward: 1100
+  gold_reward: [80, 160]
+  respawn_seconds: 900
+  regen:
+    delay_seconds: 20
+    hp_per_second: 6.0
+  loot_table:
+    - item_id: warden_heartwood
+      chance: 1.0
+    - item_id: elven_bow
+      chance: 0.12
+    - item_id: leaf_ring
+      chance: 0.15
+    - item_id: elixir
+      chance: 0.3

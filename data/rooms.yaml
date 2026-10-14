@@ -353,6 +353,7 @@
   bank: false
   exits:
     west: wheat_fields
+    east: border_stones
   spawns:
     - monster_id: wild_boar
       count: 2
@@ -690,5 +691,92 @@
     down: lighthouse_stairs
   spawns:
     - monster_id: sea_witch
+      count: 1
+  items: []
+
+# --- Silberhain (Stufe 8–10), hinter den Grenzsteinen östlich des Dornendickichts ---
+
+- id: border_stones
+  name: "Alte Grenzsteine"
+  description: "Moosbewachsene Steine markieren eine uralte Grenze. In einen ist eine Warnung gemeißelt: »Kehrt um, Sterbliche. Der Hain vergibt nicht mehr.« Dahinter schimmern die Bäume silbern."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    west: boar_thicket
+    east: silver_grove
+  spawns: []
+  items:
+    - item_id: elven_inscription
+      quantity: 1
+      respawn_seconds: 900
+
+- id: silver_grove
+  name: "Silberhain"
+  description: "Bäume mit Rinde wie poliertes Silber, ihre Blätter klingen leise im Wind. Zwischen den Stämmen tanzen bleiche Lichter, die dich zu sich locken wollen."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    west: border_stones
+    north: moonlit_glade
+    east: elf_hall
+  spawns:
+    - monster_id: will_o_wisp
+      count: 2
+  items:
+    - item_id: silverleaf
+      quantity: 2
+      respawn_seconds: 240
+
+- id: moonlit_glade
+  name: "Mondlichtung"
+  description: "Eine kreisrunde Lichtung, auf der es immer Nacht ist. Aus den Stämmen treten Gestalten aus Holz und Blüten, deren Augen schwarz geworden sind."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    south: silver_grove
+  spawns:
+    - monster_id: dryad
+      count: 2
+  items: []
+
+- id: elf_hall
+  name: "Verfallene Elfenhalle"
+  description: "Säulen aus lebendem Holz tragen ein Dach aus Ranken. Eine einzelne Waldläuferin hält hier Wache, ihr Bogen nie weit von der Hand."
+  safe: true
+  checkpoint: true
+  bank: false
+  exits:
+    west: silver_grove
+    east: thorn_heart
+  spawns: []
+  items: []
+
+- id: thorn_heart
+  name: "Herz der Dornen"
+  description: "Dornenranken, dick wie Arme, haben den Wald hier erstickt. In ihrem Dickicht bewegt sich etwas mit vielen Beinen und noch mehr Stacheln."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    west: elf_hall
+    north: ancient_tree
+  spawns:
+    - monster_id: thorn_beast
+      count: 2
+  items: []
+
+- id: ancient_tree
+  name: "Der Uralte Baum"
+  description: "Ein Baum, so alt wie die Welt, sein Stamm schwarz verfärbt bis zur Krone. Wo einst ein Hüter des Hains stand, regt sich jetzt etwas Verdorbenes."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    south: thorn_heart
+  spawns:
+    - monster_id: corrupted_warden
       count: 1
   items: []

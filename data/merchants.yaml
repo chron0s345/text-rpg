@@ -159,3 +159,20 @@
       price: 45
     - item_id: healing_potion
       price: 15
+
+- id: elf_ranger
+  name: "Waldläuferin Nimriel"
+  room_id: elf_hall
+  greeting: "Du bist weit gekommen für eine Sterbliche. Oder ein Sterblicher. Der Hain ist krank – kauf, was du brauchst, und hilf ihm."
+  buys: all
+  sells:
+    - item_id: elven_blade
+      price: 190
+    - item_id: elven_cloak
+      price: 210
+    - item_id: leaf_ring
+      price: 130
+    - item_id: elven_bread
+      price: 22
+    - item_id: elixir
+      price: 90
