@@ -8,6 +8,7 @@
     north: town_bank
     east: town_market
     south: forest_gate
+    west: town_smithy
   spawns: []
   items: []
 
@@ -54,6 +55,7 @@
   exits:
     north: forest_gate
     east: goblin_camp
+    south: bog_path
   spawns:
     - monster_id: goblin
       count: 1
@@ -72,7 +74,92 @@
   spawns:
     - monster_id: goblin
       count: 2
+    - monster_id: goblin_warrior
+      count: 1
   items:
     - item_id: bread
       quantity: 2
       respawn_seconds: 120
+
+- id: town_smithy
+  name: "Schmiede"
+  description: "Hitze schlägt dir aus der Esse entgegen. An den Wänden hängen Klingen, Helme und Kettenhemden."
+  safe: true
+  checkpoint: false
+  bank: false
+  exits:
+    east: town_square
+  spawns: []
+  items: []
+
+- id: bog_path
+  name: "Moorpfad"
+  description: "Morsche Bohlen führen über schwarzes Wasser. Nebel kriecht zwischen den Schilfhalmen, und irgendwo blubbert es."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    north: dark_forest
+    east: bog_camp
+    south: ruins_gate
+  spawns:
+    - monster_id: bog_lurker
+      count: 1
+    - monster_id: wolf
+      count: 1
+  items:
+    - item_id: bog_herb
+      quantity: 2
+      respawn_seconds: 180
+
+- id: bog_camp
+  name: "Lagerfeuer am Moor"
+  description: "Auf einer trockenen Anhöhe glimmt ein Feuer, das nie ganz erlischt. Wanderer rasten hier, bevor sie weiterziehen."
+  safe: true
+  checkpoint: true
+  bank: false
+  exits:
+    west: bog_path
+  spawns: []
+  items: []
+
+- id: ruins_gate
+  name: "Eingestürztes Tor"
+  description: "Zwei halb zerfallene Türme rahmen einen Durchgang aus bemoostem Stein. Zwischen den Trümmern klappert etwas."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    north: bog_path
+    south: ruins_hall
+  spawns:
+    - monster_id: skeleton
+      count: 1
+  items: []
+
+- id: ruins_hall
+  name: "Halle der Ruine"
+  description: "Eine weite Halle unter eingestürzter Kuppel. In der Mitte führt eine Treppe hinab in die Dunkelheit."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    north: ruins_gate
+    down: old_mine
+  spawns:
+    - monster_id: skeleton
+      count: 2
+  items: []
+
+- id: old_mine
+  name: "Alte Mine"
+  description: "Verrostete Schienen verlieren sich in feuchten Stollen. Es riecht nach Erde – und nach etwas sehr Großem."
+  safe: false
+  checkpoint: false
+  bank: false
+  exits:
+    up: ruins_hall
+  spawns:
+    - monster_id: cave_troll
+      count: 1
+  items: []

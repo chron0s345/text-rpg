@@ -319,7 +319,11 @@ class ViewService:
             safe=room.safe,
             bank=room.bank,
             exits=[
-                ExitView(direction, DIRECTION_NAMES[direction], self.content.get_room(target).name)
+                ExitView(
+                    direction,
+                    DIRECTION_NAMES[direction].capitalize(),  # "oben" -> "Oben" on buttons
+                    self.content.get_room(target).name,
+                )
                 for direction, target in room.exits.items()
             ],
             monsters=monster_views,

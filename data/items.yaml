@@ -72,3 +72,130 @@
   effects:
     - type: heal
       amount: 6
+
+- id: short_sword
+  name: "Kurzschwert"
+  description: "Eine solide geschmiedete Klinge, kurz genug für enge Waldwege."
+  kind: weapon
+  slot: weapon
+  icon: "sword"
+  value: 40
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 4
+
+- id: long_sword
+  name: "Langschwert"
+  description: "Eine alte, erstaunlich scharfe Klinge aus den Ruinen. Kein Schmied der Stadt fertigt so etwas."
+  kind: weapon
+  slot: weapon
+  icon: "sword"
+  value: 100
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: attack
+      amount: 6
+
+- id: leather_cap
+  name: "Lederkappe"
+  description: "Eine gepolsterte Kappe aus gehärtetem Leder."
+  kind: armor
+  slot: head
+  icon: "armor"
+  value: 12
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 1
+
+- id: leather_boots
+  name: "Lederstiefel"
+  description: "Feste Stiefel, die auch im Moor trocken halten – meistens."
+  kind: armor
+  slot: feet
+  icon: "armor"
+  value: 12
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 1
+
+- id: chain_mail
+  name: "Kettenhemd"
+  description: "Tausende kleine Ringe, schwer, aber zuverlässig."
+  kind: armor
+  slot: chest
+  icon: "armor"
+  value: 90
+  sellable: true
+  stackable: false
+  effects:
+    - type: stat
+      stat: defense
+      amount: 4
+
+- id: large_bag
+  name: "Große Tasche"
+  description: "Ein geräumiger Lederranzen mit vielen Fächern."
+  kind: bag
+  slot: bag
+  icon: "bag"
+  bag_slots: 4
+  value: 70
+  sellable: true
+  stackable: false
+
+- id: greater_potion
+  name: "Großer Heiltrank"
+  description: "Ein bauchiges Fläschchen mit tiefroter Essenz. Stellt sofort 35 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "potion"
+  value: 40
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - type: heal
+      amount: 35
+
+- id: bog_herb
+  name: "Moorkraut"
+  description: "Ein bitter riechendes Kraut. Gekaut stellt es 4 Lebenspunkte wieder her."
+  kind: consumable
+  icon: "herb"
+  value: 2
+  sellable: true
+  stackable: true
+  max_stack: 10
+  effects:
+    - type: heal
+      amount: 4
+
+- id: bone_dust
+  name: "Knochenstaub"
+  description: "Fein gemahlene Knochen. Alchemisten zahlen ein paar Münzen dafür."
+  kind: misc
+  icon: "trophy"
+  value: 6
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: troll_tusk
+  name: "Trollhauer"
+  description: "Ein gewaltiger, gelblicher Hauer. Beweis für einen Sieg, von dem man erzählen wird."
+  kind: misc
+  icon: "trophy"
+  value: 30
+  sellable: true
+  stackable: true
+  max_stack: 5

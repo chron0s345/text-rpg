@@ -11,3 +11,25 @@
       price: 3
     - item_id: small_bag
       price: 25
+    - item_id: greater_potion
+      price: 40
+    - item_id: large_bag
+      price: 70
+
+- id: smith
+  name: "Schmied Brandt"
+  room_id: town_smithy
+  greeting: "Gutes Eisen rettet Leben. Was darf's sein?"
+  buys: listed
+  buys_kinds: [weapon, armor]
+  sells:
+    - item_id: short_sword
+      price: 40
+    - item_id: leather_armor
+      price: 20
+    - item_id: leather_cap
+      price: 12
+    - item_id: leather_boots
+      price: 12
+    - item_id: chain_mail
+      price: 90
