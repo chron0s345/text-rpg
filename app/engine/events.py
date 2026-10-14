@@ -14,7 +14,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from app.content.schemas import PlayerState
-from app.engine.state import InventoryItemState
+from app.engine.state import InventoryItemState, QuestState
 
 # --- Audiences --------------------------------------------------------------
 
@@ -198,6 +198,19 @@ class InviteDelete(BaseModel):
     player_id: UUID
 
 
+class QuestUpsert(BaseModel):
+    player_id: UUID
+    quest_id: str
+    status: str
+    progress: int
+    times_completed: int
+
+
+class QuestDelete(BaseModel):
+    player_id: UUID
+    quest_id: str
+
+
 class StateChanges(BaseModel):
     """Final state changes of one engine call.
 
@@ -232,6 +245,8 @@ class StateChanges(BaseModel):
     trade_offers_upsert: list[TradeOfferUpsert] = Field(default_factory=list)
     trade_offers_delete: list[TradeOfferDelete] = Field(default_factory=list)
     trade_logs: list[TradeLogCreate] = Field(default_factory=list)
+    quests_upsert: list[QuestUpsert] = Field(default_factory=list)
+    quests_delete: list[QuestDelete] = Field(default_factory=list)
 
 
 class ActionResult(BaseModel):
@@ -257,6 +272,23 @@ class ResultBuilder:
 
     def update_monster(self, monster_instance_id: UUID, **fields: Any) -> None:
         self._monsters.setdefault(monster_instance_id, {}).update(fields)
+
+    def upsert_quest(self, player_id: UUID, quest: QuestState) -> None:
+        """Records the quest's current state; a later upsert of the same quest replaces it."""
+        self.changes.quests_upsert = [
+            u
+            for u in self.changes.quests_upsert
+            if (u.player_id, u.quest_id) != (player_id, quest.quest_id)
+        ]
+        self.changes.quests_upsert.append(
+            QuestUpsert(
+                player_id=player_id,
+                quest_id=quest.quest_id,
+                status=quest.status,
+                progress=quest.progress,
+                times_completed=quest.times_completed,
+            )
+        )
 
     def upsert_inventory(self, player_id: UUID, entries: list[InventoryItemState]) -> None:
         """Records new/changed stacks; a later upsert of the same entry replaces the earlier one."""

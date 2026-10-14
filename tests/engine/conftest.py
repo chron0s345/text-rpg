@@ -12,6 +12,7 @@ from app.content.schemas import (
     ItemTemplate,
     LootEntry,
     MonsterTemplate,
+    QuestTemplate,
     RareVariant,
     Regeneration,
     Rules,
@@ -110,6 +111,43 @@ def content() -> ContentRegistry:
         stackable=True,
         max_stack=10,
     )
+    quests = {
+        "tails": QuestTemplate.model_validate(
+            {
+                "id": "tails",
+                "name": "Rattenplage",
+                "giver_id": "alchemist",
+                "description": "Bring mir drei Goblinohren.",
+                "completion_text": "Danke!",
+                "objective": {"type": "deliver", "item_id": "goblin_ear", "quantity": 3},
+                "reward": {"xp": 40, "gold": 12, "items": [{"item_id": "healing_potion"}]},
+            }
+        ),
+        "hunt": QuestTemplate.model_validate(
+            {
+                "id": "hunt",
+                "name": "Puppenjagd",
+                "giver_id": "alchemist",
+                "description": "Zerschlage zwei Übungspuppen.",
+                "completion_text": "Gut gemacht.",
+                "objective": {"type": "kill", "monster_id": "plain", "count": 2},
+                "reward": {"gold": 5},
+                "requires": ["tails"],
+                "repeatable": True,
+            }
+        ),
+        "veteran": QuestTemplate.model_validate(
+            {
+                "id": "veteran",
+                "name": "Nur für Erfahrene",
+                "giver_id": "smith",
+                "description": "...",
+                "completion_text": "...",
+                "objective": {"type": "deliver", "item_id": "bread", "quantity": 1},
+                "min_level": 5,
+            }
+        ),
+    }
     return dataclasses.replace(
         real,
         monsters={
@@ -122,6 +160,7 @@ def content() -> ContentRegistry:
             "plain": plain,
             "golden": golden,
         },
+        quests={**real.quests, **quests},
         items={
             **real.items,
             "amulet": amulet,

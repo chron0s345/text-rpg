@@ -50,6 +50,9 @@ from app.api.schemas import (
     LookAction,
     MoveAction,
     PickUpAction,
+    QuestAbandonAction,
+    QuestAcceptAction,
+    QuestTurnInAction,
     RespawnAction,
     SayAction,
     SellAction,
@@ -103,6 +106,7 @@ from app.engine.presence import (
     resolve_login,
     resolve_logout,
 )
+from app.engine.quests import resolve_quest_abandon, resolve_quest_accept, resolve_quest_turn_in
 from app.engine.respawn import respawn_due_monsters
 from app.engine.state import ActionSnapshot, GroupActionSnapshot, PlayerRef, TradeActionSnapshot
 from app.engine.trade import (
@@ -648,6 +652,12 @@ class ActionService:
                 return resolve_respawn(*args)
             case InspectAction():
                 return resolve_inspect(*args, action.item_id)
+            case QuestAcceptAction():
+                return resolve_quest_accept(*args, action.quest_id)
+            case QuestTurnInAction():
+                return resolve_quest_turn_in(*args, action.quest_id)
+            case QuestAbandonAction():
+                return resolve_quest_abandon(*args, action.quest_id)
             case InventoryAction():
                 return resolve_inventory(*args)
             case UseItemAction():

@@ -2,7 +2,8 @@
 
 Lock order (ARCHITECTURE.md, "Locking") — every code path takes row locks in this order to avoid
 deadlocks: Group -> Trade -> Player (sorted by id) -> InventoryItem -> BankItem ->
-MonsterInstance -> FloorItem -> ItemSpawnState; group actions: Group -> Player -> GroupInvite;
+QuestProgress -> MonsterInstance -> FloorItem -> ItemSpawnState;
+group actions: Group -> Player -> GroupInvite;
 trade actions: Trade -> Player -> InventoryItem -> TradeOffer.
 Within a table rows are locked sorted by primary key.
 
@@ -52,6 +53,7 @@ from app.db.models import (
     LogEntry,
     MonsterInstance,
     Player,
+    QuestProgress,
     Trade,
     TradeLog,
     TradeOffer,
@@ -96,6 +98,7 @@ class Locks:
     inventory: dict[UUID, UUID] = field(default_factory=dict)  # item id -> owner id
     bank: dict[UUID, UUID] = field(default_factory=dict)  # bank item id -> owner id
     bank_owners: set[UUID] = field(default_factory=set)  # banks locked (also when empty)
+    quest_owners: set[UUID] = field(default_factory=set)  # players whose quest rows are locked
     monsters: set[UUID] = field(default_factory=set)
     participations: set[tuple[UUID, UUID]] = field(default_factory=set)
     floor_items: set[UUID] = field(default_factory=set)
@@ -167,6 +170,21 @@ class Repository:
         )
         rows = await self._lock_rows(stmt)
         self.locks.inventory.update({r.id: r.player_id for r in rows})
+        return rows
+
+    async def lock_quests(self, player_ids: Iterable[UUID]) -> list[QuestProgress]:
+        """Quest rows of these players. New rows are only ever inserted for a locked player,
+        so the player lock already serializes them; locking existing rows keeps updates safe."""
+        ids = sorted(set(player_ids))
+        if not ids:
+            return []
+        stmt = (
+            select(QuestProgress)
+            .where(col(QuestProgress.player_id).in_(ids))
+            .order_by(col(QuestProgress.player_id), col(QuestProgress.quest_id))
+        )
+        rows = await self._lock_rows(stmt)
+        self.locks.quest_owners.update(ids)
         return rows
 
     async def lock_bank(self, player_ids: Iterable[UUID]) -> list[BankItem]:
@@ -514,6 +532,7 @@ class Repository:
         player_ids = [actor.id, *(p.id for p in in_room)]
         inventory = await self.lock_inventories(player_ids)
         bank = await self.lock_bank([actor.id]) if with_bank else []
+        quests = await self.lock_quests(player_ids)
         monsters = await self.lock_monsters_in_room(room)
         participations = await self.lock_participations([m.id for m in monsters])
         floor_items = await self.lock_floor_items_in_room(room)
@@ -524,9 +543,16 @@ class Repository:
         for item in inventory:
             by_player[item.player_id].append(item)
 
+        quests_by_player: dict[UUID, list[QuestProgress]] = {pid: [] for pid in player_ids}
+        for quest in quests:
+            quests_by_player[quest.player_id].append(quest)
+
         def snap(row: Player) -> PlayerSnapshot:
             return player_snapshot(
-                row, by_player[row.id], [i.id for i in by_player[row.id] if i.id in locked_items]
+                row,
+                by_player[row.id],
+                [i.id for i in by_player[row.id] if i.id in locked_items],
+                quests_by_player[row.id],
             )
 
         return ActionSnapshot(
@@ -592,6 +618,22 @@ class Repository:
                 exclude_unset=True, exclude={"player_id"}
             ).items():
                 setattr(player, key, value)
+
+        for deleted in changes.quests_delete:
+            self._require(deleted.player_id in locks.quest_owners, "quest")
+            row = await session.get(QuestProgress, (deleted.player_id, deleted.quest_id))
+            if row is not None:
+                await session.delete(row)
+
+        for quest in changes.quests_upsert:
+            self._require(quest.player_id in locks.quest_owners, "quest")
+            row = await session.get(QuestProgress, (quest.player_id, quest.quest_id))
+            if row is None:
+                row = QuestProgress(player_id=quest.player_id, quest_id=quest.quest_id)
+                session.add(row)
+            row.status = quest.status
+            row.progress = quest.progress
+            row.times_completed = quest.times_completed
 
         for monster_update in changes.monsters:
             self._require(monster_update.monster_instance_id in locks.monsters, "monster")

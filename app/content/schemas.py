@@ -130,6 +130,53 @@ class MerchantTemplate(BaseModel):
     sell_ratio: Probability | None = None  # überschreibt rules.merchant.sell_ratio
 
 
+# --- quests.yaml ------------------------------------------------------------
+
+
+class DeliverObjective(BaseModel):
+    """Bring items to the quest giver (they are taken on turn-in)."""
+
+    type: Literal["deliver"] = "deliver"
+    item_id: str
+    quantity: PositiveInt = 1
+
+
+class KillObjective(BaseModel):
+    """Kill monsters; a kill counts for every member of the credited party in the room.
+    Rare variants count for their base monster."""
+
+    type: Literal["kill"] = "kill"
+    monster_id: str
+    count: PositiveInt = 1
+
+
+Objective = Annotated[DeliverObjective | KillObjective, Field(discriminator="type")]
+
+
+class RewardItem(BaseModel):
+    item_id: str
+    quantity: PositiveInt = 1
+
+
+class QuestReward(BaseModel):
+    xp: NonNegativeInt = 0
+    gold: NonNegativeInt = 0
+    items: list[RewardItem] = Field(default_factory=list)
+
+
+class QuestTemplate(BaseModel):
+    id: str
+    name: str
+    giver_id: str  # MerchantTemplate.id: accepted and turned in where that merchant stands
+    description: str  # the task, as the giver tells it
+    completion_text: str  # what the giver says on turn-in
+    objective: Objective
+    reward: QuestReward = Field(default_factory=QuestReward)
+    min_level: PositiveInt = 1
+    requires: list[str] = Field(default_factory=list)  # quest ids that must be completed first
+    repeatable: bool = False
+
+
 # --- rules.yaml -------------------------------------------------------------
 # Bewusst ohne Defaults: Alle Balancing-Werte stehen ausschließlich in data/rules.yaml.
 

@@ -19,7 +19,14 @@ from sqlmodel import col
 from app.content.describe import item_summary
 from app.content.prices import buy_price, sell_price
 from app.content.registry import ContentRegistry
-from app.content.schemas import Direction, Heal, MerchantOffer, MerchantTemplate
+from app.content.schemas import (
+    DeliverObjective,
+    Direction,
+    Heal,
+    MerchantOffer,
+    MerchantTemplate,
+    QuestTemplate,
+)
 from app.db.mappers import bank_item_state, player_snapshot
 from app.db.models import (
     BankItem,
@@ -30,13 +37,15 @@ from app.db.models import (
     LogEntry,
     MonsterInstance,
     Player,
+    QuestProgress,
     Trade,
     TradeOffer,
 )
 from app.engine.inventory import calculate_inventory_capacity, get_occupied_slots
 from app.engine.movement import DIRECTION_NAMES
+from app.engine.quests import objective_progress, quests_offered_here
 from app.engine.regeneration import calculate_current_monster_hp
-from app.engine.state import InventoryItemState
+from app.engine.state import InventoryItemState, PlayerSnapshot
 from app.engine.stats import stats_of
 from app.services.action_service import utc_now
 
@@ -210,6 +219,34 @@ class LogLine:
 
 
 @dataclass(frozen=True)
+class QuestOfferView:
+    id: str
+    name: str
+    giver: str
+    description: str
+    objective: str
+    reward: str
+
+
+@dataclass(frozen=True)
+class ActiveQuestView:
+    id: str
+    name: str
+    giver: str
+    objective: str
+    done: int
+    needed: int
+    can_turn_in: bool  # complete and the giver stands here
+
+
+@dataclass(frozen=True)
+class QuestsView:
+    offers: list[QuestOfferView]  # from givers in this room
+    active: list[ActiveQuestView]
+    completed: int  # number of quests finished at least once
+
+
+@dataclass(frozen=True)
 class GameView:
     player: PlayerView
     room: RoomView
@@ -218,6 +255,7 @@ class GameView:
     shops: list[ShopView]  # merchants in the room
     bank: BankView | None  # only in bank rooms
     trade: TradeView | None  # my active trade (request or open)
+    quests: QuestsView
 
 
 class ViewService:
@@ -270,6 +308,11 @@ class ViewService:
                     .order_by(col(Player.name))
                 )
             ).all()
+            quest_rows = (
+                await session.scalars(
+                    select(QuestProgress).where(col(QuestProgress.player_id) == player_id)
+                )
+            ).all()
             floor = (
                 await session.scalars(
                     select(FloorItem)
@@ -278,7 +321,7 @@ class ViewService:
                 )
             ).all()
 
-        snapshot = player_snapshot(row, inventory)
+        snapshot = player_snapshot(row, inventory, quests=quest_rows)
         stats = stats_of(snapshot, self.content.items)
         rules = self.content.rules
         next_rule = next((r for r in rules.levels if r.level == row.level + 1), None)
@@ -372,7 +415,55 @@ class ViewService:
             shops=shops,
             bank=bank_view,
             trade=trade_view,
+            quests=self._quests(snapshot),
         )
+
+    def _objective_text(self, quest: QuestTemplate) -> str:
+        objective = quest.objective
+        if isinstance(objective, DeliverObjective):
+            return f"Bringe {objective.quantity}× {self.content.get_item(objective.item_id).name}"
+        return f"Besiege {objective.count}× {self.content.get_monster(objective.monster_id).name}"
+
+    def _reward_text(self, quest: QuestTemplate) -> str:
+        parts = [f"{quest.reward.xp} XP"] if quest.reward.xp else []
+        parts += [f"{quest.reward.gold} Gold"] if quest.reward.gold else []
+        for reward in quest.reward.items:
+            name = self.content.get_item(reward.item_id).name
+            parts.append(f"{reward.quantity}× {name}" if reward.quantity > 1 else name)
+        return ", ".join(parts)
+
+    def _quests(self, player: PlayerSnapshot) -> QuestsView:
+        offers = [
+            QuestOfferView(
+                id=quest.id,
+                name=quest.name,
+                giver=self.content.merchants[quest.giver_id].name,
+                description=quest.description,
+                objective=self._objective_text(quest),
+                reward=self._reward_text(quest),
+            )
+            for quest in quests_offered_here(player, self.content)
+        ]
+        active = []
+        for state in player.quests:
+            quest = self.content.quests.get(state.quest_id)
+            if state.status != "active" or quest is None:
+                continue
+            giver = self.content.merchants[quest.giver_id]
+            done, needed = objective_progress(quest, state, player)
+            active.append(
+                ActiveQuestView(
+                    id=quest.id,
+                    name=quest.name,
+                    giver=giver.name,
+                    objective=self._objective_text(quest),
+                    done=done,
+                    needed=needed,
+                    can_turn_in=done >= needed and giver.room_id == player.current_room_id,
+                )
+            )
+        completed = sum(1 for q in player.quests if q.times_completed > 0)
+        return QuestsView(offers=offers, active=active, completed=completed)
 
     async def _trade(self, player_id: UUID) -> TradeView | None:
         async with self.sessions() as session:

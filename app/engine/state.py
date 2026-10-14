@@ -39,6 +39,13 @@ class PlayerRef(BaseModel):
     name: str
 
 
+class QuestState(BaseModel):
+    quest_id: str
+    status: Literal["active", "completed"]
+    progress: int = 0  # kills so far (kill quests)
+    times_completed: int = 0
+
+
 class PlayerSnapshot(BaseModel):
     id: UUID
     account_id: UUID
@@ -60,9 +67,14 @@ class PlayerSnapshot(BaseModel):
     inventory: list[InventoryItemState] = Field(default_factory=list)
     # inventory entries offered in an open trade: cannot be dropped, used, equipped, sold, banked
     locked_item_ids: list[UUID] = Field(default_factory=list)
+    # quests ever accepted; loaded for players of an action snapshot (else empty)
+    quests: list[QuestState] = Field(default_factory=list)
 
     def item(self, inventory_item_id: UUID) -> InventoryItemState | None:
         return next((i for i in self.inventory if i.id == inventory_item_id), None)
+
+    def quest(self, quest_id: str) -> QuestState | None:
+        return next((q for q in self.quests if q.quest_id == quest_id), None)
 
     @property
     def party_key(self) -> str:

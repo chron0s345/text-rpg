@@ -18,6 +18,7 @@ from app.engine.events import (
 from app.engine.inventory import add_item_to_inventory, calculate_inventory_capacity
 from app.engine.loot import distribute_gold, distribute_xp, roll_monster_gold, roll_monster_loot
 from app.engine.progression import apply_xp
+from app.engine.quests import count_kill
 from app.engine.state import (
     ActionSnapshot,
     GroupSnapshot,
@@ -81,6 +82,7 @@ def resolve_kill(
 
     tag = monster.tagged_by_party or killer.party_key
     recipients, group = party_members_in_room(snapshot, tag, monster.id)
+    count_kill(builder, recipients, monster.monster_id, content)
     cursor = group.loot_cursor if group is not None else 0
     cursor = _grant_gold(builder, recipients, template, cursor, rng)
     cursor = _grant_items(builder, recipients, monster, template, content, rules, cursor, now, rng)

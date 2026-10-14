@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import Any, cast
+from typing import Any, Literal, cast
 from uuid import UUID
 
 from app.content.schemas import EquipSlot, PlayerState
@@ -16,6 +16,7 @@ from app.db.models import (
     InventoryItem,
     MonsterInstance,
     Player,
+    QuestProgress,
     Trade,
     TradeOffer,
 )
@@ -27,6 +28,7 @@ from app.engine.state import (
     MonsterSnapshot,
     ParticipationSnapshot,
     PlayerSnapshot,
+    QuestState,
     TradeOfferSnapshot,
     TradeSnapshot,
 )
@@ -42,7 +44,10 @@ def inventory_item_state(row: InventoryItem) -> InventoryItemState:
 
 
 def player_snapshot(
-    row: Player, inventory: Iterable[InventoryItem], locked_item_ids: Iterable[UUID] = ()
+    row: Player,
+    inventory: Iterable[InventoryItem],
+    locked_item_ids: Iterable[UUID] = (),
+    quests: Iterable[QuestProgress] = (),
 ) -> PlayerSnapshot:
     return PlayerSnapshot(
         id=row.id,
@@ -64,6 +69,16 @@ def player_snapshot(
         disconnected=row.disconnected_at is not None,
         inventory=[inventory_item_state(i) for i in inventory],
         locked_item_ids=list(locked_item_ids),
+        quests=[quest_state(q) for q in quests],
+    )
+
+
+def quest_state(row: QuestProgress) -> QuestState:
+    return QuestState(
+        quest_id=row.quest_id,
+        status=cast(Literal["active", "completed"], row.status),
+        progress=row.progress,
+        times_completed=row.times_completed,
     )
 
 

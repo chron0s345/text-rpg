@@ -170,6 +170,21 @@ class InventoryAction(BaseModel):
     type: Literal["inventory"] = "inventory"
 
 
+class QuestAcceptAction(BaseModel):
+    type: Literal["quest_accept"] = "quest_accept"
+    quest_id: str = Field(min_length=1, max_length=64)
+
+
+class QuestTurnInAction(BaseModel):
+    type: Literal["quest_turn_in"] = "quest_turn_in"
+    quest_id: str = Field(min_length=1, max_length=64)
+
+
+class QuestAbandonAction(BaseModel):
+    type: Literal["quest_abandon"] = "quest_abandon"
+    quest_id: str = Field(min_length=1, max_length=64)
+
+
 class InspectAction(BaseModel):
     type: Literal["inspect"] = "inspect"
     item_id: str = Field(min_length=1, max_length=64)
@@ -211,6 +226,9 @@ GameAction = Annotated[
     | RespawnAction
     | LookAction
     | InventoryAction
+    | QuestAcceptAction
+    | QuestTurnInAction
+    | QuestAbandonAction
     | InspectAction
     | LogoutAction,
     Field(discriminator="type"),
