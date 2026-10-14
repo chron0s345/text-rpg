@@ -12,6 +12,7 @@ from app.content.schemas import (
     ItemTemplate,
     LootEntry,
     MonsterTemplate,
+    RareVariant,
     Regeneration,
     Rules,
     StatModifier,
@@ -66,6 +67,16 @@ def content() -> ContentRegistry:
             "ambush": Ambush(chance_on_enter=1.0, chance_per_tick=1.0, max_level_difference=2),
         }
     )
+    plain = dummy.model_copy(
+        update={
+            "id": "plain",
+            "name": "Feldmaus",
+            "rare_variant": RareVariant(monster_id="golden", chance=0.25),
+        }
+    )
+    golden = dummy.model_copy(
+        update={"id": "golden", "name": "Goldene Feldmaus", "max_hp": 30, "xp_reward": 300}
+    )
     amulet = ItemTemplate(
         id="amulet",
         name="Amulett",
@@ -92,6 +103,8 @@ def content() -> ContentRegistry:
             "hoard": hoard,
             "ears": ears,
             "ambusher": ambusher,
+            "plain": plain,
+            "golden": golden,
         },
         items={**real.items, "amulet": amulet, "knives": knives},
     )
