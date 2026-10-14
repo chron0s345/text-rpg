@@ -20,3 +20,9 @@ python_version = "3.12"
 strict = true
 ignore_missing_imports = true
 exclude = ["venv", ".venv"]
+
+[tool.coverage.run]
+# SQLAlchemy's asyncio layer runs database code in greenlets: without this, coverage misses
+# those lines and reports most service code as untested (pytest --cov=app)
+concurrency = ["greenlet", "thread"]
+source = ["app"]
