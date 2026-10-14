@@ -358,7 +358,9 @@ class ViewService:
             ).all()
             quest_rows = (
                 await session.scalars(
-                    select(QuestProgress).where(col(QuestProgress.player_id) == player_id)
+                    select(QuestProgress)
+                    .where(col(QuestProgress.player_id) == player_id)
+                    .order_by(col(QuestProgress.quest_id))
                 )
             ).all()
             floor = (
@@ -369,7 +371,10 @@ class ViewService:
                 )
             ).all()
 
-        snapshot = player_snapshot(row, inventory, quests=quest_rows)
+        # items offered in a trade count as locked, exactly as in the engine (deliveries, crafting)
+        trade_view = await self._trade(row.id)
+        offered = {i.inventory_item_id for i in trade_view.my_items} if trade_view else set()
+        snapshot = player_snapshot(row, inventory, locked_item_ids=offered, quests=quest_rows)
         stats = stats_of(snapshot, self.content.items)
         rules = self.content.rules
         next_rule = next((r for r in rules.levels if r.level == row.level + 1), None)
@@ -436,8 +441,6 @@ class ViewService:
         )
 
         merchants = self.content.merchants_in_room(room.id)
-        trade_view = await self._trade(row.id)
-        offered = {i.inventory_item_id for i in trade_view.my_items} if trade_view else set()
         items = [self._item(entry, merchants, offered) for entry in snapshot.inventory]
         inventory_view = InventoryView(
             used=get_occupied_slots(snapshot.inventory),
@@ -543,9 +546,7 @@ class ViewService:
     def _reward_text(self, quest: QuestTemplate) -> str:
         parts = [f"{quest.reward.xp} XP"] if quest.reward.xp else []
         parts += [f"{quest.reward.gold} Gold"] if quest.reward.gold else []
-        for reward in quest.reward.items:
-            name = self.content.get_item(reward.item_id).name
-            parts.append(f"{reward.quantity}× {name}" if reward.quantity > 1 else name)
+        parts += [quantity_text(self.content, r.item_id, r.quantity) for r in quest.reward.items]
         return ", ".join(parts)
 
     def _quests(self, player: PlayerSnapshot) -> QuestsView:

@@ -9,10 +9,16 @@ import random
 
 from app.content.registry import ContentRegistry
 from app.content.schemas import Rules
+from app.engine.actions import resolve_respawn
 from app.engine.combat import resolve_attack
 from app.engine.events import ResultBuilder
 from app.engine.movement import resolve_move
-from app.engine.quests import count_visit, resolve_quest_accept, resolve_quest_turn_in
+from app.engine.quests import (
+    MAX_ACTIVE_QUESTS,
+    count_visit,
+    resolve_quest_accept,
+    resolve_quest_turn_in,
+)
 from app.engine.state import ActionSnapshot, PlayerSnapshot, QuestState
 from tests.engine.factories import NOW, actor_texts, make_monster, make_player
 from tests.engine.test_inventory_actions import give
@@ -87,3 +93,26 @@ def test_a_visit_to_where_one_stands_is_done_at_once(
     actor.current_room_id = "town_market"
     done = resolve_quest_turn_in(ActionSnapshot(actor=actor), content, rules, NOW, RNG, "errand")
     assert actor_texts(done)[0] == "Auftrag erledigt: Botengang. Alchemistin Elira: „Danke.“"
+
+
+def test_waking_up_at_a_destination_counts(content: ContentRegistry, rules: Rules) -> None:
+    actor = make_player(room="dark_forest")
+    actor.quests = [QuestState(quest_id="tour", status="active")]  # step 0: the town square
+    actor.state = "dead"
+    actor.hp = 0
+    result = resolve_respawn(ActionSnapshot(actor=actor), content, rules, NOW, RNG)
+    assert actor.current_room_id == "town_square"  # the checkpoint
+    assert "Rundgang: Marktplatz von Oakhaven erreicht – weiter: Besiege 1× Feldmaus." in (
+        actor_texts(result)
+    )
+
+
+def test_orphaned_quests_do_not_block_the_quest_limit(
+    content: ContentRegistry, rules: Rules
+) -> None:
+    actor = make_player(room="town_market")
+    actor.quests = [
+        QuestState(quest_id=f"removed_{i}", status="active") for i in range(MAX_ACTIVE_QUESTS)
+    ]
+    result = resolve_quest_accept(ActionSnapshot(actor=actor), content, rules, NOW, RNG, "tour")
+    assert actor_texts(result)[0].startswith("Auftrag angenommen: Rundgang.")

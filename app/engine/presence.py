@@ -21,6 +21,7 @@ from app.content.schemas import Rules
 from app.engine.death import apply_player_death
 from app.engine.events import ActionResult, ResultBuilder, RoomAudience
 from app.engine.permissions import check_state
+from app.engine.quests import count_visit
 from app.engine.state import ActionSnapshot, PlayerSnapshot
 
 LOGGED_IN: Final = "session.logged_in"
@@ -64,6 +65,8 @@ def resolve_login(
     builder.to_actor(LOGGED_IN, text, room_id=room.id, state=actor.state)
     if (intro := _intro_hint(actor, content, rules)) is not None:
         builder.to_actor("player.hint", intro)
+    if not already_online:  # entering the world where a visit step leads counts
+        count_visit(builder, actor, content)
     if not already_online:
         builder.event(
             "player.entered_world",

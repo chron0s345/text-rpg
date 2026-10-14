@@ -161,7 +161,11 @@ def resolve_quest_accept(
         return rejected(f"{giver.name} ist nicht hier.")
     if reason := why_not_offered(quest, actor, content):
         return rejected(reason)
-    if sum(1 for q in actor.quests if q.status == "active") >= MAX_ACTIVE_QUESTS:
+    # rows of quests removed from the content are invisible and cannot be abandoned: ignore them
+    open_quests = sum(
+        1 for q in actor.quests if q.status == "active" and q.quest_id in content.quests
+    )
+    if open_quests >= MAX_ACTIVE_QUESTS:
         return rejected(f"Du hast schon {MAX_ACTIVE_QUESTS} offene Aufträge.")
 
     previous = actor.quest(quest.id)
