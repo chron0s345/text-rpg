@@ -24,6 +24,7 @@ BOSSES = {
     "cave_troll",
     "grave_lord",
     "sea_witch",
+    "corrupted_warden",
     "spider_queen",
     "ice_drake",
     "ignaros",

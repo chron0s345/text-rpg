@@ -6,6 +6,7 @@ from __future__ import annotations
 import random
 from datetime import datetime
 
+from app.content.describe import item_summary
 from app.content.registry import ContentRegistry
 from app.content.schemas import Rules
 from app.engine.events import (
@@ -117,6 +118,29 @@ def resolve_whisper(
         from_name=actor.name,
         message=message,
     )
+    return builder.build()
+
+
+def resolve_inspect(
+    snapshot: ActionSnapshot,
+    content: ContentRegistry,
+    rules: Rules,
+    now: datetime,
+    rng: random.Random,
+    item_id: str,
+) -> ActionResult:
+    """Description and numbers of an item, into the actor's log (shop offers, the ground, the
+    backpack: item texts are no secret). Lore items tell their story this way."""
+    actor = snapshot.actor
+    if denied := check_state("inspect", actor):
+        return denied
+    item = content.items.get(item_id)
+    if item is None:
+        return rejected("So etwas kennst du nicht.")
+    summary = item_summary(item)
+    text = f"{item.name}: {item.description}" + (f" ({summary})" if summary else "")
+    builder = ResultBuilder(actor_id=actor.id)
+    builder.to_actor("item.inspected", text, item_id=item.id)
     return builder.build()
 
 

@@ -12,6 +12,10 @@ Dein Passwort änderst du auf der Charakterauswahl. Dabei werden alle anderen Ge
 
 Neue Charaktere starten auf Stufe 1 auf dem **Marktplatz von Oakhaven**.
 
+### Fundstücke
+
+Überall in der Welt liegen **Briefe, Tagebuchseiten und Chroniken** – am Brunnen von Oakhaven, im Goblin-Lager, in der Gruft, im Zwergenposten und an noch dunkleren Orten; manche tragen auch Monster bei sich. Ein Klick auf den Namen liest sie vor. Zusammen erzählen sie, warum die Toten laufen, woher das grüne Licht kommt und was unter der Mine wartet.
+
 ### Räume
 
 | Raum | Besonderheit |
@@ -31,6 +35,12 @@ Neue Charaktere starten auf Stufe 1 auf dem **Marktplatz von Oakhaven**.
 | Alter Friedhof (südlich des Feldwegs) | drei Wandelnde Leichname |
 | Gruft der Familie Valen (unter dem Friedhof) | zwei Gruftritter |
 | Grabkammer des Grabfürsten (nördlich der Gruft) | Grabfürst Valen – nur für Gruppen |
+| Alte Grenzsteine (östlich des Dornendickichts) | keine Monster – aber eine Warnung: dahinter beginnt Stufe 8 |
+| Silberhain | zwei Irrlichter (greifen nicht von selbst an), Silberblätter |
+| Mondlichtung (nördlich des Hains) | zwei Verdorbene Dryaden |
+| Verfallene Elfenhalle (östlich des Hains) | sicher, Checkpoint, Waldläuferin Nimriel (Elfenausrüstung, Elfenbrot) |
+| Herz der Dornen (östlich der Halle) | zwei Dornenbestien |
+| Der Uralte Baum (nördlich der Dornen) | Der Verderbte Hüter – nur für Gruppen |
 | Klippenpfad (westlich des Waldes) | zwei Felsenkrabben – greifen nur an, wenn man sie stört; Miesmuscheln am Fels |
 | Fischerdorf Möwenstein (nördlich des Klippenpfads) | sicher, Checkpoint, Fischerin Maren (Räucherfisch, Harpune, Ölzeug) |
 | Gezeitenhöhlen (unter dem Klippenpfad) | zwei Ertrunkene Seeleute |
@@ -64,7 +74,7 @@ Neue Charaktere starten auf Stufe 1 auf dem **Marktplatz von Oakhaven**.
 | Halle der Stille (nördlich der Zuflucht) | zwei Schattenwächter |
 | Thron der Schatten (nördlich der Halle) | Schattenkönig Morvath – der letzte Gegner, nur für Gruppen |
 
-Die Welt wird nach außen gefährlicher: Rund um Oakhaven, im Wald und in den **Kornfeldern** östlich der Stadt kommt man mit Stufe 1–3 zurecht; Moor, Ruine, Mine und die Gruft unter dem Alten Friedhof sind für Stufe 3–5. Die **Sturmküste** westlich des Waldes schlägt die Brücke zu Stufe 6–7, mit der Seehexe Morwenna im Leuchtturm. Das **Grauzahn-Gebirge** östlich des Moors und **die Tiefen** unter der Mine sind für Stufe 6–10; die beiden Bosse dort (Spinnenkönigin, Eisdrache) schafft man nur in der Gruppe oder mit vielen Tränken. Im Zwergenposten gibt es eine zweite Bank. Nördlich des Zwergenpostens liegt der **Feuerschlund** für Stufe 11–13, mit dem Glutfürsten Ignaros im Herzen des Vulkans. Ganz unten, durch einen Riss unter dem Nest der Spinnenkönigin, liegt das **Schattenreich** für Stufe 14–15. Dort wartet der Schattenkönig Morvath, der stärkste Gegner des Spiels.
+Die Welt wird nach außen gefährlicher: Rund um Oakhaven, im Wald und in den **Kornfeldern** östlich der Stadt kommt man mit Stufe 1–3 zurecht; Moor, Ruine, Mine und die Gruft unter dem Alten Friedhof sind für Stufe 3–5. Die **Sturmküste** westlich des Waldes schlägt die Brücke zu Stufe 6–7, mit der Seehexe Morwenna im Leuchtturm. Hinter den Kornfeldern liegt, durch alte Grenzsteine gewarnt, der **Silberhain** für Stufe 8–10: ein Elfenwald, den der Schatten verdorben hat. Das **Grauzahn-Gebirge** östlich des Moors und **die Tiefen** unter der Mine sind für Stufe 6–10; die beiden Bosse dort (Spinnenkönigin, Eisdrache) schafft man nur in der Gruppe oder mit vielen Tränken. Im Zwergenposten gibt es eine zweite Bank. Nördlich des Zwergenpostens liegt der **Feuerschlund** für Stufe 11–13, mit dem Glutfürsten Ignaros im Herzen des Vulkans. Ganz unten, durch einen Riss unter dem Nest der Spinnenkönigin, liegt das **Schattenreich** für Stufe 14–15. Dort wartet der Schattenkönig Morvath, der stärkste Gegner des Spiels.
 
 In **sicheren Räumen** wird nicht gekämpft und niemand wird überfallen. Betrittst du einen **Checkpoint**, merkt sich dein Charakter diesen Ort; dort erwachst du nach dem Tod.
 
@@ -147,7 +157,7 @@ Danach kannst du nur noch **am Checkpoint erwachen** – mit vollen HP.
 
 - `inventory.slots` Plätze. Jeder nicht ausgerüstete Stapel belegt einen Platz, egal wie viele Stück er enthält. Ausgerüstetes belegt keinen Platz, Gold auch nicht.
 - Stapelbare Gegenstände füllen zuerst vorhandene Stapel auf (bis zur Stapelgrenze des Gegenstands, z. B. 5 Heiltränke).
-- **Ausrüstung** trägst du an acht Plätzen gleichzeitig: Waffe, Schild, Kopf, Brust, Beine, Füße, Amulett und Ring, je ein Stück. Ein neues Stück ersetzt das alte am selben Platz, das alte wandert in den Rucksack. Was ein Gegenstand bringt (z. B. „Waffe · +3 Angriff“, „heilt 15“), steht im Inventar, in der Bank und beim Händler unter seinem Namen.
+- **Ausrüstung** trägst du an acht Plätzen gleichzeitig: Waffe, Schild, Kopf, Brust, Beine, Füße, Amulett und Ring, je ein Stück. Ein neues Stück ersetzt das alte am selben Platz, das alte wandert in den Rucksack. Was ein Gegenstand bringt (z. B. „Waffe · +3 Angriff“, „heilt 15“), steht im Inventar, in der Bank und beim Händler unter seinem Namen. Ein Klick auf den Namen (auch am Boden und im Laden) schreibt die ganze Beschreibung ins Log.
 - **Schilde, Amulette und Ringe** gibt es bei jedem Ausrüstungshändler entlang des Weges (Brandt, Brunhild, Ilva, der Händler ohne Gesicht) und beim Goldschmied in Oakhaven. Die besten Stücke lassen nur die Bosse fallen.
 - **Taschen** werden ausgerüstet (bis zu `inventory.bag_slots` gleichzeitig) und geben zusätzliche Plätze (Kleine Tasche: +2). Eine Tasche ablegen geht nur, wenn danach noch alles passt.
 - Passt beim Aufheben nicht alles, nimmst du so viel, wie passt; der Rest bleibt liegen.

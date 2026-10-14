@@ -8,6 +8,7 @@ from app.content.registry import ContentRegistry
 from app.content.schemas import PlayerState, Rules
 from app.engine.actions import (
     resolve_group_say,
+    resolve_inspect,
     resolve_look,
     resolve_respawn,
     resolve_say,
@@ -66,6 +67,7 @@ RNG = random.Random(1)
         ("bank_withdraw", {"exploring"}),
         ("sell", {"exploring"}),
         ("inventory", {"exploring", "in_combat", "dead"}),
+        ("inspect", {"exploring", "in_combat", "dead"}),
     ],
 )
 def test_state_table_matches_architecture(action: str, allowed: set[str]) -> None:
@@ -76,7 +78,7 @@ def test_state_table_matches_architecture(action: str, allowed: set[str]) -> Non
 
 def test_every_action_type_has_an_entry() -> None:
     # every row of the table above is checked in test_state_table_matches_architecture
-    assert len(ALLOWED_STATES) == 31
+    assert len(ALLOWED_STATES) == 32
 
 
 def test_check_state_messages() -> None:
@@ -276,3 +278,29 @@ def test_respawn_updates_group_panel(content: ContentRegistry, rules: Rules) -> 
     group = {e.kind: e.data for e in result.events if isinstance(e.audience, GroupAudience)}
     assert group["group.member_hp"]["hp"] == 20
     assert group["group.member_moved"]["room_id"] == "town_square"
+
+
+# --- inspect --------------------------------------------------------------------------------
+
+
+def test_inspect_tells_what_an_item_is_and_does(content: ContentRegistry, rules: Rules) -> None:
+    dead = make_player()
+    dead.state = "dead"  # reading is always possible
+    result = resolve_inspect(ActionSnapshot(actor=dead), content, rules, NOW, RNG, "short_sword")
+
+    [line] = actor_texts(result)
+    sword = content.get_item("short_sword")
+    assert line == f"{sword.name}: {sword.description} (Waffe · +4 Angriff)"
+    assert result.events[0].kind == "item.inspected"
+    assert result.changes.players == []
+
+
+def test_inspect_without_numbers_and_unknown_items(content: ContentRegistry, rules: Rules) -> None:
+    snapshot = ActionSnapshot(actor=make_player())
+    ear = content.get_item("goblin_ear")
+    assert actor_texts(resolve_inspect(snapshot, content, rules, NOW, RNG, "goblin_ear")) == [
+        f"{ear.name}: {ear.description}"
+    ]
+    assert actor_texts(resolve_inspect(snapshot, content, rules, NOW, RNG, "nope")) == [
+        "So etwas kennst du nicht."
+    ]

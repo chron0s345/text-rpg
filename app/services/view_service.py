@@ -81,6 +81,7 @@ class FloorItemView:
     name: str
     icon: str | None
     quantity: int
+    item_id: str = ""  # template id, for "Ansehen"
 
 
 @dataclass(frozen=True)
@@ -112,6 +113,7 @@ class ItemView:
     tradable: bool = True
     offered: bool = False  # part of my offer in an active trade
     summary: str = ""  # what it does, e.g. "Waffe · +3 Angriff"
+    item_id: str = ""  # template id, for "Ansehen"
 
 
 @dataclass(frozen=True)
@@ -314,7 +316,9 @@ class ViewService:
             if item_row.expires_at is not None and item_row.expires_at <= now:
                 continue  # expired: hidden even before the ticker removes it
             item = self.content.get_item(item_row.item_id)
-            floor_views.append(FloorItemView(item_row.id, item.name, item.icon, item_row.quantity))
+            floor_views.append(
+                FloorItemView(item_row.id, item.name, item.icon, item_row.quantity, item.id)
+            )
         room_view = RoomView(
             id=room.id,
             name=room.name,
@@ -545,6 +549,7 @@ class ViewService:
             tradable=item.tradable,
             offered=entry.id in (offered or set()),
             summary=item_summary(item),
+            item_id=item.id,
         )
 
     async def log(self, player_id: UUID, limit: int = LOG_LINES) -> list[LogLine]:
