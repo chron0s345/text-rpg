@@ -785,6 +785,8 @@ Umsetzung: `ActionService.execute` (`app/services/action_service.py`).
 | `player:{player_id}` | Ein Charakter | Einladungen, Handelsanfragen & -änderungen, Beute, Überfall auf einen selbst |
 | `global` | Alle | Server-Ankündigungen |
 
+Server-Ankündigungen sendet der Betreiber mit `python -m app.admin announce "Text"` (höchstens 300 Zeichen): ein `server.announcement`-Event an `Global`, das über den Event-Bus jede Verbindung in jedem Prozess erreicht und im Log hervorgehoben wird. Wie alle `Global`-Events wird es nicht pro Spieler geloggt – wer offline ist, sieht es nicht. Ankündigungen und Chat lösen keine Panel-Aktualisierung aus (sonst würden bei einer Ankündigung alle Clients gleichzeitig nachladen).
+
 ### Ablauf
 
 - Jeder eingeloggte Client hält eine SSE-Verbindung auf `GET /stream`.
