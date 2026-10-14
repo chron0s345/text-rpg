@@ -35,7 +35,7 @@ SQLModel.metadata.naming_convention = {
 }
 
 PLAYER_STATES = ("exploring", "in_combat", "dead")
-EQUIP_SLOTS = ("weapon", "head", "chest", "legs", "feet", "bag")
+EQUIP_SLOTS = ("weapon", "offhand", "head", "chest", "legs", "feet", "neck", "ring", "bag")
 FLOOR_SOURCES = ("spawn", "drop", "loot")
 TRADE_STATUSES = ("requested", "open", "completed", "cancelled")
 

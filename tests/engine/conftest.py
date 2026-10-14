@@ -71,8 +71,24 @@ def content() -> ContentRegistry:
         name="Amulett",
         description="",
         kind="armor",
-        slot="head",
+        slot="neck",
         effects=[StatModifier(stat="max_hp", amount=5)],
+    )
+    buckler = ItemTemplate(
+        id="buckler",
+        name="Faustschild",
+        description="",
+        kind="armor",
+        slot="offhand",
+        effects=[StatModifier(stat="defense", amount=2)],
+    )
+    ring = ItemTemplate(
+        id="ring",
+        name="Ring der Kraft",
+        description="",
+        kind="armor",
+        slot="ring",
+        effects=[StatModifier(stat="attack", amount=3), StatModifier(stat="max_hp", amount=4)],
     )
     knives = ItemTemplate(
         id="knives",
@@ -93,7 +109,13 @@ def content() -> ContentRegistry:
             "ears": ears,
             "ambusher": ambusher,
         },
-        items={**real.items, "amulet": amulet, "knives": knives},
+        items={
+            **real.items,
+            "amulet": amulet,
+            "buckler": buckler,
+            "ring": ring,
+            "knives": knives,
+        },
     )
 
 

@@ -195,7 +195,7 @@ class ItemTemplate(BaseModel):
     name: str
     description: str
     kind: Literal["weapon", "armor", "consumable", "bag", "misc"]
-    slot: EquipSlot | None = None  # Taschen: "bag"
+    slot: EquipSlot | None = None  # weapon, offhand, head, chest, legs, feet, neck, ring, bag
     bag_slots: PositiveInt | None = None  # nur bei kind = "bag": zusätzliche Inventarplätze
     value: NonNegativeInt = 0  # Basiswert in Gold, Grundlage für Händlerpreise
     sellable: bool = True
@@ -236,6 +236,8 @@ class MerchantOffer(BaseModel):
     item_id: str
     price: PositiveInt | None = None  # None = Item-value × rules.merchant.buy_ratio
 ```
+
+Pro Ausrüstungsplatz (`EquipSlot`) trägt ein Charakter genau ein Stück, Taschen ausgenommen (bis `inventory.bag_slots`). Die Engine behandelt alle Plätze gleich; neue Plätze brauchen nur das Literal, die Check-Constraint (Migration) und einen Namen in `app/content/describe.py`. Dort entsteht auch die Kurzbeschreibung, die die Oberfläche unter jedem Itemnamen zeigt (`item_summary`, z. B. „Waffe · +3 Angriff“).
 
 ### `rules.yaml`
 
