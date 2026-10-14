@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from app.content.schemas import (
+    AchievementTemplate,
     ItemSet,
     ItemTemplate,
     MerchantTemplate,
@@ -26,6 +27,7 @@ class ContentRegistry:
     quests: dict[str, QuestTemplate] = field(default_factory=dict)
     recipes: dict[str, RecipeTemplate] = field(default_factory=dict)
     item_sets: dict[str, ItemSet] = field(default_factory=dict)  # pieces carry theirs, too
+    achievements: dict[str, AchievementTemplate] = field(default_factory=dict)
 
     def get_room(self, room_id: str) -> RoomTemplate:
         if room_id not in self.rooms:

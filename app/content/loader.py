@@ -11,14 +11,19 @@ from pydantic import BaseModel, ValidationError
 from app.content.prices import buy_price, sell_price
 from app.content.registry import ContentRegistry
 from app.content.schemas import (
+    AchievementTemplate,
     ItemSet,
     ItemTemplate,
+    KillCondition,
     MerchantTemplate,
     MonsterTemplate,
+    QuestCondition,
+    QuestCountCondition,
     QuestTemplate,
     RecipeTemplate,
     RoomTemplate,
     Rules,
+    SetCondition,
 )
 
 logger = logging.getLogger(__name__)
@@ -84,6 +89,13 @@ def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegist
         _parse_list(recipes_path, RecipeTemplate, lambda r: r.id) if recipes_path.exists() else {}
     )
 
+    achievements_path = data_dir / "achievements.yaml"  # optional
+    achievements = (
+        _parse_list(achievements_path, AchievementTemplate, lambda a: a.id)
+        if achievements_path.exists()
+        else {}
+    )
+
     rules_raw = load_yaml_file(data_dir / "rules.yaml")
     if not isinstance(rules_raw, dict):
         raise ContentValidationError("rules.yaml must contain a YAML mapping at top level")
@@ -110,6 +122,7 @@ def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegist
     if rules.intro_quest_id is not None and rules.intro_quest_id not in quests:
         raise ContentValidationError(f"rules.intro_quest_id '{rules.intro_quest_id}' is no quest")
     validate_recipes(recipes, items, merchants)
+    validate_achievements(achievements, monsters, quests, item_sets)
     if icons_dir is not None:
         validate_icons(items, Path(icons_dir))
 
@@ -121,6 +134,7 @@ def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegist
         quests=quests,
         recipes=recipes,
         item_sets=item_sets,
+        achievements=achievements,
         rules=rules,
     )
 
@@ -281,6 +295,29 @@ def validate_recipes(
             if ingredient.item_id in seen:
                 raise ContentValidationError(f"{where} lists '{ingredient.item_id}' twice")
             seen.add(ingredient.item_id)
+
+
+def validate_achievements(
+    achievements: dict[str, AchievementTemplate],
+    monsters: dict[str, MonsterTemplate],
+    quests: dict[str, QuestTemplate],
+    item_sets: dict[str, ItemSet],
+) -> None:
+    for achievement in achievements.values():
+        where = f"Achievement '{achievement.id}'"
+        condition = achievement.condition
+        if isinstance(condition, KillCondition) and condition.monster_id not in monsters:
+            raise ContentValidationError(
+                f"{where} needs an unknown monster '{condition.monster_id}'"
+            )
+        if isinstance(condition, QuestCondition) and condition.quest_id not in quests:
+            raise ContentValidationError(f"{where} needs an unknown quest '{condition.quest_id}'")
+        if isinstance(condition, QuestCountCondition) and (condition.count or 0) > len(quests):
+            raise ContentValidationError(f"{where} needs more quests than there are")
+        if isinstance(condition, SetCondition) and (
+            condition.set_id is not None and condition.set_id not in item_sets
+        ):
+            raise ContentValidationError(f"{where} needs an unknown set '{condition.set_id}'")
 
 
 def validate_icons(items: dict[str, ItemTemplate], icons_dir: Path) -> None:

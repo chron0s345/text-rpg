@@ -58,6 +58,7 @@ from app.api.schemas import (
     RestAction,
     SayAction,
     SellAction,
+    SetTitleAction,
     TradeAcceptAction,
     TradeCancelAction,
     TradeConfirmAction,
@@ -72,6 +73,7 @@ from app.api.schemas import (
 from app.content.registry import ContentRegistry
 from app.db.models import Player, Trade
 from app.db.repository import Repository, SnapshotChangedError, UnknownPlayerError
+from app.engine.achievements import resolve_set_title
 from app.engine.actions import (
     resolve_group_say,
     resolve_inspect,
@@ -656,6 +658,8 @@ class ActionService:
                 return resolve_rest(*args)
             case RespawnAction():
                 return resolve_respawn(*args)
+            case SetTitleAction():
+                return resolve_set_title(*args, action.achievement_id)
             case InspectAction():
                 return resolve_inspect(*args, action.item_id)
             case QuestAcceptAction():

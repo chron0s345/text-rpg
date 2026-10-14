@@ -1,0 +1,103 @@
+# Erfolge: einmal pro Charakter, nie verlierbar. Ein Titel (optional) kann hinter dem Namen
+# geführt werden. Bedingungen: level, quest (quest_id), quests (count), kill (monster_id,
+# die seltene Variante zählt mit), rare (irgendeine seltene Variante), set (set_id; ohne: irgendeines).
+
+# --- Stufen ---------------------------------------------------------------------------------
+- id: level_5
+  name: Kein Grünschnabel mehr
+  description: Erreiche Stufe 5.
+  condition: {type: level, level: 5}
+- id: level_10
+  name: Erfahrene Klinge
+  description: Erreiche Stufe 10.
+  condition: {type: level, level: 10}
+  title: die Erfahrene Klinge
+- id: level_15
+  name: Legende von Oakhaven
+  description: Erreiche die höchste Stufe.
+  condition: {type: level, level: 15}
+  title: Legende von Oakhaven
+
+# --- Aufträge -------------------------------------------------------------------------------
+- id: first_steps
+  name: Angekommen
+  description: Schließe die Einführung von Hauptmann Rowan ab.
+  condition: {type: quest, quest_id: intro_into_the_world}
+- id: quests_10
+  name: Helfende Hand
+  description: Erledige 10 verschiedene Aufträge.
+  condition: {type: quests, count: 10}
+- id: quests_30
+  name: Gefragt in allen Landen
+  description: Erledige 30 verschiedene Aufträge.
+  condition: {type: quests, count: 30}
+  title: die Helfende Hand
+- id: quests_all
+  name: Niemand bleibt ohne Antwort
+  description: Erledige alle Aufträge der Welt.
+  condition: {type: quests}
+  title: Freund aller Leute
+- id: last_seal
+  name: Das letzte Siegel
+  description: Versiegle das Schattenreich für immer.
+  condition: {type: quest, quest_id: lanterns_seal}
+  title: Siegelwahrer
+
+# --- Bosse ----------------------------------------------------------------------------------
+- id: kill_cave_troll
+  name: Trollbezwinger
+  description: Besiege den Höhlentroll.
+  condition: {type: kill, monster_id: cave_troll}
+- id: kill_grave_lord
+  name: Totenruhe
+  description: Besiege Grabfürst Valen.
+  condition: {type: kill, monster_id: grave_lord}
+- id: kill_sea_witch
+  name: Gegen die Flut
+  description: Besiege die Seehexe Morwenna.
+  condition: {type: kill, monster_id: sea_witch}
+- id: kill_spider_queen
+  name: Netzreißer
+  description: Besiege die Spinnenkönigin Ysvara.
+  condition: {type: kill, monster_id: spider_queen}
+  title: Netzreißer
+- id: kill_ice_drake
+  name: Drachentöter
+  description: Besiege den Eisdrachen Hrimfang.
+  condition: {type: kill, monster_id: ice_drake}
+  title: Drachentöter
+- id: kill_corrupted_warden
+  name: Heiler des Hains
+  description: Besiege den Verderbten Hüter.
+  condition: {type: kill, monster_id: corrupted_warden}
+- id: kill_ignaros
+  name: Glut gelöscht
+  description: Besiege den Glutfürsten Ignaros.
+  condition: {type: kill, monster_id: ignaros}
+  title: Feuerbändiger
+- id: kill_kraken
+  name: Aus der Tiefe
+  description: Besiege den Kraken Ul'thar.
+  condition: {type: kill, monster_id: kraken}
+  title: Krakenjäger
+- id: kill_morvath
+  name: Königsmord
+  description: Besiege den Schattenkönig Morvath.
+  condition: {type: kill, monster_id: morvath}
+  title: Bezwinger der Schatten
+
+# --- Seltenes & Ausrüstung --------------------------------------------------------------------
+- id: rare_kill
+  name: Glückstreffer
+  description: Besiege eine seltene Variante eines Monsters.
+  condition: {type: rare}
+  title: Schatzjäger
+- id: any_set
+  name: Wie aus einem Guss
+  description: Trage alle Teile eines Ausrüstungssets zugleich.
+  condition: {type: set}
+- id: set_shadow_king
+  name: Krone der Schatten
+  description: Trage das vollständige Set des Schattenkönigs.
+  condition: {type: set, set_id: shadow_king}
+  title: Schattenfürst
