@@ -117,3 +117,6 @@ details.card[open] summary { margin-bottom: .75rem; }
   .log { min-height: 50vh; max-height: 60vh; }
 }
 .item-summary { display: block; color: var(--muted); font-size: .8rem; }
+button.link.item-name { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--muted); font: inherit; cursor: help; }
+button.link.item-name:hover { color: var(--accent); }
+.log .log-item-inspected { color: var(--muted); font-style: italic; }

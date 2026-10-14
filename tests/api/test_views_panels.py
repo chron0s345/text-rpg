@@ -70,7 +70,7 @@ async def test_room_shows_monsters_and_visible_floor_items(api: Api) -> None:
         assert "Goblin-Späher" in page and "7/12 HP" in page
         assert "Hungriger Wolf" not in page  # dead monsters are not shown
         assert '"type": "attack"' in page
-        assert "Am Boden" in page and "3× Goblinohr" in page
+        assert "Am Boden" in page and "3× <button" in page and ">Goblinohr</button>" in page
         assert 'src="/static/icons/trophy.svg"' in page
         assert "Heiltrank" not in page.split('id="room"')[1].split("</section>")[0]  # expired
     finally:

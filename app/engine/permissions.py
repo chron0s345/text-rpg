@@ -48,6 +48,7 @@ ALLOWED_STATES: Final[dict[str, frozenset[str]]] = {
     "logout": _ALL,
     "look": _ALL,
     "inventory": _ALL,
+    "inspect": _ALL,
 }
 
 _DENIED_TEXT: Final[dict[PlayerState, str]] = {

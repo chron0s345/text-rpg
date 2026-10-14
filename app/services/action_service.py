@@ -44,6 +44,7 @@ from app.api.schemas import (
     GroupKickAction,
     GroupLeaveAction,
     GroupSayAction,
+    InspectAction,
     InventoryAction,
     LogoutAction,
     LookAction,
@@ -68,6 +69,7 @@ from app.db.models import Player, Trade
 from app.db.repository import Repository, SnapshotChangedError, UnknownPlayerError
 from app.engine.actions import (
     resolve_group_say,
+    resolve_inspect,
     resolve_look,
     resolve_respawn,
     resolve_say,
@@ -644,6 +646,8 @@ class ActionService:
                 return resolve_look(*args)
             case RespawnAction():
                 return resolve_respawn(*args)
+            case InspectAction():
+                return resolve_inspect(*args, action.item_id)
             case InventoryAction():
                 return resolve_inventory(*args)
             case UseItemAction():

@@ -170,6 +170,11 @@ class InventoryAction(BaseModel):
     type: Literal["inventory"] = "inventory"
 
 
+class InspectAction(BaseModel):
+    type: Literal["inspect"] = "inspect"
+    item_id: str = Field(min_length=1, max_length=64)
+
+
 class LogoutAction(BaseModel):
     type: Literal["logout"] = "logout"
     confirm_death: bool = False
@@ -206,6 +211,7 @@ GameAction = Annotated[
     | RespawnAction
     | LookAction
     | InventoryAction
+    | InspectAction
     | LogoutAction,
     Field(discriminator="type"),
 ]
