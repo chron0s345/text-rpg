@@ -249,7 +249,7 @@ class QuestTemplate(BaseModel):  # quests.yaml (optional)
     giver_id: str  # MerchantTemplate.id
     description: str
     completion_text: str
-    objective: DeliverObjective | KillObjective  # deliver(item_id, quantity) / kill(monster_id, count)
+    objective: DeliverObjective | KillObjective  # deliver(item, qty) / kill(monster, count)
     reward: QuestReward  # xp, gold, items: [RewardItem(item_id, quantity)]
     min_level: PositiveInt = 1
     requires: list[str] = []  # Quest-IDs, die vorher erledigt sein müssen
