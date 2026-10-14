@@ -181,6 +181,7 @@ Danach kannst du nur noch **am Checkpoint erwachen** – mit vollen HP.
 - Höchstens `max_group_size` Mitglieder. Nur die Leitung lädt ein und entfernt Mitglieder (nicht im Kampf).
 - Verlässt die Leitung die Gruppe, übernimmt das am längsten dabeiseiende Mitglied. Bleibt nur eine Person übrig, löst sich die Gruppe auf.
 - Im Gruppenpanel siehst du HP und Aufenthaltsort der anderen. Beim Ausloggen verlässt du die Gruppe.
+- **Wer mitten im Kampf geht, geht leer aus:** Verlässt du die Gruppe, während sie gegen ein Monster kämpft, bekommst du von diesem Monster kein Gold, keine Beute und keinen Auftragsfortschritt mehr – nur die Erfahrung für den Schaden, den du selbst angerichtet hast. Löst sich die Gruppe dagegen auf, weil nur noch eine Person übrig ist, zählen alle, die gegen das Monster gekämpft haben, weiter als Gruppe.
 
 ## Chat
 
