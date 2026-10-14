@@ -16,7 +16,7 @@ from uuid import UUID
 
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHashError, VerificationError
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlmodel import col
@@ -42,6 +42,10 @@ class UsernameTakenError(AccountError):
 
 
 class InvalidInputError(AccountError):
+    pass
+
+
+class WrongPasswordError(AccountError):
     pass
 
 
@@ -103,16 +107,20 @@ class AccountService:
 
     # --- accounts ---------------------------------------------------------------------------
 
+    @staticmethod
+    def validate_password(password: str) -> None:
+        if not MIN_PASSWORD_LENGTH <= len(password) <= MAX_PASSWORD_LENGTH:
+            raise InvalidInputError(
+                f"Passwort: {MIN_PASSWORD_LENGTH}–{MAX_PASSWORD_LENGTH} Zeichen."
+            )
+
     async def register(
         self, username: str, password: str, *, address: str | None = None
     ) -> Account:
         """``address``: the client, for the registration limit per address."""
         if not USERNAME.fullmatch(username):
             raise InvalidInputError("Benutzername: 3–32 Zeichen, nur Buchstaben, Ziffern und _ . -")
-        if not MIN_PASSWORD_LENGTH <= len(password) <= MAX_PASSWORD_LENGTH:
-            raise InvalidInputError(
-                f"Passwort: {MIN_PASSWORD_LENGTH}–{MAX_PASSWORD_LENGTH} Zeichen."
-            )
+        self.validate_password(password)
         if self.guard is not None:
             await self.guard.registration_attempt(address)  # before the expensive hash
         password_hash = await asyncio.to_thread(self.hasher.hash, password)
@@ -151,6 +159,49 @@ class AccountService:
         if self.hasher.check_needs_rehash(account.password_hash):
             await self._rehash(account.id, password)
         return account
+
+    async def session_version(self, account_id: UUID) -> int | None:
+        """The version a session cookie must carry; None if the account does not exist."""
+        async with self.sessions() as session:
+            return await session.scalar(
+                select(col(Account.session_version)).where(col(Account.id) == account_id)
+            )
+
+    async def check_password(
+        self, account_id: UUID, password: str, *, address: str | None = None
+    ) -> None:
+        """Confirms the current password (before a password change). Wrong guesses count
+        against the login limit like failed logins: a stolen session must not become a way
+        around it."""
+        async with self.sessions() as session:
+            account = await session.get(Account, account_id)
+        if account is None:
+            raise WrongPasswordError("Das aktuelle Passwort stimmt nicht.")
+        if self.guard is not None:
+            await self.guard.login_attempt(account.username, address)
+        if not await asyncio.to_thread(self._verify, account.password_hash, password):
+            raise WrongPasswordError("Das aktuelle Passwort stimmt nicht.")
+        if self.guard is not None:
+            await self.guard.login_succeeded(account.username, address)
+
+    async def set_password(self, account_id: UUID, password: str) -> int:
+        """Stores the new password and returns the new session version: every session cookie
+        issued before is no longer valid."""
+        self.validate_password(password)
+        password_hash = await asyncio.to_thread(self.hasher.hash, password)
+        async with self.sessions() as session, session.begin():
+            version = await session.scalar(
+                update(Account)
+                .where(col(Account.id) == account_id)
+                .values(
+                    password_hash=password_hash,
+                    session_version=col(Account.session_version) + 1,
+                )
+                .returning(col(Account.session_version))
+            )
+        if version is None:
+            raise WrongPasswordError("Das aktuelle Passwort stimmt nicht.")
+        return int(version)
 
     def _verify(self, password_hash: str, password: str) -> bool:
         try:

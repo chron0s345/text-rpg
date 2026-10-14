@@ -49,3 +49,7 @@ class Settings:
     )
     login_window_seconds: int = field(default_factory=lambda: _int("LOGIN_WINDOW_SECONDS", 900))
     login_lockout_seconds: int = field(default_factory=lambda: _int("LOGIN_LOCKOUT_SECONDS", 900))
+    # log entries older than this are deleted by the world ticker (hourly); 0 keeps them forever
+    log_retention_days: int = field(
+        default_factory=lambda: int(os.environ.get("LOG_RETENTION_DAYS", "30") or "0")
+    )

@@ -134,6 +134,35 @@ async def test_switching_away_from_a_fight_needs_confirmation(
     assert (await load(h, other.id)).online
 
 
+async def test_logout_account_logs_out_every_online_character(
+    harness: ServiceHarness, presence: SessionService
+) -> None:
+    h = harness
+    forest = h.scratch_room()
+    online, offline = await characters(h, forest, {"online": True}, {})
+
+    await presence.logout_account(online.account_id)
+
+    assert not (await load(h, online.id)).online
+    assert LOGGED_OUT in await log_kinds(h, online.id)
+    assert await log_kinds(h, offline.id) == []
+
+
+async def test_logout_account_in_a_fight_needs_confirmation(
+    harness: ServiceHarness, presence: SessionService
+) -> None:
+    h = harness
+    fighter = await in_fight(h, h.scratch_room())
+
+    with pytest.raises(ConfirmDeathRequiredError) as refused:
+        await presence.logout_account(fighter.account_id)
+    assert refused.value.name == fighter.name
+    assert (await load(h, fighter.id)).online
+
+    await presence.logout_account(fighter.account_id, confirm_death=True)
+    assert (await load(h, fighter.id)).state == "dead"
+
+
 async def test_logout_reports_confirmation_and_is_not_rate_limited(
     harness: ServiceHarness, presence: SessionService
 ) -> None:

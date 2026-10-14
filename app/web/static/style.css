@@ -21,6 +21,7 @@ a { color: var(--accent); }
 .muted { color: var(--muted); font-weight: normal; }
 .lead { color: var(--muted); }
 .error { color: var(--danger); }
+.notice { color: var(--good); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
 button {
@@ -46,6 +47,8 @@ label input { margin-top: .2rem; color: var(--text); }
 .cards { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
 .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 1rem; }
 .card.warning { border-color: var(--danger); }
+details.card summary { cursor: pointer; color: var(--muted); }
+details.card[open] summary { margin-bottom: .75rem; }
 .row { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
 .characters { list-style: none; padding: 0; }
 .characters li { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
@@ -87,6 +90,8 @@ label input { margin-top: .2rem; color: var(--text); }
   background: #101217; border: 1px solid var(--border); border-radius: var(--radius); }
 .log li { padding: .15rem 0; white-space: pre-line; }
 .log .log-chat-say { color: #a9c7e8; }
+.log .log-chat-group { color: #9fd49a; }
+.log .log-chat-whisper { color: #d6a8e0; font-style: italic; }
 .log .log-server-announcement { color: var(--accent); font-weight: 600; border-left: 3px solid var(--accent); padding-left: .4rem; }
 .log .log-action-rejected { color: var(--muted); font-style: italic; }
 .log .log-ambush, .log .log-player-died, .log .log-session-confirm_death { color: var(--danger); font-weight: 600; }

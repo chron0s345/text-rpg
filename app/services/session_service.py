@@ -78,24 +78,7 @@ class SessionService:
             target = await session.get(Player, character_id)
             if target is None or target.account_id != account_id or target.deleted_at is not None:
                 raise CharacterNotFoundError("Diesen Charakter gibt es nicht.")
-            others = (
-                await session.scalars(
-                    select(col(Player.id)).where(
-                        col(Player.account_id) == account_id,
-                        col(Player.online),
-                        col(Player.id) != character_id,
-                    )
-                )
-            ).all()
-
-        for other_id in others:
-            result = await self.logout(other_id, confirm_death=confirm_death)
-            if result.status == "confirm_required":
-                async with self.sessions() as session:
-                    other = await session.get(Player, other_id)
-                raise ConfirmDeathRequiredError(other.name if other else "Dein Charakter")
-            if result.status == "rejected":
-                raise SessionConflictError("Der andere Charakter ist gerade beschäftigt.")
+        await self.logout_account(account_id, confirm_death=confirm_death, keep=character_id)
 
         try:
             return await self.actions.login(character_id)
@@ -103,6 +86,29 @@ class SessionService:
             raise CharacterNotFoundError("Diesen Charakter gibt es nicht.") from exc
         except IntegrityError as exc:  # one online character per account (partial unique index)
             raise SessionConflictError("Ein anderer Charakter wurde gerade eingeloggt.") from exc
+
+    async def logout_account(
+        self, account_id: UUID, *, confirm_death: bool = False, keep: UUID | None = None
+    ) -> None:
+        """Logs out every online character of the account (except ``keep``), each exactly like
+        a logout. Raises ``ConfirmDeathRequiredError`` for a character in combat without
+        ``confirm_death``."""
+        stmt = select(col(Player.id)).where(
+            col(Player.account_id) == account_id, col(Player.online)
+        )
+        if keep is not None:
+            stmt = stmt.where(col(Player.id) != keep)
+        async with self.sessions() as session:
+            online = (await session.scalars(stmt)).all()
+
+        for player_id in online:
+            result = await self.logout(player_id, confirm_death=confirm_death)
+            if result.status == "confirm_required":
+                async with self.sessions() as session:
+                    other = await session.get(Player, player_id)
+                raise ConfirmDeathRequiredError(other.name if other else "Dein Charakter")
+            if result.status == "rejected":
+                raise SessionConflictError("Der andere Charakter ist gerade beschäftigt.")
 
     async def logout(self, player_id: UUID, *, confirm_death: bool = False) -> LogoutResult:
         """Logs the character out (a character that is already offline counts as logged out)."""

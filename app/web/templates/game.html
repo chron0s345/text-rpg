@@ -18,9 +18,9 @@
       {% for line in log %}{% with kind=line.kind, text=line.text %}{% include "partials/log_line.html" %}{% endwith %}{% endfor %}
     </ol>
     <form class="chat" hx-post="/ui/actions" data-reset-on-success>
-      <input type="hidden" name="type" value="say">
+      <input type="hidden" name="type" value="chat">
       <label class="visually-hidden" for="say">Sagen</label>
-      <input id="say" name="text" maxlength="300" autocomplete="off" placeholder="Etwas sagen …" required>
+      <input id="say" name="text" maxlength="300" autocomplete="off" placeholder="Etwas sagen … (/g Gruppe, /w Name flüstern)" title="Text: im Raum sagen · /g Text: an die Gruppe · /w Name Text: flüstern" required>
       <button type="submit">Sagen</button>
     </form>
   </main>

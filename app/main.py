@@ -22,6 +22,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.api import actions, auth, characters, stream, views
 from app.api.deps import Services
 from app.api.security import SecurityHeaders
+from app.api.session_guard import SessionVersionGuard
 from app.content.loader import load_content
 from app.db.session import create_engine, create_session_factory
 from app.realtime.bus import PostgresEventBus
@@ -107,6 +108,11 @@ def create_app(
                 clock=clock,
                 rng_factory=rng_factory,
                 login_guard=guard,
+                log_retention=(
+                    timedelta(days=settings.log_retention_days)
+                    if settings.log_retention_days > 0
+                    else None
+                ),
             )
             ticker_task = asyncio.create_task(ticker.run(stop), name="world-ticker")
         try:
@@ -124,6 +130,8 @@ def create_app(
         version="0.1.0",
         lifespan=lifespan,
     )
+    # added first = runs inside SessionMiddleware, after the cookie was read
+    app.add_middleware(SessionVersionGuard)
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.session_secret,

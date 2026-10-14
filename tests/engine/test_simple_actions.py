@@ -6,10 +6,16 @@ import pytest
 
 from app.content.registry import ContentRegistry
 from app.content.schemas import PlayerState, Rules
-from app.engine.actions import resolve_look, resolve_respawn, resolve_say
-from app.engine.events import GroupAudience, RoomAudience
+from app.engine.actions import (
+    resolve_group_say,
+    resolve_look,
+    resolve_respawn,
+    resolve_say,
+    resolve_whisper,
+)
+from app.engine.events import GroupAudience, PlayersAudience, RoomAudience
 from app.engine.permissions import ALLOWED_STATES, check_state, is_allowed
-from app.engine.state import ActionSnapshot, InventoryItemState
+from app.engine.state import ActionSnapshot, InventoryItemState, PlayerRef
 from tests.engine.factories import (
     NOW,
     ROOM,
@@ -36,6 +42,8 @@ RNG = random.Random(1)
         ("equip", {"exploring"}),
         ("pick_up", {"exploring"}),
         ("say", {"exploring", "in_combat"}),
+        ("group_say", {"exploring", "in_combat", "dead"}),
+        ("whisper", {"exploring", "in_combat", "dead"}),
         ("group_invite", {"exploring", "in_combat"}),
         ("group_leave", {"exploring", "in_combat", "dead"}),
         ("group_kick", {"exploring"}),
@@ -68,7 +76,7 @@ def test_state_table_matches_architecture(action: str, allowed: set[str]) -> Non
 
 def test_every_action_type_has_an_entry() -> None:
     # every row of the table above is checked in test_state_table_matches_architecture
-    assert len(ALLOWED_STATES) == 29
+    assert len(ALLOWED_STATES) == 31
 
 
 def test_check_state_messages() -> None:
@@ -109,6 +117,65 @@ def test_say_rejects_blank_and_dead(content: ContentRegistry, rules: Rules) -> N
     assert actor_texts(resolve_say(ActionSnapshot(actor=dead), content, rules, NOW, RNG, "hi")) == [
         "Du bist tot."
     ]
+
+
+# --- group chat & whispers -----------------------------------------------------------------
+
+
+def test_group_say_reaches_the_group_wherever_it_is(content: ContentRegistry, rules: Rules) -> None:
+    actor = make_player()
+    actor.group_id = uuid4()
+    actor.state = "dead"  # the dead may still talk to their group
+
+    result = resolve_group_say(
+        ActionSnapshot(actor=actor), content, rules, NOW, RNG, " auf  geht's "
+    )
+
+    assert actor_texts(result) == ["[Gruppe] Du: auf geht's"]
+    [group] = [e for e in result.events if e.audience.kind == "group"]
+    assert group.audience == GroupAudience(group_id=actor.group_id)
+    assert (group.kind, group.text) == ("chat.group", "[Gruppe] Anna: auf geht's")
+    assert group.exclude_player_ids == [actor.id]
+    assert result.changes.players == []
+
+
+def test_group_say_needs_a_group_and_words(content: ContentRegistry, rules: Rules) -> None:
+    lonely = ActionSnapshot(actor=make_player())
+    assert actor_texts(resolve_group_say(lonely, content, rules, NOW, RNG, "hallo")) == [
+        "Du bist in keiner Gruppe."
+    ]
+    grouped = make_player()
+    grouped.group_id = uuid4()
+    assert actor_texts(
+        resolve_group_say(ActionSnapshot(actor=grouped), content, rules, NOW, RNG, "  ")
+    ) == ["Was möchtest du sagen?"]
+
+
+def test_whisper_reaches_only_the_recipient(content: ContentRegistry, rules: Rules) -> None:
+    actor = make_player()
+    ben = PlayerRef(id=uuid4(), name="Ben")
+
+    result = resolve_whisper(ActionSnapshot(actor=actor), content, rules, NOW, RNG, ben, "psst <b>")
+
+    assert actor_texts(result) == ["Du flüsterst Ben zu: psst <b>"]
+    [whisper] = [e for e in result.events if e.audience.kind == "players"]
+    assert whisper.audience == PlayersAudience(player_ids=[ben.id])
+    assert (whisper.kind, whisper.text) == ("chat.whisper", "Anna flüstert dir zu: psst <b>")
+    assert whisper.data["from_name"] == "Anna"  # for replying
+
+
+def test_whisper_rejections(content: ContentRegistry, rules: Rules) -> None:
+    actor = make_player()
+    snapshot = ActionSnapshot(actor=actor)
+    ben = PlayerRef(id=uuid4(), name="Ben")
+    myself = PlayerRef(id=actor.id, name=actor.name)
+
+    def answer(recipient: PlayerRef | None, text: str) -> list[str]:
+        return actor_texts(resolve_whisper(snapshot, content, rules, NOW, RNG, recipient, text))
+
+    assert answer(None, "hallo") == ["Niemand mit diesem Namen ist gerade im Spiel."]
+    assert answer(myself, "hallo") == ["Du murmelst etwas vor dich hin."]
+    assert answer(ben, " ") == ["Was möchtest du flüstern?"]
 
 
 # --- look ------------------------------------------------------------------------------------

@@ -8,6 +8,8 @@ Alle spielen in **einer gemeinsamen, dauerhaften Welt**. Wer im selben Raum steh
 
 Ein Account kann mehrere Charaktere haben (höchstens `max_characters_per_account`), aber immer nur **einer ist gleichzeitig im Spiel**. Wählst du einen anderen, wird der bisherige ausgeloggt.
 
+Dein Passwort änderst du auf der Charakterauswahl. Dabei werden alle anderen Geräte abgemeldet und eingeloggte Charaktere ausgeloggt; steckt einer im Kampf, beende den Kampf zuerst.
+
 Neue Charaktere starten auf Stufe 1 auf dem **Marktplatz von Oakhaven**.
 
 ### Räume
@@ -107,6 +109,16 @@ Danach kannst du nur noch **am Checkpoint erwachen** – mit vollen HP.
 - Höchstens `max_group_size` Mitglieder. Nur die Leitung lädt ein und entfernt Mitglieder (nicht im Kampf).
 - Verlässt die Leitung die Gruppe, übernimmt das am längsten dabeiseiende Mitglied. Bleibt nur eine Person übrig, löst sich die Gruppe auf.
 - Im Gruppenpanel siehst du HP und Aufenthaltsort der anderen. Beim Ausloggen verlässt du die Gruppe.
+
+## Chat
+
+Im Chatfeld unter dem Log:
+
+- **Text** sagst du im Raum, alle Anwesenden hören es.
+- **`/g Text`** geht an deine Gruppe, egal wo die anderen gerade sind.
+- **`/w Name Text`** flüstert einem Charakter, der gerade im Spiel ist, egal wo. Nur ihr beide seht es.
+
+Gruppenchat und Flüstern gehen auch, wenn du tot bist. Chatten zählt wie jede Aktion gegen den Mindestabstand zwischen Aktionen.
 
 ## Handel
 

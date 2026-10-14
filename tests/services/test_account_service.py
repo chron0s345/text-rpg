@@ -19,6 +19,7 @@ from app.services.account_service import (
     CharacterOnlineError,
     InvalidInputError,
     UsernameTakenError,
+    WrongPasswordError,
 )
 from tests.services.conftest import ServiceHarness
 
@@ -151,3 +152,29 @@ async def test_characters_of_other_accounts_are_invisible(
         await accounts.delete_character(stranger.id, character.id)
     with pytest.raises(CharacterNotFoundError):
         await accounts.owned_character(stranger.id, character.id)
+
+
+async def test_set_password_replaces_it_and_raises_the_session_version(
+    harness: ServiceHarness, accounts: AccountService
+) -> None:
+    account = await new_account(harness, accounts)
+    assert await accounts.session_version(account.id) == 0
+
+    assert await accounts.set_password(account.id, "ganz-neu-42") == 1
+
+    assert await accounts.session_version(account.id) == 1
+    assert await accounts.authenticate(account.username, "geheim123") is None
+    assert await accounts.authenticate(account.username, "ganz-neu-42") is not None
+    with pytest.raises(InvalidInputError):
+        await accounts.set_password(account.id, "kurz")
+    assert await accounts.session_version(account.id) == 1
+    assert await accounts.session_version(uuid4()) is None
+
+
+async def test_check_password(harness: ServiceHarness, accounts: AccountService) -> None:
+    account = await new_account(harness, accounts)
+    await accounts.check_password(account.id, "geheim123")
+    with pytest.raises(WrongPasswordError):
+        await accounts.check_password(account.id, "falsch!!!")
+    with pytest.raises(WrongPasswordError):
+        await accounts.check_password(uuid4(), "geheim123")

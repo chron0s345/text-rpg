@@ -53,7 +53,7 @@ app/
 ├── engine/              # Reine Spiellogik, kein HTTP, kein DB-Zugriff
 │   ├── state.py         # Snapshots (ActionSnapshot, PlayerSnapshot, ...) als Engine-Eingabe
 │   ├── permissions.py   # Erlaubte Aktionen je Charakterzustand
-│   ├── actions.py       # say, look, respawn
+│   ├── actions.py       # say, group_say, whisper, look, respawn
 │   ├── combat.py        # attack, flee
 │   ├── encounter.py     # Gemeinsame Kampfbausteine (Schaden, Kampfkontakt, Monsterschlag)
 │   ├── participation.py # Kampfteilnahme & Aufheben der Markierung
@@ -480,6 +480,7 @@ Unabhängig davon ist ein Charakter `online` oder offline.
 | equip / unequip | ✓ | ✗ | ✗ |
 | pick_up / drop | ✓ | ✗ | ✗ |
 | say | ✓ | ✓ | ✗ |
+| group_say / whisper | ✓ | ✓ | ✓ |
 | group_invite / accept / leave / kick | ✓ | ✓ (außer kick) | ✓ (nur leave) |
 | trade_* | ✓ | ✗ (laufender Handel wird abgebrochen) | ✗ |
 | bank_deposit / bank_withdraw | ✓ (nur in Bank-Räumen) | ✗ | ✗ |
@@ -701,6 +702,9 @@ Ein Hintergrund-Task läuft alle `ticker_interval_seconds` und erledigt in getre
 4. Abgelaufene Disconnect-Fristen verarbeiten
 5. Überfall-Würfe für verweilende Spieler
 6. Abgelaufene Gruppeneinladungen, Handelsanfragen und nicht mehr relevante Login-Zähler löschen
+7. Log-Einträge löschen, die älter als `LOG_RETENTION_DAYS` sind (Standard 30, `0` = nie; höchstens stündlich)
+
+Log-Aufbewahrung (`services/log_retention.py`): Log-IDs wachsen mit der Schreibzeit, daher findet eine Binärsuche über den Primärschlüssel die Grenze (gemessen: 0,08 s bei einer Million Einträgen), gelöscht wird nach ID-Bereichen in kurzen Transaktionen zu je 5000 (667.000 Einträge in 2,8 s). Ein Index auf `created_at` ist dafür nicht nötig.
 
 Bei mehreren Server-Prozessen holt sich der Ticker vorher ein PostgreSQL Advisory Lock (`pg_try_advisory_lock`), sodass nur ein Prozess tickt. Die Entscheidungen ("ist fällig", "wird überfallen") liegen in der Engine; der Ticker orchestriert nur.
 
@@ -781,11 +785,13 @@ Umsetzung: `ActionService.execute` (`app/services/action_service.py`).
 | Kanal | Empfänger | Beispiele |
 |---|---|---|
 | `room:{room_id}` | Alle Online-Spieler im Raum | Spieler kommt/geht, Kampfmeldungen, Überfall, Respawn, `say` |
-| `group:{group_id}` | Gruppenmitglieder | Mitglied wird angegriffen, HP-Änderungen, Beute, Beitritt/Austritt |
-| `player:{player_id}` | Ein Charakter | Einladungen, Handelsanfragen & -änderungen, Beute, Überfall auf einen selbst |
+| `group:{group_id}` | Gruppenmitglieder | Mitglied wird angegriffen, HP-Änderungen, Beute, Beitritt/Austritt, `group_say` |
+| `player:{player_id}` | Ein Charakter | Einladungen, Handelsanfragen & -änderungen, Beute, Überfall auf einen selbst, `whisper` |
 | `global` | Alle | Server-Ankündigungen |
 
 Server-Ankündigungen sendet der Betreiber mit `python -m app.admin announce "Text"` (höchstens 300 Zeichen): ein `server.announcement`-Event an `Global`, das über den Event-Bus jede Verbindung in jedem Prozess erreicht und im Log hervorgehoben wird. Wie alle `Global`-Events wird es nicht pro Spieler geloggt – wer offline ist, sieht es nicht. Ankündigungen und Chat lösen keine Panel-Aktualisierung aus (sonst würden bei einer Ankündigung alle Clients gleichzeitig nachladen).
+
+Chat: `say` an den Raum, `group_say` an die Gruppe (in jedem Raum), `whisper` an einen Online-Charakter. Flüstern sucht den Empfänger vorab ungesperrt per Name unter den Online-Charakteren (`ActionService._online_player`); es ändert keinen Zustand, und ein Empfänger, der gerade ausloggt, findet die Nachricht in seinem Log. Gruppenchat und Flüstern gehen auch tot. Das Chatfeld der Spielseite schickt `type=chat`; `app/web/chat.py` macht daraus `say`, `group_say` (`/g Text`) oder `whisper` (`/w Name Text`). Die JSON-API kennt nur die Aktionen selbst.
 
 ### Ablauf
 
@@ -822,6 +828,7 @@ Umsetzung (`app/api/stream.py`, `SessionService`):
 |---|---|---|
 | `POST` | `/register` | Account anlegen |
 | `POST` | `/login` / `/logout` | Account-Session verwalten |
+| `POST` | `/password` | Passwort ändern (beendet alle anderen Sessions des Accounts) |
 | `GET` | `/characters` | Charakterauswahl |
 | `POST` | `/characters` | Charakter anlegen |
 | `POST` | `/characters/{id}/play` | Charakter einloggen |
@@ -834,6 +841,7 @@ Umsetzung (`app/api/stream.py`, `SessionService`):
 Umsetzung (`app/api/`; die JSON-Routen oben bleiben neben den HTML-Seiten bestehen, z. B. für Tests und andere Clients):
 
 - Session: signiertes Cookie (`SessionMiddleware`, Secret aus `SESSION_SECRET`, `SameSite=Lax`, mit `SESSION_HTTPS_ONLY=1` nur über HTTPS) mit `account_id` und dem gewählten `player_id`. Ob der Charakter wirklich in der Welt ist, entscheidet immer `Player.online` in der Datenbank.
+- Passwort ändern (`POST /password`, im Browser auf der Charakterauswahl): verlangt das aktuelle Passwort, Fehlversuche zählen wie fehlgeschlagene Logins gegen das Login-Limit. Zuerst werden alle eingeloggten Charaktere des Accounts ausgeloggt (im Kampf nur mit `confirm_death`, sonst `409`), dann wird das neue Passwort gespeichert und `Account.session_version` erhöht. Das Cookie trägt die Version (`sv`), mit der es ausgestellt wurde; `SessionVersionGuard` (`app/api/session_guard.py`, reine ASGI-Middleware innerhalb von `SessionMiddleware`) leert jede Session mit veralteter Version, bevor eine Route sie sieht. So endet jede andere Session, auch eine gestohlene; die ändernde Session bekommt die neue Version. Kosten: ein Primärschlüssel-Lookup pro Anfrage mit Login-Cookie (statische Dateien ausgenommen). Cookies ohne `sv` (vor dieser Änderung ausgestellt) gelten als Version 0.
 - `POST /register` legt den Account an und meldet ihn an. Benutzernamen: 3–32 Zeichen `[A-Za-z0-9_.-]`, eindeutig ohne Groß-/Kleinschreibung; Passwort 8–128 Zeichen, argon2-Hash (im Worker-Thread; bei unbekanntem Benutzernamen wird gegen einen Dummy-Hash geprüft, damit die Antwortzeit nichts verrät).
 - Charakternamen: 3–20 Buchstaben (inkl. Umlaute). Neue Charaktere starten mit den Werten von Level 1 in `start_room_id` (zugleich Checkpoint). Das Limit `max_characters_per_account` hält auch bei gleichzeitigen Anfragen (Sperre auf die Account-Zeile).
 - `POST /characters/{id}/play` und `POST /logout` nehmen optional `{"confirm_death": true}`; ohne Bestätigung antworten sie im Kampf mit `409`. `POST /actions` mit `logout` liefert stattdessen das Event `session.confirm_death`.
@@ -855,6 +863,17 @@ class AttackAction(BaseModel):
 
 class SayAction(BaseModel):
     type: Literal["say"]
+    text: str = Field(min_length=1, max_length=300)
+
+
+class GroupSayAction(BaseModel):  # an die eigene Gruppe, in jedem Raum
+    type: Literal["group_say"]
+    text: str = Field(min_length=1, max_length=300)
+
+
+class WhisperAction(BaseModel):  # an einen Online-Charakter, in jedem Raum
+    type: Literal["whisper"]
+    player_name: str  # ohne Groß-/Kleinschreibung; der Service sucht den Empfänger
     text: str = Field(min_length=1, max_length=300)
 
 
@@ -918,7 +937,7 @@ Action = Annotated[
 - Rate Limit über `min_action_interval_ms`.
 - **Login- und Registrierungs-Limit** (`services/login_guard.py`, Tabelle `login_throttle`): Jeder Login-Versuch zählt gegen den Benutzernamen (ohne Groß-/Kleinschreibung) und gegen die Client-Adresse, jede Registrierung gegen die Adresse. Wer sein Kontingent pro Zeitfenster aufgebraucht hat, wird für die Sperrzeit abgewiesen: `429` mit `Retry-After` (Formular: Hinweis auf der Seite). Abgewiesen wird **vor** dem argon2-Hash, sodass Versuche weder Passwörter testen noch CPU binden. Die Zähler liegen in der Datenbank (für alle Worker gemeinsam); jeder Versuch reserviert unter Zeilensperre, daher kommen auch viele parallele Anfragen nicht über das Limit. Ein erfolgreicher Login setzt den Namen zurück und gibt der Adresse den Versuch zurück. Bekannter Kompromiss: Wer absichtlich falsch rät, sperrt einen fremden Namen für die (kurze) Sperrzeit. Einstellungen (Umgebung): `LOGIN_ATTEMPTS_PER_USER` (5), `LOGIN_ATTEMPTS_PER_ADDRESS` (30), `REGISTRATIONS_PER_ADDRESS` (10), `LOGIN_WINDOW_SECONDS` (900), `LOGIN_LOCKOUT_SECONDS` (900).
 - CSRF: Das Session-Cookie ist `SameSite=Lax`, Browser senden es also nicht bei Formular-POSTs von fremden Seiten; die JSON-Routen erzwingen bei fremden Origins zusätzlich einen CORS-Preflight.
-- `say`-Texte und Charakternamen werden beim Rendern escaped (Jinja-Autoescape). Charakternamen werden zusätzlich auf erlaubte Zeichen beschränkt.
+- Chat-Texte (`say`, `group_say`, `whisper`) und Charakternamen werden beim Rendern escaped (Jinja-Autoescape). Charakternamen werden zusätzlich auf erlaubte Zeichen beschränkt.
 - Sicherheits-Header auf jeder Antwort (`app/api/security.py`, reine ASGI-Middleware, damit der SSE-Stream unberührt bleibt): `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: same-origin` und eine strikte Content-Security-Policy (`default-src 'self'`, `script-src 'self'` ohne `unsafe-inline`/`unsafe-eval`, `frame-ancestors 'none'`, `form-action 'self'`). Ausgenommen von der CSP sind nur FastAPIs `/docs` und `/redoc` (Swagger vom CDN). Dafür gilt im Frontend: keine Inline-Skripte, -Handler (`hx-on`) oder -Styles; htmx läuft mit `allowEval: false` und ohne eingefügte Indikator-Styles (`htmx-config` in `base.html`), Verhalten wie „Formular nach dem Senden leeren“ (`data-reset-on-success`) steht in `app.js`.
 
 ## Frontend
