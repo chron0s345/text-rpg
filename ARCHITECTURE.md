@@ -411,6 +411,7 @@ class Player(SQLModel, table=True):  # = ein Charakter
     deleted_at: datetime | None  # Soft Delete
     achievements: list[str]  # errungene Erfolge (Content-IDs, in Reihenfolge), text[]
     title: str | None  # Erfolgs-ID, deren Titel hinter dem Namen steht
+    kills: dict[str, int]  # Bestiarium: Kill-Gutschriften je Monster-ID, JSONB
 
 
 class InventoryItem(SQLModel, table=True):
@@ -772,9 +773,10 @@ Umsetzung (`engine/groups.py`, `Repository.load_group_snapshot`):
 
 ### Erfolge
 
-- Content (`achievements.yaml`, optional): Name, Beschreibung, eine Bedingung und optional ein Titel. Bedingungen: `level` (Stufe erreicht), `quest` (Auftrag einmal erledigt), `quests` (so viele verschiedene Aufträge; ohne `count`: alle), `kill` (Kill-Gutschrift für das Monster, die seltene Variante zählt mit), `rare` (irgendeine seltene Variante), `set` (alle Teile eines Sets zugleich getragen; ohne `set_id`: irgendeines). Der Loader prüft Verweise.
+- Content (`achievements.yaml`, optional): Name, Beschreibung, eine Bedingung und optional ein Titel. Bedingungen: `level` (Stufe erreicht), `quest` (Auftrag einmal erledigt), `quests` (so viele verschiedene Aufträge; ohne `count`: alle), `kill` (`count` Kill-Gutschriften für das Monster, die seltene Variante zählt mit), `species` (so viele verschiedene Arten; eine seltene Variante zählt als ihre Grundart; ohne `count`: alle), `rare` (irgendeine seltene Variante), `set` (alle Teile eines Sets zugleich getragen; ohne `set_id`: irgendeines). Der Loader prüft Verweise.
 - Gespeichert am Charakter (`player.achievements`, `player.title`), nie verloren; Erfolge, die aus dem Content verschwinden, bleiben gespeichert und werden ignoriert.
-- `engine/achievements.grant(builder, player, content, killed=None)` vergibt alles, was der Charakter jetzt erfüllt und noch nicht hat, mit einer Log-Zeile je Erfolg (`achievement.earned`). Aufgerufen bei Kills (jeder Spieler im Raum; `killed` nur für die Gruppe mit Kill-Gutschrift, die anderen wegen Stufenaufstiegen aus dem XP-Anteil), Auftragsabgabe, Ausrüsten und Login (holt neu hinzugekommene Erfolge nach).
+- **Bestiarium:** `player.kills` (JSONB, Monster-ID → Anzahl; seltene Varianten unter ihrer eigenen ID) zählt Kill-Gutschriften. `rewards.resolve_kill` erhöht den Zähler für jedes Mitglied der Partei mit Kill-Gutschrift (dieselben Empfänger wie Gold und Beute). Das Bestiarium-Panel zeigt besiegte Gegner mit Stufe, Boss/Selten, Anzahl und Fundorten (Räume mit Spawn-Regel der Grundart).
+- `engine/achievements.grant(builder, player, content)` prüft nur den Zustand (Stufe, erledigte Aufträge, Kill-Zähler, getragene Sets) und vergibt alles, was der Charakter jetzt erfüllt und noch nicht hat, mit einer Log-Zeile je Erfolg (`achievement.earned`). Aufgerufen bei Kills (für jeden Spieler im Raum: Zähler und Stufenaufstiege aus dem XP-Anteil), Auftragsabgabe, Ausrüsten (`equip`, `equip_best`) und Login (holt neu hinzugekommene Erfolge nach).
 - `set_title(achievement_id | None)` (in jedem Zustand) führt den Titel eines errungenen Erfolgs bzw. legt ihn ab. Angezeigt in der Statusleiste und in der Raumliste.
 
 ### Tod & Checkpoint

@@ -1,0 +1,22 @@
+{% set b = view.bestiary %}
+<section id="bestiary" class="panel bestiary" aria-labelledby="bestiary-title"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <h2 id="bestiary-title">Bestiarium <span class="muted">{{ b.species }}/{{ b.total_species }} Arten · {{ b.kills }} besiegt</span></h2>
+  {% if b.beasts %}
+  <details data-keep-open="bestiary">
+    <summary>Besiegte Gegner ({{ b.beasts | length }})</summary>
+    <ul class="list beast-list">
+      {% for m in b.beasts %}
+      <li>
+        <span class="beast">
+          <span>{{ m.name }} <span class="muted small">Stufe {{ m.level }}</span>{% if m.boss %} <span class="tag boss">Boss</span>{% endif %}{% if m.rare %} <span class="tag rare">selten</span>{% endif %}</span>
+          {% if m.where %}<small class="muted">{{ m.where }}</small>{% endif %}
+        </span>
+        <span class="kills" title="Kill-Gutschriften">{{ m.kills }}×</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </details>
+  {% else %}
+  <p class="muted">Noch nichts besiegt.</p>
+  {% endif %}
+</section>

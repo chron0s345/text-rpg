@@ -72,6 +72,7 @@ class PlayerSnapshot(BaseModel):
     quests: list[QuestState] = Field(default_factory=list)
     achievements: list[str] = Field(default_factory=list)  # earned ids, in the order earned
     title: str | None = None  # achievement id whose title is shown
+    kills: dict[str, int] = Field(default_factory=dict)  # kill credits per monster id
 
     def item(self, inventory_item_id: UUID) -> InventoryItemState | None:
         return next((i for i in self.inventory if i.id == inventory_item_id), None)

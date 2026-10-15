@@ -1,6 +1,7 @@
 # Erfolge: einmal pro Charakter, nie verlierbar. Ein Titel (optional) kann hinter dem Namen
 # geführt werden. Bedingungen: level, quest (quest_id), quests (count), kill (monster_id,
-# die seltene Variante zählt mit), rare (irgendeine seltene Variante), set (set_id; ohne: irgendeines).
+# count, die seltene Variante zählt mit), species (count verschiedene Arten; ohne: alle),
+# rare (irgendeine seltene Variante), set (set_id; ohne: irgendeines).
 
 # --- Stufen ---------------------------------------------------------------------------------
 - id: level_5
@@ -85,6 +86,40 @@
   description: Besiege den Schattenkönig Morvath.
   condition: {type: kill, monster_id: morvath}
   title: Bezwinger der Schatten
+
+# --- Jagd & Bestiarium ----------------------------------------------------------------------
+- id: rats_100
+  name: Rattenfänger
+  description: Besiege 100 Feldratten.
+  condition: {type: kill, monster_id: field_rat, count: 100}
+  title: der Rattenfänger
+- id: goblins_50
+  name: Goblinschreck
+  description: Besiege 50 Goblin-Späher.
+  condition: {type: kill, monster_id: goblin, count: 50}
+  title: Goblinschreck
+- id: wolves_50
+  name: Wolfsjäger
+  description: Besiege 50 hungrige Wölfe.
+  condition: {type: kill, monster_id: wolf, count: 50}
+- id: void_knights_25
+  name: Leerenbrecher
+  description: Besiege 25 Leerenritter.
+  condition: {type: kill, monster_id: void_knight, count: 25}
+  title: Leerenbrecher
+- id: species_10
+  name: Weit herumgekommen
+  description: Besiege 10 verschiedene Arten von Gegnern.
+  condition: {type: species, count: 10}
+- id: species_25
+  name: Monsterkundler
+  description: Besiege 25 verschiedene Arten von Gegnern.
+  condition: {type: species, count: 25}
+- id: species_all
+  name: Das vollständige Bestiarium
+  description: Besiege jede Art von Gegner der Welt.
+  condition: {type: species}
+  title: Bestienkenner
 
 # --- Seltenes & Ausrüstung --------------------------------------------------------------------
 - id: rare_kill

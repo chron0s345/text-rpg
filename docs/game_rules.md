@@ -341,7 +341,8 @@ Manche Ausrüstungsstücke gehören zu einem **Set**; das steht unter dem Namen 
 
 - Für besondere Taten gibt es **Erfolge**: Stufen erreichen, Aufträge erledigen (einzelne und viele), Bosse besiegen, eine seltene Variante erwischen, ein Set vollständig tragen. Jeder Erfolg zählt einmal und geht nie verloren; im Log steht, wenn du einen errungen hast.
 - Manche Erfolge bringen einen **Titel**. Im Erfolge-Panel kannst du einen davon führen – er steht dann hinter deinem Namen, für alle im Raum sichtbar – oder ihn wieder ablegen.
-- Bei Bossen zählt die Kill-Gutschrift: Die ganze Gruppe im Raum bekommt den Erfolg.
+- Bei Kills zählt die Kill-Gutschrift: Die ganze Gruppe im Raum bekommt sie, also auch den Erfolg für einen Boss.
+- **Bestiarium:** Jeder Charakter zählt, wie oft er welchen Gegner besiegt hat (seltene Varianten eigens). Das Panel zeigt alle besiegten Arten mit Stufe, Anzahl und wo sie leben. Manche Erfolge verlangen Mengen („100 Feldratten“) oder viele verschiedene Arten.
 - Neue Erfolge, die du schon erfüllst (z. B. eine Stufe), bekommst du beim nächsten Einloggen.
 
 ## Händler & Bank

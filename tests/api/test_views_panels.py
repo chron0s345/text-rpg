@@ -160,3 +160,25 @@ async def test_select_page_delete_and_logout(api: Api) -> None:
     async with api.committed.session() as db:
         row = await db.get(Player, first)
         assert row is not None and not row.online  # the character left the world too
+
+
+async def test_bestiary_and_achievement_panels(api: Api) -> None:
+    async with api.client() as client:
+        await playing(api, client)
+        me = await character_id(client)
+        async with api.committed.session() as db, db.begin():
+            await db.execute(
+                update(Player)
+                .where(col(Player.id) == me)
+                .values(
+                    kills={"goblin": 3, "golden_goblin": 1, "ignaros": 1, "gone": 9},
+                    achievements=["kill_ignaros"],
+                    title="kill_ignaros",
+                )
+            )
+        page = (await client.get("/")).text
+        assert "Bestiarium" in page and "2/" in page and "5 besiegt" in page
+        assert "Goldener Goblin" in page and "Glutfürst Ignaros" in page and "3×" in page
+        assert "Feuerbändiger" in page  # the title, in the status bar
+        panels = await act(api, client, type="look")
+        assert 'id="bestiary"' in panels

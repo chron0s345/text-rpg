@@ -127,6 +127,11 @@ class Player(SQLModel, table=True):
         sa_column=Column(ARRAY(Text()), nullable=False, server_default=text("'{}'")),
     )
     title: str | None = Field(default=None, max_length=64)  # achievement id shown as title
+    # kill credits per monster id (rare variants under their own id), for the bestiary
+    kills: dict[str, int] = Field(
+        default_factory=dict,
+        sa_column=Column(JSONB, nullable=False, server_default=text("'{}'::jsonb")),
+    )
 
 
 class InventoryItem(SQLModel, table=True):

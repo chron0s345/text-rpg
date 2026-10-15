@@ -90,9 +90,14 @@ def resolve_kill(
     if group is not None and cursor != group.loot_cursor:
         group.loot_cursor = cursor
         builder.changes.groups.append(GroupUpdate(group_id=group.id, loot_cursor=cursor))
-    credited = {p.id for p in recipients}
+    for player in recipients:  # the bestiary's tally
+        player.kills = {
+            **player.kills,
+            monster.monster_id: player.kills.get(monster.monster_id, 0) + 1,
+        }
+        builder.update_player(player.id, kills=player.kills)
     for player in snapshot.players_in_room:  # kill credit, and levels from the XP above
-        grant(builder, player, content, template if player.id in credited else None)
+        grant(builder, player, content)
 
     for participation in snapshot.participations_for(monster.id):
         participant = snapshot.player(participation.player_id)

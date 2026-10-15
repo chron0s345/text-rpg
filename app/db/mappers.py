@@ -72,6 +72,7 @@ def player_snapshot(
         quests=[quest_state(q) for q in quests],
         achievements=list(row.achievements),
         title=row.title,
+        kills=dict(row.kills),
     )
 
 
