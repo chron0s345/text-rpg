@@ -1,4 +1,4 @@
-"""Inventory actions: equip, unequip, use_item, pick_up, drop, inventory.
+"""Inventory actions: equip, equip_best, unequip, use_item, pick_up, drop, inventory.
 
 See ARCHITECTURE.md, "Inventar". Capacity rules live in ``inventory.py``; every way into the
 inventory uses ``add_item_to_inventory``.
@@ -25,6 +25,7 @@ from app.engine.events import (
     RoomAudience,
     rejected,
 )
+from app.engine.gear import best_upgrade
 from app.engine.group_status import report_hp
 from app.engine.inventory import (
     add_item_to_inventory,
@@ -132,6 +133,66 @@ def resolve_equip(
         old = content.get_item(replaced.item_id)
         builder.to_actor("inventory.unequipped", f"Du legst {old.name} ab.", item_id=old.id)
     builder.to_actor("inventory.equipped", f"Du rüstest {item.name} aus.", item_id=item.id)
+    _cap_hp(builder, actor, content)
+    grant(builder, actor, content)  # a completed set
+    return builder.build()
+
+
+def resolve_equip_best(
+    snapshot: ActionSnapshot,
+    content: ContentRegistry,
+    rules: Rules,
+    now: datetime,
+    rng: random.Random,
+) -> ActionResult:
+    """Puts on every backpack piece that is better than what is worn (``engine.gear``: gains
+    without losing anything, set bonuses included), the biggest gain first, until nothing
+    improves. Each swap raises the stats, so this ends. Bags and trade offers stay put."""
+    actor = snapshot.actor
+    if denied := check_state("equip_best", actor):
+        return denied
+
+    after = [i.model_copy() for i in actor.inventory]
+    touched: dict[UUID, InventoryItemState] = {}
+    swaps: list[tuple[ItemTemplate, ItemTemplate | None]] = []
+    skip: set[UUID] = set()  # pieces whose swap would overfill the inventory
+    while (pick := best_upgrade(actor, after, content, skip)) is not None:
+        source, swap = pick
+        item = content.get_item(source.item_id)
+        slot = item.slot
+        assert slot is not None  # swap_for only judges pieces with a slot
+        trial = [i.model_copy() for i in after]
+        trial_source = next(i for i in trial if i.id == source.id)
+        if trial_source.quantity > 1:  # equip one piece of a stack
+            trial_source.quantity -= 1
+            equipped = InventoryItemState(
+                id=new_id(rng), item_id=item.id, quantity=1, equipped_slot=slot
+            )
+            trial.append(equipped)
+        else:
+            trial_source.equipped_slot = slot
+            equipped = trial_source
+        replaced = None
+        if swap.worn is not None:
+            replaced = next(i for i in trial if i.id == swap.worn.id)
+            replaced.equipped_slot = None
+        if not _fits(trial, content, rules):
+            skip.add(source.id)
+            continue
+        after = trial
+        for entry in (trial_source, equipped, replaced):
+            if entry is not None:
+                touched[entry.id] = entry
+        swaps.append((item, content.get_item(replaced.item_id) if replaced else None))
+
+    if not swaps:
+        return rejected("Nichts im Rucksack ist besser als deine Ausrüstung.")
+    builder = ResultBuilder(actor_id=actor.id)
+    actor.inventory = after
+    builder.upsert_inventory(actor.id, list(touched.values()))
+    for item, old in swaps:
+        text = f"Du rüstest {item.name} aus" + (f" und legst {old.name} ab." if old else ".")
+        builder.to_actor("inventory.equipped", text, item_id=item.id)
     _cap_hp(builder, actor, content)
     grant(builder, actor, content)  # a completed set
     return builder.build()

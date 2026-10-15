@@ -65,10 +65,11 @@ app/
 │   ├── group_status.py  # Gruppenpanel: HP & Ort der Mitglieder
 │   ├── movement.py
 │   ├── inventory.py     # Plätze, Stapel, Kapazitätsprüfung
-│   ├── inventory_actions.py # equip, unequip, use_item, pick_up, drop, inventory
+│   ├── inventory_actions.py # equip, equip_best, unequip, use_item, pick_up, drop, inventory
+│   ├── gear.py          # Ausrüstungsvergleich, bestes Upgrade, Ramsch-Erkennung
 │   ├── trade.py         # Handelsablauf zwischen zwei Spielern
 │   ├── bank.py          # Einlagern & Abheben
-│   ├── merchant.py      # Kaufen & Verkaufen bei NPCs
+│   ├── merchant.py      # Kaufen, Verkaufen & Ramsch verkaufen bei NPCs
 │   ├── quests.py        # Aufträge: Annehmen, Abgeben, Abbrechen, Schritte, Kill-/Besuchszählung
 │   ├── crafting.py      # Herstellen bei Handwerkern
 │   ├── materials.py     # Gegenstände abgeben/erhalten (Quest-Lieferungen, Zutaten, Belohnungen)
@@ -564,14 +565,14 @@ Unabhängig davon ist ein Charakter `online` oder offline.
 | attack | ✓ (startet Kampf, nicht in `safe`-Räumen) | ✓ | ✗ |
 | flee | ✗ | ✓ | ✗ |
 | use_item | ✓ | ✓ (kostet Runde) | ✗ |
-| equip / unequip | ✓ | ✗ | ✗ |
+| equip / equip_best / unequip | ✓ | ✗ | ✗ |
 | pick_up / drop | ✓ | ✗ | ✗ |
 | say | ✓ | ✓ | ✗ |
 | group_say / whisper | ✓ | ✓ | ✓ |
 | group_invite / accept / leave / kick | ✓ | ✓ (außer kick) | ✓ (nur leave) |
 | trade_* | ✓ | ✗ (laufender Handel wird abgebrochen) | ✗ |
 | bank_deposit / bank_withdraw | ✓ (nur in Bank-Räumen) | ✗ | ✗ |
-| buy / sell | ✓ (nur beim Händler im Raum) | ✗ | ✗ |
+| buy / sell / sell_junk | ✓ (nur beim Händler im Raum) | ✗ | ✗ |
 | respawn | ✗ | ✗ | ✓ |
 | logout | ✓ | ✓ (mit Bestätigung → Tod) | ✓ |
 | look / inventory / inspect / set_title | ✓ | ✓ | ✓ |
@@ -691,6 +692,7 @@ Umsetzung (`engine/bank.py`): Für Bankaktionen lädt und sperrt `load_action_sn
 - **Kaufen:** Preis aus `MerchantOffer.price` oder `value × buy_ratio`. Prüfung: genug Gold und Platz im Inventar. Vorrat ist unbegrenzt.
 - **Verkaufen:** Erlös `floor(value × sell_ratio)`. Nicht verkaufbar: Items mit `sellable: false`, ausgerüstete Items, Items in einem laufenden Handel und Items, die der Händler laut `buys` nicht annimmt.
 - Verkaufte Items verschwinden; Händler verkaufen sie nicht an andere Spieler weiter.
+- **Ramsch verkaufen** (`sell_junk(merchant_id)`): `engine/gear.junk_for` bestimmt die Stapel – ausrüstbare Waffen/Rüstungen ohne Set mit Urteil schlechter/gleichwertig sowie `misc`-Items, die weder Zutat (`recipes`) noch Lieferziel (`deliver`) sind; nur freie, nicht angebotene Stapel, die dieser Händler für mehr als 0 Gold annimmt. Ganze Stapel, ein Logeintrag. Die Händleransicht zeigt dieselbe Liste vorab (Anzahl, Erlös).
 - Kaufen und Verkaufen sind je eine Transaktion und landen im Log des Spielers.
 - Die Validierung beim Laden stellt sicher, dass sich kein Item günstiger kaufen als verkaufen lässt.
 
@@ -1081,10 +1083,10 @@ class DropAction(BaseModel):
     quantity: PositiveInt | None = None  # None = ganzer Stapel
 
 
-# ... flee, use_item, equip, unequip, inventory, inspect (item_id: Beschreibung + Werte ins Log),
+# ... flee, use_item, equip, equip_best, unequip, inventory, inspect (item_id: Beschreibung + Werte ins Log),
 #     group_leave, group_kick, respawn, look,
 #     trade_request, trade_accept, trade_offer_gold, trade_remove_item, trade_cancel,
-#     bank_deposit, bank_withdraw, buy, sell
+#     bank_deposit, bank_withdraw, buy, sell, sell_junk (merchant_id)
 
 Action = Annotated[
     MoveAction | AttackAction | SayAction | GroupInviteAction | LogoutAction | ...,
@@ -1130,7 +1132,7 @@ Umsetzung (`app/api/views.py`, `app/web/`, `app/services/view_service.py`):
 - Händleransicht: Sortiment mit Preisen (nicht leistbar = ausgegraut), am Inventar „Verkaufen“ mit Erlös pro Stück und für den ganzen Stapel bzw. „Unverkäuflich“.
 - Bankansicht in Bank-Räumen: Bankfach mit Plätzen und „Abheben“, am Inventar „Einlagern“ (ganzer Stapel).
 - Minikarte im Raumpanel (`app/services/minimap.py`, `partials/minimap.html`): Räume haben keine Koordinaten, deshalb legt eine Breitensuche vom aktuellen Raum aus Nord/Süd/Ost/West als Rasterschritte an (Fenster ±2 Felder in jeder Richtung; gezeigt wird alles, was darin liegt, auch wenn der Weg dorthin länger ist). Passt die Welt nicht auf ein Raster, gewinnt der zuerst gefundene Raum; Wege nach oben/unten sind Markierungen am Raum. Markiert sind: aktueller Raum, sichere Räume, Händler und Auftragsziele des aktuellen Schritts (Besuchsziel, Räume mit dem gesuchten Monster, Auftraggeber bei abgabebereiten Aufträgen). Reines SVG mit Klassen – die CSP erlaubt keine Inline-Styles.
-- Ausrüstungspanel (`partials/equipment.html`): alle Plätze aus `describe.SLOT_NAMES` (leere eingeschlossen), Taschen, Gesamtwerte, Set-Zeilen; ein Platz mit besserem Stück im Rucksack ist markiert. Vergleich (`app/services/gear.py`): `compare` rechnet die effektiven Werte mit `calculate_effective_stats` einmal mit dem getragenen Stück und einmal mit dem Kandidaten – Set-Boni inklusive – und liefert Urteil (besser/schlechter/gemischt/gleichwertig), Änderungen und das ersetzte Stück. Angezeigt für Rucksack, Händlerangebote, Bodenitems und Bank (`partials/macros.html`).
+- Ausrüstungspanel (`partials/equipment.html`): alle Plätze aus `describe.SLOT_NAMES` (leere eingeschlossen), Taschen, Gesamtwerte, Set-Zeilen; ein Platz mit besserem Stück im Rucksack ist markiert. Vergleich (`app/engine/gear.py`, `swap_for`; Anzeige über `app/services/gear.compare`): rechnet die effektiven Werte mit `calculate_effective_stats` einmal mit dem getragenen Stück und einmal mit dem Kandidaten – Set-Boni inklusive – und liefert Urteil (besser/schlechter/gemischt/gleichwertig), Änderungen und das ersetzte Stück. Angezeigt für Rucksack, Händlerangebote, Bodenitems und Bank (`partials/macros.html`). **Bestes anlegen** (`equip_best`, `inventory_actions.resolve_equip_best`): wiederholt `gear.best_upgrade` – das freie, nicht angebotene Rucksackstück mit dem größten Zugewinn und Urteil „besser“ – bis nichts mehr steigt (jeder Tausch erhöht die Werte, also endet die Schleife); Stapel werden wie bei `equip` geteilt, ein Tausch, der das Inventar überfüllen würde, wird übersprungen. Der Knopf erscheint nur, wenn `best_upgrade` etwas findet.
 - Balken: HP für Gegner (mit Stufe und Markierung „Boss“ – `MonsterTemplate.boss` – bzw. „selten“), XP-Fortschritt innerhalb der aktuellen Stufe im Status, Fortschritt von Besiegen- und Bringen-Schritten im Auftragspanel.
 - Handelsfenster: „Handeln“ an anwesenden Spielern, Anfrage annehmen/ablehnen, beide Angebote nebeneinander mit Bestätigungsstatus (bestätigte Seite grün) und Stand (`revision`), Gold setzen, Items per „Anbieten“ am Inventar hinzufügen und per ✕ zurücknehmen. Angebotene Items zeigen „im Angebot“ und keine anderen Aktionen. Jede Änderung setzt die Bestätigungen zurück und erscheint im Log beider Seiten.
 

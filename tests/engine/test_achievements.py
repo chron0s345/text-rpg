@@ -14,7 +14,7 @@ from app.content.schemas import AchievementTemplate, Rules
 from app.engine.achievements import grant, resolve_set_title, title_of
 from app.engine.combat import resolve_attack
 from app.engine.events import ResultBuilder
-from app.engine.inventory_actions import resolve_equip
+from app.engine.inventory_actions import resolve_equip, resolve_equip_best
 from app.engine.presence import resolve_login
 from app.engine.quests import resolve_quest_turn_in
 from app.engine.state import ActionSnapshot, InventoryItemState, QuestState
@@ -184,3 +184,13 @@ def test_real_achievements_load(content: ContentRegistry) -> None:
     real = load_content(DATA_DIR)
     assert len(real.achievements) >= 15
     assert all(a.title is None or a.title.strip() for a in real.achievements.values())
+
+
+def test_completing_a_set_with_equip_best(world: ContentRegistry, rules: Rules) -> None:
+    actor = make_player()
+    actor.inventory = [
+        InventoryItemState(id=uuid4(), item_id=i, quantity=1)
+        for i in ["leather_cap", "leather_armor", "leather_leggings", "leather_boots"]
+    ]
+    result = resolve_equip_best(ActionSnapshot(actor=actor), world, rules, NOW, RNG)
+    assert earned(actor_texts(result)) == ["Erfolg errungen: Dressed – …"]

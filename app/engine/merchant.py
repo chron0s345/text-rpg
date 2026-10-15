@@ -14,6 +14,7 @@ from app.content.prices import buy_price, sell_price
 from app.content.registry import ContentRegistry
 from app.content.schemas import MerchantTemplate, Rules
 from app.engine.events import ActionResult, ResultBuilder, rejected
+from app.engine.gear import junk_for
 from app.engine.inventory import (
     add_item_to_inventory,
     calculate_inventory_capacity,
@@ -129,5 +130,44 @@ def resolve_sell(
         item_id=item.id,
         quantity=quantity,
         gold=total,
+    )
+    return builder.build()
+
+
+def resolve_sell_junk(
+    snapshot: ActionSnapshot,
+    content: ContentRegistry,
+    rules: Rules,
+    now: datetime,
+    rng: random.Random,
+    merchant_id: str,
+) -> ActionResult:
+    """Sells everything ``engine.gear.junk_for`` calls junk to this merchant, whole stacks, in
+    one go."""
+    actor = snapshot.actor
+    if denied := check_state("sell_junk", actor):
+        return denied
+    merchant = _merchant_here(snapshot, content, merchant_id)
+    if merchant is None:
+        return rejected("Dieser Händler ist nicht hier.")
+    junk = junk_for(actor, merchant, content, rules)
+    if not junk:
+        return rejected(f"Du hast keinen Ramsch, den {merchant.name} kauft.")
+
+    builder = ResultBuilder(actor_id=actor.id)
+    total = 0
+    labels = []
+    for j in junk:
+        quantity = j.entry.quantity
+        labels.append(_label(quantity, content.get_item(j.entry.item_id).name))
+        total += j.price * quantity
+        remove_quantity(builder, actor, j.entry, quantity)
+    actor.gold += total
+    builder.update_player(actor.id, gold=actor.gold)
+    builder.to_actor(
+        "merchant.sold",
+        f"Du verkaufst {', '.join(labels)} für {total} Gold.",
+        gold=total,
+        quantity=sum(j.entry.quantity for j in junk),
     )
     return builder.build()

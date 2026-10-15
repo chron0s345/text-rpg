@@ -18,6 +18,9 @@
     </li>
     {% endfor %}
   </ul>
+  {% if eq.can_improve and p.state == 'exploring' %}
+  <p class="quick-action"><button hx-post="/ui/actions" hx-vals='{"type": "equip_best"}' title="Legt alles aus dem Rucksack an, was besser ist als deine Ausrüstung">▲ Bestes anlegen</button></p>
+  {% endif %}
   <p class="bags">
     <span class="slot-label">Taschen {{ eq.bags | length }}/{{ eq.bag_slots }}</span>
     {% for b in eq.bags %}

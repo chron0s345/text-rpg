@@ -16,5 +16,10 @@
     {% endfor %}
   </ul>
   {% endif %}
+  {% if shop.junk %}
+  <p class="quick-action"><button hx-post="/ui/actions" hx-vals='{{ {"type": "sell_junk", "merchant_id": shop.merchant_id} | tojson }}'
+          {% if p.state != 'exploring' %}disabled{% endif %}
+          title="Verkauft: {{ shop.junk | join(', ') }}">Ramsch verkaufen <span class="muted">({{ shop.junk | length }} Posten, {{ shop.junk_gold }} Gold)</span></button></p>
+  {% endif %}
   {% endfor %}
 </section>
