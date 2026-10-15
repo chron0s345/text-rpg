@@ -350,7 +350,7 @@ Manche Ausrüstungsstücke gehören zu einem **Set**; das steht unter dem Namen 
 - **Elira** (Kaufmannsstand) verkauft Heiltränke, Brot und Kleine Taschen und kauft alles Verkaufbare an.
 - Kaufen kostet den Listenpreis (sonst Wert × `merchant.buy_ratio`), Verkaufen bringt **abgerundet** Wert × `merchant.sell_ratio`. Ausgerüstete und angebotene Gegenstände kannst du nicht verkaufen; verkaufte Gegenstände verschwinden.
 - **Ramsch verkaufen:** Bei jedem Händler, der etwas davon annimmt, verkauft ein Knopf alles auf einmal, was du nicht brauchst – mit Anzahl und Erlös vorab auf dem Knopf. Ramsch sind: Waffen und Rüstungen, die **▼ schlechter** oder **= gleichwertig** zu deinem getragenen Stück sind (außer Set-Teilen), und Beute, die kein Rezept und kein Auftrag verlangt. Nie Ramsch: Verbrauchsgegenstände, Taschen, Getragenes, Angebotenes, Set-Teile und alles, was ein Rezept oder eine Lieferung braucht.
-- Die **Bank** (Bank von Oakhaven) hat `bank.slots` Plätze pro Charakter – nicht pro Account. Einlagern und Abheben nur dort und nicht im Kampf. **Gold** kann nicht eingelagert werden.
+- Die **Bank** (Bank von Oakhaven) hat `bank.slots` Plätze pro Charakter – nicht pro Account. Einlagern und Abheben nur dort und nicht im Kampf. **Gold** kann nicht eingelagert werden. **Material einlagern** legt mit einem Knopf alle Beute, Handwerksmaterialien, Trophäen und Fundstücke aus dem Rucksack in die Bank, so weit Platz ist; Ausrüstung, Tränke und Essen bleiben bei dir.
 
 ## Ausloggen & Verbindung
 
