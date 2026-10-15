@@ -258,10 +258,19 @@ class QuestCountCondition(BaseModel):
 
 
 class KillCondition(BaseModel):
-    """Get kill credit for this monster (its rare variant counts, too)."""
+    """Get kill credit for this monster ``count`` times (its rare variant counts, too)."""
 
     type: Literal["kill"] = "kill"
     monster_id: str
+    count: PositiveInt = 1
+
+
+class SpeciesCondition(BaseModel):
+    """Get kill credit for this many different monsters (a rare variant counts as its base;
+    ``count`` None: every one there is)."""
+
+    type: Literal["species"] = "species"
+    count: PositiveInt | None = None
 
 
 class RareKillCondition(BaseModel):
@@ -282,6 +291,7 @@ Condition = Annotated[
     | QuestCondition
     | QuestCountCondition
     | KillCondition
+    | SpeciesCondition
     | RareKillCondition
     | SetCondition,
     Field(discriminator="type"),

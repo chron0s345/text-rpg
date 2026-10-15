@@ -24,7 +24,7 @@
   <p class="muted">Noch keine. Besiege Bosse, erledige Aufträge, steige auf.</p>
   {% endif %}
   {% if open %}
-  <details>
+  <details data-keep-open="achievements">
     <summary>Noch offen ({{ open | length }})</summary>
     <ul class="list achievement-list">{% for e in open %}{{ entry(e) }}{% endfor %}</ul>
   </details>

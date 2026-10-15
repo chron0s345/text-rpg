@@ -31,6 +31,20 @@
   });
   document.addEventListener("DOMContentLoaded", scrollLog);
 
+  // Panels are re-rendered after every action; foldouts marked data-keep-open stay as the
+  // player left them.
+  const openFolds = new Set();
+  document.addEventListener("toggle", (e) => {
+    const key = e.target instanceof HTMLDetailsElement ? e.target.dataset.keepOpen : undefined;
+    if (!key) return;
+    if (e.target.open) openFolds.add(key); else openFolds.delete(key);
+  }, true);
+  document.addEventListener("htmx:oobAfterSwap", () => {
+    document.querySelectorAll("details[data-keep-open]").forEach((d) => {
+      if (openFolds.has(d.dataset.keepOpen)) d.open = true;
+    });
+  });
+
   // SSE control messages.
   let opened = false;
   document.addEventListener("htmx:sseOpen", () => {

@@ -24,6 +24,7 @@ from app.content.schemas import (
     RoomTemplate,
     Rules,
     SetCondition,
+    SpeciesCondition,
 )
 
 logger = logging.getLogger(__name__)
@@ -314,6 +315,17 @@ def validate_achievements(
             raise ContentValidationError(f"{where} needs an unknown quest '{condition.quest_id}'")
         if isinstance(condition, QuestCountCondition) and (condition.count or 0) > len(quests):
             raise ContentValidationError(f"{where} needs more quests than there are")
+        if isinstance(condition, SpeciesCondition):
+            species = {
+                m
+                for m in monsters
+                if not any(
+                    o.rare_variant is not None and o.rare_variant.monster_id == m
+                    for o in monsters.values()
+                )
+            }
+            if (condition.count or 0) > len(species):
+                raise ContentValidationError(f"{where} needs more monster species than there are")
         if isinstance(condition, SetCondition) and (
             condition.set_id is not None and condition.set_id not in item_sets
         ):

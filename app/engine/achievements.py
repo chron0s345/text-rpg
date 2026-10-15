@@ -2,9 +2,9 @@
 with a title the character may show after their name.
 
 ``grant`` checks every achievement a character has not earned yet against their current state
-(level, completed quests, worn sets) and, with ``killed``, against that kill. It runs wherever
-one of these can change: kill credit, quest turn-in, equipping, login (catches up on
-achievements added to the content later). ``resolve_set_title`` picks the shown title.
+(level, completed quests, kill tally, worn sets). It runs wherever one of these can change:
+kill credit, quest turn-in, equipping, login (catches up on achievements added to the content
+later). ``resolve_set_title`` picks the shown title.
 """
 
 from __future__ import annotations
@@ -17,12 +17,12 @@ from app.content.schemas import (
     AchievementTemplate,
     KillCondition,
     LevelCondition,
-    MonsterTemplate,
     QuestCondition,
     QuestCountCondition,
     RareKillCondition,
     Rules,
     SetCondition,
+    SpeciesCondition,
 )
 from app.engine.events import ActionResult, ResultBuilder, rejected
 from app.engine.permissions import check_state
@@ -34,12 +34,17 @@ def completed_quests(player: PlayerSnapshot) -> set[str]:
     return {q.quest_id for q in player.quests if q.times_completed > 0}
 
 
-def met(
-    achievement: AchievementTemplate,
-    player: PlayerSnapshot,
-    content: ContentRegistry,
-    killed: MonsterTemplate | None = None,
-) -> bool:
+def kills_of(player: PlayerSnapshot, monster_id: str, content: ContentRegistry) -> int:
+    """Kill credits for this monster, its rare variant included."""
+    return sum(n for m, n in player.kills.items() if content.base_monster_id(m) == monster_id)
+
+
+def species_killed(player: PlayerSnapshot, content: ContentRegistry) -> set[str]:
+    """Base monsters the character has kill credit for (a rare variant counts as its base)."""
+    return {content.base_monster_id(m) for m, n in player.kills.items() if n > 0}
+
+
+def met(achievement: AchievementTemplate, player: PlayerSnapshot, content: ContentRegistry) -> bool:
     condition = achievement.condition
     match condition:
         case LevelCondition():
@@ -50,12 +55,12 @@ def met(
             done = len(completed_quests(player) & content.quests.keys())
             return done >= (condition.count or len(content.quests))
         case KillCondition():
-            return killed is not None and condition.monster_id in (
-                killed.id,
-                content.base_monster_id(killed.id),
-            )
+            return kills_of(player, condition.monster_id, content) >= condition.count
+        case SpeciesCondition():
+            every = {content.base_monster_id(m) for m in content.monsters}
+            return len(species_killed(player, content) & every) >= (condition.count or len(every))
         case RareKillCondition():
-            return killed is not None and content.base_monster_id(killed.id) != killed.id
+            return any(content.base_monster_id(m) != m for m, n in player.kills.items() if n)
         case SetCondition():
             return any(
                 count == len(item_set.items)
@@ -65,18 +70,13 @@ def met(
     return False  # pragma: no cover - the match is exhaustive
 
 
-def grant(
-    builder: ResultBuilder,
-    player: PlayerSnapshot,
-    content: ContentRegistry,
-    killed: MonsterTemplate | None = None,
-) -> None:
+def grant(builder: ResultBuilder, player: PlayerSnapshot, content: ContentRegistry) -> None:
     """Awards every achievement ``player`` now meets and has not earned yet (mutates
     ``player``), one log line each."""
     earned = [
         a
         for a in content.achievements.values()
-        if a.id not in player.achievements and met(a, player, content, killed)
+        if a.id not in player.achievements and met(a, player, content)
     ]
     if not earned:
         return

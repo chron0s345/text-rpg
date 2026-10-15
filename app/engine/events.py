@@ -80,6 +80,7 @@ class PlayerUpdate(BaseModel):
     group_joined_at: datetime | None = None
     achievements: list[str] | None = None  # engine/achievements.py: the full new list
     title: str | None = None
+    kills: dict[str, int] | None = None  # the full new tally
 
 
 class MonsterUpdate(BaseModel):

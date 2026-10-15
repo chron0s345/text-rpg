@@ -44,6 +44,7 @@ from app.db.models import (
     Trade,
     TradeOffer,
 )
+from app.engine.achievements import species_killed
 from app.engine.gear import best_upgrade, junk_for
 from app.engine.inventory import calculate_inventory_capacity, get_occupied_slots
 from app.engine.materials import count_available, quantity_text
@@ -336,6 +337,24 @@ class AchievementsView:
 
 
 @dataclass(frozen=True)
+class BeastView:
+    name: str
+    level: int
+    kills: int
+    boss: bool
+    rare: bool
+    where: str  # rooms it lives in, "" if none (e.g. only summoned by quests)
+
+
+@dataclass(frozen=True)
+class BestiaryView:
+    species: int  # different monsters slain (a rare variant counts as its base)
+    total_species: int
+    kills: int
+    beasts: list[BeastView]  # slain ones, by level
+
+
+@dataclass(frozen=True)
 class GameView:
     player: PlayerView
     room: RoomView
@@ -348,6 +367,7 @@ class GameView:
     recipes: list[RecipeView]  # of the crafters in this room
     equipment: EquipmentView
     achievements: AchievementsView
+    bestiary: BestiaryView
 
 
 class ViewService:
@@ -533,6 +553,7 @@ class ViewService:
             recipes=self._recipes(snapshot),
             equipment=equipment,
             achievements=self._achievements(snapshot),
+            bestiary=self._bestiary(snapshot),
         )
 
     def _quest_rooms(self, player: PlayerSnapshot) -> frozenset[str]:
@@ -705,6 +726,38 @@ class ViewService:
             price <= gold,
             item_summary(item),
             compare(player, item.id, self.content),
+        )
+
+    def _bestiary(self, player: PlayerSnapshot) -> BestiaryView:
+        content = self.content
+        homes: dict[str, list[str]] = {}
+        for room in content.rooms.values():
+            for spawn in room.spawns:
+                names = homes.setdefault(spawn.monster_id, [])
+                if room.name not in names:
+                    names.append(room.name)
+        beasts = []
+        for monster_id, kills in player.kills.items():
+            template = content.monsters.get(monster_id)
+            if template is None or kills <= 0:
+                continue  # removed from the content
+            base = content.base_monster_id(monster_id)
+            beasts.append(
+                BeastView(
+                    name=template.name,
+                    level=template.level,
+                    kills=kills,
+                    boss=template.boss,
+                    rare=base != monster_id,
+                    where=", ".join(homes.get(base, [])),
+                )
+            )
+        beasts.sort(key=lambda b: (b.level, b.name))
+        return BestiaryView(
+            species=len(species_killed(player, content) & content.monsters.keys()),
+            total_species=len({content.base_monster_id(m) for m in content.monsters}),
+            kills=sum(b.kills for b in beasts),
+            beasts=beasts,
         )
 
     def _title(self, achievement_id: str | None) -> str:

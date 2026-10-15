@@ -192,3 +192,8 @@ button.small { font-size: .75rem; }
 .achievements summary { cursor: pointer; color: var(--muted); margin-top: .4rem; }
 .achievement > span { display: flex; flex-direction: column; min-width: 0; }
 .achievement.locked { opacity: .55; }
+
+/* bestiary */
+.bestiary summary { cursor: pointer; color: var(--muted); }
+.beast { display: flex; flex-direction: column; min-width: 0; }
+.kills { font-variant-numeric: tabular-nums; color: var(--muted); }

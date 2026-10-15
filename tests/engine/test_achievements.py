@@ -194,3 +194,42 @@ def test_completing_a_set_with_equip_best(world: ContentRegistry, rules: Rules) 
     ]
     result = resolve_equip_best(ActionSnapshot(actor=actor), world, rules, NOW, RNG)
     assert earned(actor_texts(result)) == ["Erfolg errungen: Dressed – …"]
+
+
+def test_kills_are_tallied_for_the_credited_party(world: ContentRegistry, rules: Rules) -> None:
+    actor = make_player()
+    actor.kills = {"plain": 4}
+    monster = make_monster("plain", hp=1)
+    result = resolve_attack(
+        ActionSnapshot(actor=actor, monsters=[monster]), world, rules, NOW, RNG, monster.id
+    )
+    assert player_update(result, actor.id)["kills"] == {"plain": 5}
+
+
+def test_kill_counts_and_species(content: ContentRegistry, rules: Rules) -> None:
+    local = dataclasses.replace(
+        content,
+        achievements={
+            a.id: a
+            for a in [
+                achievement("mice", {"type": "kill", "monster_id": "plain", "count": 3}),
+                achievement("two_kinds", {"type": "species", "count": 2}),
+                achievement("every_kind", {"type": "species"}),
+            ]
+        },
+    )
+    actor = make_player()
+    actor.kills = {"plain": 1, "golden": 1}  # the rare variant counts for its base
+
+    def grant_now() -> list[str]:
+        builder = ResultBuilder(actor_id=actor.id)
+        grant(builder, actor, local)
+        return earned(actor_texts(builder.build()))
+
+    assert grant_now() == []
+    actor.kills["golden"] = 2
+    assert grant_now() == ["Erfolg errungen: Mice – …"]
+    actor.kills["dummy"] = 1
+    assert grant_now() == ["Erfolg errungen: Two_kinds – …"]
+    actor.kills = {m: 1 for m in local.monsters}
+    assert grant_now() == ["Erfolg errungen: Every_kind – …"]
