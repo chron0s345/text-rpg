@@ -196,6 +196,8 @@ Im Chatfeld unter dem Log:
 
 Gruppenchat und Flüstern gehen auch, wenn du tot bist. Chatten zählt wie jede Aktion gegen den Mindestabstand zwischen Aktionen.
 
+**Im Spiel:** Das Panel „Im Spiel“ zeigt, wie viele Charaktere gerade online sind, und aufgeklappt die höchsten 30 mit Stufe, Titel, Ort und Zustand – praktisch, um jemandem zu flüstern oder eine Gruppe zu finden.
+
 ## Handel
 
 - **Anfrage** an jemanden im selben Raum; sie läuft nach `trade.request_ttl_seconds` Sekunden ab. Nicht zwischen Charakteren desselben Accounts.
