@@ -1219,3 +1219,113 @@
       chance: 0.15
     - item_id: phoenix_draught
       chance: 0.5
+
+# --- Hügelgräber (östlich des Steilen Anstiegs, Stufe 8–10) ---
+
+- id: barrow_wight
+  name: "Grabwicht"
+  level: 8
+  max_hp: 85
+  attack: 31
+  defense: 12
+  xp_reward: 240
+  gold_reward: [8, 20]
+  respawn_seconds: 120
+  regen:
+    delay_seconds: 15
+    hp_per_second: 3.0
+  rare_variant:
+    monster_id: ancient_wight
+    chance: 0.05
+  loot_table:
+    - item_id: wight_dust
+      chance: 0.8
+    - item_id: bone_dust
+      chance: 0.3
+      min_qty: 1
+      max_qty: 2
+
+- id: ancient_wight
+  name: "Uralter Grabwicht"
+  level: 9
+  max_hp: 130
+  attack: 34
+  defense: 14
+  xp_reward: 700
+  gold_reward: [40, 80]
+  respawn_seconds: 120
+  regen:
+    delay_seconds: 15
+    hp_per_second: 4.0
+  loot_table:
+    - item_id: wight_dust
+      chance: 1.0
+      min_qty: 3
+      max_qty: 4
+    - item_id: wolfking_pelt
+      chance: 0.25
+    - item_id: ruby_ring
+      chance: 0.2
+
+- id: bone_hound
+  name: "Knochenhund"
+  level: 9
+  max_hp: 95
+  attack: 34
+  defense: 12
+  xp_reward: 290
+  gold_reward: [5, 15]
+  respawn_seconds: 120
+  regen:
+    delay_seconds: 15
+    hp_per_second: 3.0
+  ambush:
+    chance_on_enter: 0.25
+    chance_per_tick: 0.06
+    max_level_difference: 2
+  loot_table:
+    - item_id: grave_fang
+      chance: 0.6
+
+- id: grave_warden
+  name: "Grabhüter"
+  level: 10
+  max_hp: 125
+  attack: 35
+  defense: 16
+  xp_reward: 430
+  gold_reward: [15, 35]
+  respawn_seconds: 150
+  regen:
+    delay_seconds: 15
+    hp_per_second: 3.0
+  loot_table:
+    - item_id: wight_dust
+      chance: 0.5
+      min_qty: 1
+      max_qty: 2
+    - item_id: wolfking_pelt
+      chance: 0.06
+    - item_id: iron_helm
+      chance: 0.1
+
+- id: wolf_king
+  name: "Wolfskönig Gerulf"
+  boss: true
+  level: 10
+  max_hp: 450
+  attack: 41
+  defense: 18
+  xp_reward: 1150
+  gold_reward: [90, 170]
+  respawn_seconds: 900
+  regen:
+    delay_seconds: 20
+    hp_per_second: 6.0
+  loot_table:
+    - item_id: gerulf_fang
+      chance: 1.0
+    - item_id: wolfking_crown
+      chance: 0.3
+    - item_id: elixir
+      chance: 0.3
