@@ -576,7 +576,7 @@ Unabhängig davon ist ein Charakter `online` oder offline.
 | buy / sell / sell_junk | ✓ (nur beim Händler im Raum) | ✗ | ✗ |
 | respawn | ✗ | ✗ | ✓ |
 | logout | ✓ | ✓ (mit Bestätigung → Tod) | ✓ |
-| look / inventory / inspect / set_title | ✓ | ✓ | ✓ |
+| look / inventory / inspect / inspect_player / set_title | ✓ | ✓ | ✓ |
 
 ### Engine-Schnittstelle
 
@@ -1086,6 +1086,7 @@ class DropAction(BaseModel):
 
 
 # ... flee, use_item, equip, equip_best, unequip, inventory, inspect (item_id: Beschreibung + Werte ins Log),
+#     inspect_player (player_id im selben Raum: Stufe, Titel, Werte, Ausrüstung, Erfolge),
 #     group_leave, group_kick, respawn, look,
 #     trade_request, trade_accept, trade_offer_gold, trade_remove_item, trade_cancel,
 #     bank_deposit, bank_withdraw, buy, sell, sell_junk (merchant_id)

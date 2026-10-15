@@ -47,6 +47,7 @@ from app.api.schemas import (
     GroupLeaveAction,
     GroupSayAction,
     InspectAction,
+    InspectPlayerAction,
     InventoryAction,
     LogoutAction,
     LookAction,
@@ -79,6 +80,7 @@ from app.engine.achievements import resolve_set_title
 from app.engine.actions import (
     resolve_group_say,
     resolve_inspect,
+    resolve_inspect_player,
     resolve_look,
     resolve_respawn,
     resolve_rest,
@@ -663,6 +665,8 @@ class ActionService:
                 return resolve_respawn(*args)
             case SetTitleAction():
                 return resolve_set_title(*args, action.achievement_id)
+            case InspectPlayerAction():
+                return resolve_inspect_player(*args, action.player_id)
             case InspectAction():
                 return resolve_inspect(*args, action.item_id)
             case QuestAcceptAction():

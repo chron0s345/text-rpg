@@ -197,3 +197,6 @@ button.small { font-size: .75rem; }
 .bestiary summary { cursor: pointer; color: var(--muted); }
 .beast { display: flex; flex-direction: column; min-width: 0; }
 .kills { font-variant-numeric: tabular-nums; color: var(--muted); }
+
+/* buttons side by side in a list row */
+.row-actions { display: inline-flex; gap: .3rem; flex-shrink: 0; }
