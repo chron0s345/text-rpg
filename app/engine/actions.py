@@ -1,14 +1,16 @@
 """Simple actions without their own module: chat (``say``, ``group_say``, ``whisper``),
-``look``, ``respawn``."""
+``inspect``, ``inspect_player``, ``rest``, ``look``, ``respawn``."""
 
 from __future__ import annotations
 
 import random
 from datetime import datetime
+from uuid import UUID
 
-from app.content.describe import item_summary, set_bonuses_text
+from app.content.describe import SLOT_NAMES, item_summary, set_bonuses_text
 from app.content.registry import ContentRegistry
 from app.content.schemas import Rules
+from app.engine.achievements import species_killed, title_of
 from app.engine.events import (
     ActionResult,
     GroupAudience,
@@ -145,6 +147,55 @@ def resolve_inspect(
         text += f" Set-Teile: {pieces}. Boni: {set_bonuses_text(item.item_set)}."
     builder = ResultBuilder(actor_id=actor.id)
     builder.to_actor("item.inspected", text, item_id=item.id)
+    return builder.build()
+
+
+def resolve_inspect_player(
+    snapshot: ActionSnapshot,
+    content: ContentRegistry,
+    rules: Rules,
+    now: datetime,
+    rng: random.Random,
+    player_id: UUID,
+) -> ActionResult:
+    """What anyone can see of a character in the same room: level, title, effective stats,
+    worn gear, achievements and how many kinds of monsters they have slain. The one looked at
+    notices."""
+    actor = snapshot.actor
+    if denied := check_state("inspect_player", actor):
+        return denied
+    target = snapshot.player(player_id)
+    if target is None:
+        return rejected("Diese Person ist nicht hier.")
+    stats = stats_of(target, content.items)
+    title = title_of(target, content)
+    worn = {
+        i.equipped_slot: content.get_item(i.item_id).name
+        for i in target.inventory
+        if i.equipped_slot
+    }
+    gear = [
+        f"{label}: {worn[slot]}"
+        for slot, label in SLOT_NAMES.items()
+        if slot in worn and slot != "bag"
+    ]
+    earned = sum(1 for a in target.achievements if a in content.achievements)
+    lines = [
+        f"{target.name}{f' {title}' if title else ''} – Stufe {target.level}.",
+        f"Angriff {stats.attack} · Verteidigung {stats.defense} · max. HP {stats.max_hp}.",
+        "Trägt: " + ("; ".join(gear) if gear else "nichts Nennenswertes") + ".",
+        f"Erfolge: {earned}/{len(content.achievements)} · "
+        f"Bestiarium: {len(species_killed(target, content))} Arten.",
+    ]
+    builder = ResultBuilder(actor_id=actor.id)
+    builder.to_actor("player.inspected", "\n".join(lines), player_id=str(target.id))
+    if target.id != actor.id:
+        builder.event(
+            "player.inspected_by",
+            PlayersAudience(player_ids=[target.id]),
+            f"{actor.name} mustert dich.",
+            player_id=str(actor.id),
+        )
     return builder.build()
 
 
