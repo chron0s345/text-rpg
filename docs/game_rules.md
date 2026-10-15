@@ -216,6 +216,7 @@ Viele Händler haben **Aufträge**. Steht ein Auftraggeber im Raum, zeigt das Pa
 - Manche Aufträge setzen eine Stufe oder einen anderen Auftrag voraus, manche lassen sich wiederholen. Höchstens 10 Aufträge gleichzeitig; abbrechen geht jederzeit, der Fortschritt ist dann verloren.
 - **Einstieg:** Hauptmann Rowan auf dem Marktplatz führt Neulinge mit vier kurzen Aufträgen durch das Wichtigste: Wege und Händler, der erste Kampf, Rasten, Beute verkaufen, Ausrüstung. Wer auf Stufe 1 einloggt und den ersten noch nicht angenommen hat, bekommt einen Hinweis im Log. Der Hauptmann handelt nicht.
 - **Questketten mit Geschichte:** *Der verschwundene Jäger* (Wirtin Hanne und Fischerin Maren, ab Stufe 4), *Die Halle von Khazdur* (Waffenmeisterin Brunhild, ab Stufe 6) und *Die Laternen der Tiefe* (von Kundschafterin Ilva über Taucher Brack und den Händler ohne Gesicht bis zu Schwester Liora, ab Stufe 11).
+- **Kopfgelder:** In jeder Region gibt es einen wiederholbaren Jagdauftrag („Kopfgeld: …“) – Hauptmann Rowan für die Gegend um Oakhaven, die Händler der Regionen für ihre Plagen. Die Belohnung ist etwa die Hälfte der Erfahrung, die die Kills selbst bringen, plus etwas Gold. Kills zählen erst ab dem Annehmen.
 
 | Auftrag | Auftraggeber | ab Stufe | Aufgabe |
 |---|---|---|---|
@@ -282,6 +283,15 @@ Viele Händler haben **Aufträge**. Steht ein Auftraggeber im Raum, zeigt das Pa
 | Vermessung des Kraters | Kundschafterin Ilva | 12 | Gehe zu: Basaltstiege → Gehe zu: Lavastrom → Gehe zu: Schmiede der Feuerriesen → Besiege 2× Feuerriese |
 | Karte von Aelmar | Taucher Brack | 12 | Gehe zu: Versunkener Platz → Gehe zu: Halle der Ertrunkenen Ritter → Gehe zu: Korallenpalast → Besiege 2× Korallenwächter |
 | Durch die Dunkelheit | Der Händler ohne Gesicht | 14 | Gehe zu: Schattenriss → Gehe zu: Brücke über das Nichts → Gehe zu: Halle der Stille → Besiege 2× Schattenwächter |
+| Kopfgeld: Feldratten | Hauptmann Rowan | 1 | 10× Feldratte besiegen (wiederholbar) |
+| Kopfgeld: Hungrige Wölfe | Hauptmann Rowan | 2 | 8× Hungriger Wolf besiegen (wiederholbar) |
+| Kopfgeld: Skelettwächter | Hauptmann Rowan | 4 | 8× Skelettwächter besiegen (wiederholbar) |
+| Kopfgeld: Ertrunkene Seeleute | Fischerin Maren | 5 | 8× Ertrunkener Seemann besiegen (wiederholbar) |
+| Kopfgeld: Eisgolems | Waffenmeisterin Brunhild | 8 | 6× Eisgolem besiegen (wiederholbar) |
+| Kopfgeld: Verdorbene Dryaden | Waldläuferin Nimriel | 9 | 6× Verdorbene Dryade besiegen (wiederholbar) |
+| Kopfgeld: Feuersalamander | Kundschafterin Ilva | 11 | 8× Feuersalamander besiegen (wiederholbar) |
+| Kopfgeld: Ertrunkene Ritter | Taucher Brack | 12 | 6× Ertrunkener Ritter besiegen (wiederholbar) |
+| Kopfgeld: Schattenpirscher | Der Händler ohne Gesicht | 14 | 8× Schattenpirscher besiegen (wiederholbar) |
 
 ## Handwerk
 
