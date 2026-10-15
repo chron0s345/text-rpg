@@ -8,6 +8,11 @@
     {% endfor %}
     <button hx-post="/ui/actions" hx-vals='{"type": "flee"}'>Fliehen</button>
   {% endif %}
+  {% if p.state == 'in_combat' or (p.state == 'exploring' and p.hp < p.max_hp and not view.room.safe) %}
+  {% for i in (view.inventory.carried | selectattr("usable") | rejectattr("offered") | list)[:4] %}
+  <button class="heal" hx-post="/ui/actions" hx-vals='{{ {"type": "use_item", "inventory_item_id": i.id | string} | tojson }}' title="{{ i.summary }}{% if p.state == 'in_combat' %} – kostet eine Kampfrunde{% endif %}">{% if i.icon %}<img src="/static/icons/{{ i.icon }}.svg" alt="" class="icon">{% endif %}{{ i.name }} <span class="muted">×{{ i.quantity }}</span></button>
+  {% endfor %}
+  {% endif %}
   {% if p.state == 'exploring' and view.room.safe and p.hp < p.max_hp %}
   <button class="primary" hx-post="/ui/actions" hx-vals='{"type": "rest"}'>Rasten</button>
   {% endif %}
