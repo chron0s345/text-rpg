@@ -194,3 +194,46 @@
     - {item_id: nightmare_essence, quantity: 2}
   gold: 200
   min_level: 15
+
+# --- Trophäen: was Bosse hinterlassen, wird zu Ausrüstung ---
+
+- id: rat_king_ring
+  crafter_id: goldsmith
+  item_id: rat_king_ring
+  ingredients: [{item_id: rat_crown}, {item_id: rat_tail, quantity: 5}]
+  gold: 20
+  min_level: 2
+
+- id: boarding_axe
+  crafter_id: old_diver
+  item_id: boarding_axe
+  ingredients: [{item_id: war_axe}, {item_id: raider_hook, quantity: 3}]
+  gold: 90
+  min_level: 11
+
+- id: kraken_amulet
+  crafter_id: fisherwoman
+  item_id: kraken_amulet
+  ingredients:
+    - {item_id: kraken_eye}
+    - {item_id: storm_amulet}
+    - {item_id: coral_shard, quantity: 2}
+  gold: 80
+  min_level: 13
+
+- id: ember_crown
+  crafter_id: crater_scout
+  item_id: ember_crown
+  ingredients: [{item_id: ignaros_crown}, {item_id: ember_core, quantity: 3}]
+  gold: 100
+  min_level: 13
+
+- id: warden_crown
+  crafter_id: faceless_merchant
+  item_id: warden_crown
+  ingredients:
+    - {item_id: shadow_crown}
+    - {item_id: void_shard, quantity: 4}
+    - {item_id: nightmare_essence, quantity: 2}
+  gold: 150
+  min_level: 15
