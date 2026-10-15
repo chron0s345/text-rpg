@@ -92,6 +92,16 @@ class ExitView:
 
 
 @dataclass(frozen=True)
+class TravelView:
+    room_id: str
+    room_name: str
+    by: str
+    gold: int
+    min_level: int
+    possible: bool  # level reached and gold enough
+
+
+@dataclass(frozen=True)
 class MonsterView:
     id: UUID
     name: str
@@ -126,6 +136,7 @@ class RoomView:
     merchants: list[str]
     floor_items: list[FloorItemView]
     map: Minimap
+    travel: list[TravelView] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -507,6 +518,17 @@ class ViewService:
             ],
             monsters=monster_views,
             players=[(pid, name, state, self._title(title)) for pid, name, state, title in others],
+            travel=[
+                TravelView(
+                    route.room_id,
+                    self.content.get_room(route.room_id).name,
+                    route.by,
+                    route.gold,
+                    route.min_level,
+                    row.level >= route.min_level and row.gold >= route.gold,
+                )
+                for route in room.travel
+            ],
             merchants=[m.name for m in self.content.merchants_in_room(room.id)],
             floor_items=floor_views,
             map=minimap(self.content, room.id, self._quest_rooms(snapshot)),

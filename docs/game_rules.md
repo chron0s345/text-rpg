@@ -88,6 +88,21 @@ Die Welt wird nach außen gefährlicher: Rund um Oakhaven, im Wald und in den **
 
 In **sicheren Räumen** wird nicht gekämpft und niemand wird überfallen. Betrittst du einen **Checkpoint**, merkt sich dein Charakter diesen Ort; dort erwachst du nach dem Tod.
 
+### Reisen
+
+Von einigen sicheren Orten fahren Kutschen und Boote gegen Gold zu anderen sicheren Orten. Die Ankunft zählt wie Hingehen (Checkpoint, Besuchsziele), nur ohne Gefahr unterwegs.
+
+| Von | Nach | Mit | Gold | ab Stufe |
+|---|---|---|---|---|
+| Marktplatz von Oakhaven | Fischerdorf Möwenstein | Postkutsche | 10 | 3 |
+| Marktplatz von Oakhaven | Zwergenposten Khazdur | Postkutsche | 25 | 6 |
+| Marktplatz von Oakhaven | Verfallene Elfenhalle | Postkutsche | 40 | 8 |
+| Marktplatz von Oakhaven | Rastplatz am Kraterrand | Postkutsche | 60 | 11 |
+| Fischerdorf Möwenstein | Luftkammer des Tauchers | Boot des Tauchers | 30 | 11 |
+| Letzte Zuflucht | Marktplatz von Oakhaven | Schattenpfad | 80 | 1 |
+
+Jede Kutsche und das Boot fahren zum gleichen Preis auch zurück. Zur Letzten Zuflucht führt kein Weg außer dem eigenen.
+
 ## Werte & Stufen
 
 Jeder Charakter hat **Lebenspunkte (HP)**, **Angriff** und **Verteidigung**. Die Grundwerte hängen von der Stufe ab, ausgerüstete Gegenstände kommen dazu.

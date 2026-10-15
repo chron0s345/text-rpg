@@ -562,7 +562,7 @@ Unabhängig davon ist ein Charakter `online` oder offline.
 
 | Aktion | exploring | in_combat | dead |
 |---|---|---|---|
-| move | ✓ | ✗ | ✗ |
+| move / travel | ✓ | ✗ | ✗ |
 | attack | ✓ (startet Kampf, nicht in `safe`-Räumen) | ✓ | ✗ |
 | flee | ✗ | ✓ | ✗ |
 | use_item | ✓ | ✓ (kostet Runde) | ✗ |
@@ -778,6 +778,11 @@ Umsetzung (`engine/groups.py`, `Repository.load_group_snapshot`):
 - **Bestiarium:** `player.kills` (JSONB, Monster-ID → Anzahl; seltene Varianten unter ihrer eigenen ID) zählt Kill-Gutschriften. `rewards.resolve_kill` erhöht den Zähler für jedes Mitglied der Partei mit Kill-Gutschrift (dieselben Empfänger wie Gold und Beute). Das Bestiarium-Panel zeigt besiegte Gegner mit Stufe, Boss/Selten, Anzahl und Fundorten (Räume mit Spawn-Regel der Grundart).
 - `engine/achievements.grant(builder, player, content)` prüft nur den Zustand (Stufe, erledigte Aufträge, Kill-Zähler, getragene Sets) und vergibt alles, was der Charakter jetzt erfüllt und noch nicht hat, mit einer Log-Zeile je Erfolg (`achievement.earned`). Aufgerufen bei Kills (für jeden Spieler im Raum: Zähler und Stufenaufstiege aus dem XP-Anteil), Auftragsabgabe, Ausrüsten (`equip`, `equip_best`) und Login (holt neu hinzugekommene Erfolge nach).
 - `set_title(achievement_id | None)` (in jedem Zustand) führt den Titel eines errungenen Erfolgs bzw. legt ihn ab. Angezeigt in der Statusleiste und in der Raumliste.
+
+### Reisen
+
+- Content: `RoomTemplate.travel` – Routen `{room_id, gold, min_level, by}` von einem sicheren Raum zu einem anderen sicheren Raum (der Loader prüft beides, keine Route zu sich selbst, keine doppelten). Routen sind gerichtet; der Rückweg ist eine eigene Route.
+- `travel(room_id)` (`movement.resolve_travel`, nur `exploring`): Stufe und Gold prüfen, Gold abziehen, Raum wechseln. Die Ankunft (`movement._arrive`: Gruppenort, Besuchsziele, Checkpoint) ist dieselbe wie beim Gehen. Kein Überfall, weil das Ziel sicher ist. Wie bei `move` beschreibt der Snapshot den Zielraum (`ActionService._target_room`).
 
 ### Tod & Checkpoint
 
