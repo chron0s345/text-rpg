@@ -290,6 +290,7 @@ Manche Händler sind auch **Handwerker**. Steht einer im Raum, zeigt das Panel �
 - Zutaten werden aus dem Rucksack genommen (nicht ausgerüstete und nicht im Handel angebotene), dazu die Gebühr in Gold.
 - Das Ergebnis muss ins Inventar passen, sonst wird nichts genommen. Ein Stapel, den die Zutaten aufbrauchen, macht dafür Platz.
 - Manche Stücke gibt es nur beim Handwerker, etwa den Frostpelzmantel oder die Leerenschneide.
+- **Trophäen:** Was Bosse und ihre Gefolgsleute als Andenken hinterlassen – Rattenkrone, Enterhaken, Krakenauge, die Kronen des Glutfürsten und des Schattenkönigs – schmieden Handwerker zu Ausrüstung, die es sonst nirgends gibt.
 
 | Ergebnis | Handwerker | ab Stufe | Zutaten | Gold |
 |---|---|---|---|---|
@@ -318,6 +319,11 @@ Manche Händler sind auch **Handwerker**. Steht einer im Raum, zeigt das Panel �
 | Wappenschild von Aelmar | Taucher Brack | 12 | Zwergischer Turmschild, 3× Wappen von Aelmar, Lebende Koralle | 80 |
 | Sternenlichttonikum | Der Händler ohne Gesicht | 14 | 2× Mondlilie, Albtraumessenz | 60 |
 | Leerenschneide | Der Händler ohne Gesicht | 15 | Leerenbrecher, 6× Leerensplitter, 2× Albtraumessenz | 200 |
+| Ring des Rattenkönigs | Goldschmied Aurel | 2 | Rattenkrone, 5× Rattenschwanz | 20 |
+| Enterbeil | Taucher Brack | 11 | Kriegsaxt, 3× Enterhaken | 90 |
+| Amulett des Krakenauges | Fischerin Maren | 13 | Auge des Kraken, Sturmamulett, 2× Lebende Koralle | 80 |
+| Glutkrone | Kundschafterin Ilva | 13 | Krone des Glutfürsten, 3× Glutkern | 100 |
+| Krone des Siegelwächters | Der Händler ohne Gesicht | 15 | Krone der Schatten, 4× Leerensplitter, 2× Albtraumessenz | 150 |
 
 ## Sets
 
