@@ -197,4 +197,8 @@ button.small { font-size: .75rem; }
 .bestiary summary { cursor: pointer; color: var(--muted); }
 .beast { display: flex; flex-direction: column; min-width: 0; }
 .kills { font-variant-numeric: tabular-nums; color: var(--muted); }
+
+/* who is online */
+.online summary { cursor: pointer; color: var(--muted); }
+.online-list li.me { border-left: 2px solid var(--accent); padding-left: .4rem; }
 .stacked { display: flex; flex-direction: column; min-width: 0; }

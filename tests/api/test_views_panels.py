@@ -202,3 +202,21 @@ async def test_travel_from_the_market_square(api: Api) -> None:
                 2,
                 "fishing_village",
             )
+
+
+async def test_online_panel_lists_who_is_playing(api: Api) -> None:
+    async with api.client() as first, api.client() as second:
+        anna = await playing(api, first)
+        bert = await playing(api, second)
+        async with api.committed.session() as db, db.begin():
+            await db.execute(
+                update(Player)
+                .where(col(Player.name) == bert)
+                .values(level=12, achievements=["kill_ignaros"], title="kill_ignaros")
+            )
+        page = (await first.get("/")).text
+        panel = page[page.index('id="online"') :]
+        panel = panel[: panel.index("</section>")]
+        assert anna in panel and bert in panel and "Feuerbändiger" in panel
+        assert panel.index(bert) < panel.index(anna)  # highest level first
+        assert 'class="me"' in panel

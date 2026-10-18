@@ -82,7 +82,7 @@ async def test_ui_action_returns_log_lines_and_oob_panels(api: Api) -> None:
         assert response.status_code == 200
         assert '<li class="log-chat-say">Du sagst: &lt;i&gt;hi&lt;/i&gt;</li>' in response.text
         # status, room, actions, trade, shop, bank, quests, group, inventory
-        assert response.text.count('hx-swap-oob="true"') == 13
+        assert response.text.count('hx-swap-oob="true"') == 14
 
         api.clock.advance(seconds=1)
         moved = await client.post("/ui/actions", data={"type": "move", "direction": "south"})
