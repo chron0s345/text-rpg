@@ -197,6 +197,7 @@ class BankView:
     used: int
     capacity: int
     items: list[ItemView]
+    materials: int = 0  # free material stacks in the backpack (bank_deposit_materials)
 
 
 @dataclass(frozen=True)
@@ -830,6 +831,13 @@ class ViewService:
             used=get_occupied_slots(stored),
             capacity=self.content.rules.bank.slots,
             items=[self._item(entry, player=player) for entry in stored],
+            materials=sum(
+                1
+                for entry in player.inventory
+                if entry.equipped_slot is None
+                and entry.id not in player.locked_item_ids
+                and self.content.items[entry.item_id].kind == "misc"
+            ),
         )
 
     async def _group(self, row: Player, now: datetime) -> GroupView:
