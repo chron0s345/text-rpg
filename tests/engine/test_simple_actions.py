@@ -37,6 +37,7 @@ RNG = random.Random(1)
     ("action", "allowed"),
     [
         ("move", {"exploring"}),
+        ("travel", {"exploring"}),
         ("attack", {"exploring", "in_combat"}),
         ("flee", {"in_combat"}),
         ("use_item", {"exploring", "in_combat"}),
