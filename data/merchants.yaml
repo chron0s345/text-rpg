@@ -13,6 +13,9 @@
       price: 25
     - item_id: greater_potion
       price: 40
+    - item_id: strength_potion
+    - item_id: stoneskin_potion
+    - item_id: vigor_potion
     - item_id: large_bag
       price: 70
 

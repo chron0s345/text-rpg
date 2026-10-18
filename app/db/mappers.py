@@ -21,6 +21,7 @@ from app.db.models import (
     TradeOffer,
 )
 from app.engine.state import (
+    ActiveBuff,
     FloorItemSnapshot,
     GroupSnapshot,
     InventoryItemState,
@@ -73,6 +74,7 @@ def player_snapshot(
         achievements=list(row.achievements),
         title=row.title,
         kills=dict(row.kills),
+        buffs=[ActiveBuff.model_validate(b) for b in row.buffs],
     )
 
 

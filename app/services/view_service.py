@@ -21,6 +21,7 @@ from app.content.describe import SLOT_NAMES, item_summary, modifiers_text
 from app.content.prices import buy_price, sell_price
 from app.content.registry import ContentRegistry
 from app.content.schemas import (
+    Buff,
     Direction,
     Heal,
     ItemSet,
@@ -45,6 +46,7 @@ from app.db.models import (
     TradeOffer,
 )
 from app.engine.achievements import species_killed
+from app.engine.buffs import buff_text, fights_text
 from app.engine.gear import best_upgrade, junk_for
 from app.engine.inventory import calculate_inventory_capacity, get_occupied_slots
 from app.engine.materials import count_available, quantity_text
@@ -57,7 +59,7 @@ from app.engine.quests import (
     step_text,
 )
 from app.engine.regeneration import calculate_current_monster_hp
-from app.engine.state import InventoryItemState, PlayerSnapshot
+from app.engine.state import ActiveBuff, InventoryItemState, PlayerSnapshot
 from app.engine.stats import active_set_effects, stats_of, worn_sets
 from app.services.action_service import utc_now
 from app.services.gear import Comparison, compare
@@ -86,6 +88,7 @@ class PlayerView:
     state: str
     combat_target_id: UUID | None
     title: str = ""  # chosen achievement title, shown after the name
+    buffs: list[str] = field(default_factory=list)  # "Trank der Stärke: +3 Angriff (noch 2 Siege)"
 
 
 @dataclass(frozen=True)
@@ -506,6 +509,7 @@ class ViewService:
             state=row.state,
             combat_target_id=row.combat_target_id,
             title=self._title(row.title),
+            buffs=self._buffs(snapshot),
         )
 
         room = self.content.get_room(row.current_room_id)
@@ -822,6 +826,18 @@ class ViewService:
             beasts=beasts,
         )
 
+    def _buffs(self, player: PlayerSnapshot) -> list[str]:
+        by_item: dict[str, list[ActiveBuff]] = {}
+        for buff in player.buffs:
+            by_item.setdefault(buff.item_id, []).append(buff)
+        texts = []
+        for item_id, buffs in by_item.items():
+            item = self.content.items.get(item_id)
+            left = max(b.fights_left for b in buffs)
+            name = item.name if item is not None else item_id
+            texts.append(f"{name}: {buff_text(buffs)} (noch {fights_text(left)})")
+        return texts
+
     def _title(self, achievement_id: str | None) -> str:
         achievement = self.content.achievements.get(achievement_id or "")
         return achievement.title or "" if achievement is not None else ""
@@ -1071,7 +1087,7 @@ class ViewService:
             quantity=entry.quantity,
             equipped_slot=entry.equipped_slot,
             equippable=item.slot is not None,
-            usable=any(isinstance(e, Heal) for e in item.effects),
+            usable=any(isinstance(e, Heal | Buff) for e in item.effects),
             sell=max(offers, key=lambda o: o[1]) if offers else None,
             tradable=item.tradable,
             offered=entry.id in (offered or set()),

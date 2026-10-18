@@ -66,6 +66,7 @@ details.card[open] summary { margin-bottom: .75rem; }
   background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: .5rem .9rem; }
 .status .name { font-size: 1.1rem; }
 .status .hp { display: inline-flex; align-items: center; gap: .4rem; }
+.status .buff { color: var(--good); font-size: .9rem; }
 .status .hp label { margin: 0; color: var(--text); }
 .status meter { width: 8rem; }
 .state-in_combat { color: var(--danger); font-weight: 600; }

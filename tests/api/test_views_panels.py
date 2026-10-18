@@ -228,6 +228,7 @@ async def test_healing_items_at_hand_in_a_fight(api: Api) -> None:
         me = await character_id(client)
         async with api.committed.session() as db, db.begin():
             db.add(InventoryItem(player_id=UUID(me), item_id="healing_potion", quantity=3))
+            db.add(InventoryItem(player_id=UUID(me), item_id="strength_potion", quantity=1))
             db.add(InventoryItem(player_id=UUID(me), item_id="short_sword", quantity=1))
             await db.execute(update(Player).where(col(Player.id) == me).values(state="in_combat"))
 
@@ -237,6 +238,7 @@ async def test_healing_items_at_hand_in_a_fight(api: Api) -> None:
 
         fighting = actions_panel((await client.get("/")).text)
         assert '"type": "use_item"' in fighting and "Heiltrank" in fighting and "×3" in fighting
+        assert "Trank der Stärke" in fighting  # boosts are at hand, too
         assert "Kurzschwert" not in fighting
         async with api.committed.session() as db, db.begin():
             await db.execute(update(Player).where(col(Player.id) == me).values(state="exploring"))

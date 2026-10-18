@@ -26,7 +26,12 @@ def _stats(
     player: PlayerSnapshot, inventory: Sequence[InventoryItemState], content: ContentRegistry
 ) -> EffectiveStats:
     return calculate_effective_stats(
-        player.base_max_hp, player.base_attack, player.base_defense, inventory, content.items
+        player.base_max_hp,
+        player.base_attack,
+        player.base_defense,
+        inventory,
+        content.items,
+        player.buffs,
     )
 
 

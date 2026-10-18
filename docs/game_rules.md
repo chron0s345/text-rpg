@@ -139,6 +139,7 @@ Ein **Stufenaufstieg** heilt vollständig (inklusive der HP aus Ausrüstung). Re
 - **Schaden** = Angriff − Verteidigung des Gegners, zufällig um ±`combat.damage_variance` verschoben, aber mindestens `combat.min_damage`.
 - Mehrere Spielende können **dasselbe Monster** angreifen; jeder bekommt den Gegenschlag für die eigene Runde.
 - Während eines Kampfes kannst du dich nicht bewegen, nichts ausrüsten, nichts aufheben oder fallen lassen und nicht handeln. Einen Gegenstand benutzen (z. B. Heiltrank) geht, **kostet aber die Runde**: Das Monster schlägt danach zu. Heiltränke und Essen aus dem Rucksack stehen im Kampf direkt neben „Angreifen“ und „Fliehen“ (die ersten vier Sorten, mit Anzahl); ebenso unterwegs, wenn dir HP fehlen.
+- **Stärkungstränke** wirken für die nächsten Siege statt sofort: Trank der Stärke (+3 Angriff), Steinhauttrank (+3 Verteidigung) und Trank der Lebenskraft (+20 max. HP und heilt 20) gibt es bei Elira, jeweils für 3 Siege; Drachenblut (+5 Angriff, +3 Verteidigung für 4 Siege) braut Brunhild. Jeder Kill, für den du die Kill-Gutschrift bekommst, zählt einen Sieg herunter. Denselben Trank erneut zu trinken startet ihn neu, verschiedene Tränke wirken zusammen. Beim Tod endet jede Wirkung. Aktive Tränke stehen in der Statusleiste.
 - **Fliehen** gelingt mit Wahrscheinlichkeit `combat.flee_chance`. Gelingt es, endet der Kampf ohne Gegenschlag; misslingt es, schlägt das Monster zu.
 - **Regeneration:** Monster, die eine Weile nicht im Kampf waren, heilen sich langsam (z. B. der Goblin-Späher 1 HP pro Sekunde nach 10 Sekunden Ruhe). Wer ein Monster angeschlagen stehen lässt, findet es später wieder gesund vor.
 - Ein besiegtes Monster **erscheint nach seiner Respawn-Zeit wieder** (Goblin-Späher 60 s, Hungriger Wolf 90 s).
@@ -348,6 +349,7 @@ Manche Händler sind auch **Handwerker**. Steht einer im Raum, zeigt das Panel �
 | Eisenbeschlagene Stiefel | Waffenmeisterin Brunhild | 6 | Lederstiefel, 2× Ewiges Eis | 15 |
 | Frostpelzmantel | Waffenmeisterin Brunhild | 7 | 3× Frostwolfpelz, Weißes Wolfsfell | 40 |
 | Drachenschuppenhelm | Waffenmeisterin Brunhild | 10 | Eisenhelm, 3× Drachenschuppe | 80 |
+| Drachenblut | Waffenmeisterin Brunhild | 10 | Elixier des Lebens, 2× Drachenschuppe | 40 |
 | Elfenbrot | Waldläuferin Nimriel | 8 | 4× Silberblatt | 5 |
 | Rindenschild | Waldläuferin Nimriel | 9 | Holzschild, 3× Dryadenrinde | 30 |
 | Dornenring | Waldläuferin Nimriel | 10 | Blattring, 3× Dornenstachel | 50 |

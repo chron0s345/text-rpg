@@ -14,7 +14,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from app.content.schemas import PlayerState
-from app.engine.state import InventoryItemState, QuestState
+from app.engine.state import ActiveBuff, InventoryItemState, QuestState
 
 # --- Audiences --------------------------------------------------------------
 
@@ -81,6 +81,7 @@ class PlayerUpdate(BaseModel):
     achievements: list[str] | None = None  # engine/achievements.py: the full new list
     title: str | None = None
     kills: dict[str, int] | None = None  # the full new tally
+    buffs: list[ActiveBuff] | None = None  # engine/buffs.py: the full new list
 
 
 class MonsterUpdate(BaseModel):

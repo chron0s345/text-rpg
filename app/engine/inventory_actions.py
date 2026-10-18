@@ -13,8 +13,9 @@ from datetime import datetime, timedelta
 from uuid import UUID
 
 from app.content.registry import ContentRegistry
-from app.content.schemas import Heal, ItemTemplate, Rules
+from app.content.schemas import Buff, Heal, ItemTemplate, Rules
 from app.engine.achievements import grant
+from app.engine.buffs import apply_buffs
 from app.engine.encounter import monster_strikes, touch_monster
 from app.engine.events import (
     ActionResult,
@@ -266,8 +267,8 @@ def resolve_use_item(
     rng: random.Random,
     inventory_item_id: UUID,
 ) -> ActionResult:
-    """Consumables with ``heal`` effects. In combat, using an item costs the round: the monster
-    strikes back afterwards."""
+    """Consumables with ``heal`` and/or ``buff`` effects (engine/buffs.py). In combat, using an
+    item costs the round: the monster strikes back afterwards."""
     actor = snapshot.actor
     if denied := check_state("use_item", actor):
         return denied
@@ -278,24 +279,27 @@ def resolve_use_item(
         return rejected(LOCKED)
     item = content.get_item(entry.item_id)
     heal = sum(e.amount for e in item.effects if isinstance(e, Heal))
-    if item.kind != "consumable" or entry.equipped_slot is not None or heal <= 0:
+    boosts = any(isinstance(e, Buff) for e in item.effects)
+    if item.kind != "consumable" or entry.equipped_slot is not None or (heal <= 0 and not boosts):
         return rejected("Das kann man nicht benutzen.")
     max_hp = stats_of(actor, content.items).max_hp
-    if actor.hp >= max_hp:
+    if not boosts and actor.hp >= max_hp:
         return rejected("Du bist bereits unverletzt.")
 
     builder = ResultBuilder(actor_id=actor.id)
+    boost = apply_buffs(builder, actor, item)  # first: a max HP boost makes room to heal
+    max_hp = stats_of(actor, content.items).max_hp
     healed = min(heal, max_hp - actor.hp)
-    actor.hp += healed
-    builder.update_player(actor.id, hp=actor.hp)
+    if healed > 0:
+        actor.hp += healed
+        builder.update_player(actor.id, hp=actor.hp)
     remove_quantity(builder, actor, entry, 1)
-    builder.to_actor(
-        "inventory.used",
-        f"Du benutzt {item.name} und erhältst {healed} HP.",
-        item_id=item.id,
-        healed=healed,
-        hp=actor.hp,
+    text = f"Du benutzt {item.name}"
+    parts = ([f"erhältst {healed} HP"] if healed > 0 else []) + (
+        [f"spürst die Wirkung: {boost}"] if boost else []
     )
+    text += (" und " + " und ".join(parts) if parts else "") + ("" if boost else ".")
+    builder.to_actor("inventory.used", text, item_id=item.id, healed=healed, hp=actor.hp)
     report_hp(builder, actor)
 
     monster = snapshot.monster(actor.combat_target_id) if actor.combat_target_id else None

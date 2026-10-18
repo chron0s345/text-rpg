@@ -412,6 +412,7 @@ class Player(SQLModel, table=True):  # = ein Charakter
     achievements: list[str]  # errungene Erfolge (Content-IDs, in Reihenfolge), text[]
     title: str | None  # Erfolgs-ID, deren Titel hinter dem Namen steht
     kills: dict[str, int]  # Bestiarium: Kill-Gutschriften je Monster-ID, JSONB
+    buffs: list[dict]  # laufende Stärkungstränke [{item_id, stat, amount, fights_left}], JSONB
 
 
 class InventoryItem(SQLModel, table=True):
@@ -779,6 +780,12 @@ Umsetzung (`engine/groups.py`, `Repository.load_group_snapshot`):
 - **Bestiarium:** `player.kills` (JSONB, Monster-ID → Anzahl; seltene Varianten unter ihrer eigenen ID) zählt Kill-Gutschriften. `rewards.resolve_kill` erhöht den Zähler für jedes Mitglied der Partei mit Kill-Gutschrift (dieselben Empfänger wie Gold und Beute). Das Bestiarium-Panel zeigt besiegte Gegner mit Stufe, Boss/Selten, Anzahl und Fundorten (Räume mit Spawn-Regel der Grundart).
 - `engine/achievements.grant(builder, player, content)` prüft nur den Zustand (Stufe, erledigte Aufträge, Kill-Zähler, getragene Sets) und vergibt alles, was der Charakter jetzt erfüllt und noch nicht hat, mit einer Log-Zeile je Erfolg (`achievement.earned`). Aufgerufen bei Kills (für jeden Spieler im Raum: Zähler und Stufenaufstiege aus dem XP-Anteil), Auftragsabgabe, Ausrüsten (`equip`, `equip_best`) und Login (holt neu hinzugekommene Erfolge nach).
 - `set_title(achievement_id | None)` (in jedem Zustand) führt den Titel eines errungenen Erfolgs bzw. legt ihn ab. Angezeigt in der Statusleiste und in der Raumliste.
+
+### Stärkungstränke
+
+- Effekt `buff` (`{stat, amount, fights}`, nur an Verbrauchsgegenständen, vom Loader geprüft). `use_item` startet ihn (`engine/buffs.apply_buffs`): derselbe Trank ersetzt seine laufende Wirkung, verschiedene addieren sich. Ein `max_hp`-Buff wird vor einer Heilung desselben Tranks angewendet.
+- Gespeichert am Charakter (`player.buffs`); `calculate_effective_stats` zählt laufende Buffs wie Ausrüstungsmodifikatoren mit, also auch im Vergleich und bei Stufenaufstieg.
+- Die Dauer zählt **Siege**, nicht Zeit: `rewards.resolve_kill` ruft für jeden Empfänger der Kill-Gutschrift `tick_buffs` auf; abgelaufene enden mit einer Log-Zeile, HP über dem neuen Maximum werden gekappt. `death.apply_player_death` beendet alle. So braucht die Engine keine Uhr für Buffs, und Pausen verbrauchen nichts.
 
 ### Reisen
 

@@ -38,7 +38,7 @@ from app.engine.events import (
     StateChanges,
 )
 from app.engine.inventory_actions import resolve_drop
-from app.engine.state import InventoryItemState
+from app.engine.state import ActiveBuff, InventoryItemState
 from tests.conftest import DATA_DIR
 from tests.db.factories import NOW, add_player
 
@@ -402,3 +402,15 @@ async def test_achievements_and_title_round_trip(session: AsyncSession) -> None:
     await repo.apply_changes(StateChanges(players=[PlayerUpdate(player_id=player.id, title=None)]))
     await session.refresh(player)
     assert player.title is None and player.achievements == ["level_5", "rare_kill"]
+
+
+async def test_buffs_round_trip(session: AsyncSession) -> None:
+    player = await add_player(session)
+    repo = Repository(session)
+    await repo.load_action_snapshot(player.id)
+    buff = ActiveBuff(item_id="strength_potion", stat="attack", amount=3, fights_left=2)
+    await repo.apply_changes(
+        StateChanges(players=[PlayerUpdate(player_id=player.id, buffs=[buff])])
+    )
+    snapshot = await Repository(session).load_action_snapshot(player.id)
+    assert snapshot is not None and snapshot.actor.buffs == [buff]
