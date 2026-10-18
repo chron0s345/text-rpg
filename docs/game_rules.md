@@ -138,7 +138,7 @@ Ein **Stufenaufstieg** heilt vollständig (inklusive der HP aus Ausrüstung). Re
 - **Angreifen** startet einen Kampf gegen ein Monster im Raum. Jeder Angriff ist eine **Runde**: Du schlägst zu, danach schlägt das Monster **dich** zurück (sofern es noch lebt).
 - **Schaden** = Angriff − Verteidigung des Gegners, zufällig um ±`combat.damage_variance` verschoben, aber mindestens `combat.min_damage`.
 - Mehrere Spielende können **dasselbe Monster** angreifen; jeder bekommt den Gegenschlag für die eigene Runde.
-- Während eines Kampfes kannst du dich nicht bewegen, nichts ausrüsten, nichts aufheben oder fallen lassen und nicht handeln. Einen Gegenstand benutzen (z. B. Heiltrank) geht, **kostet aber die Runde**: Das Monster schlägt danach zu.
+- Während eines Kampfes kannst du dich nicht bewegen, nichts ausrüsten, nichts aufheben oder fallen lassen und nicht handeln. Einen Gegenstand benutzen (z. B. Heiltrank) geht, **kostet aber die Runde**: Das Monster schlägt danach zu. Heiltränke und Essen aus dem Rucksack stehen im Kampf direkt neben „Angreifen“ und „Fliehen“ (die ersten vier Sorten, mit Anzahl); ebenso unterwegs, wenn dir HP fehlen.
 - **Fliehen** gelingt mit Wahrscheinlichkeit `combat.flee_chance`. Gelingt es, endet der Kampf ohne Gegenschlag; misslingt es, schlägt das Monster zu.
 - **Regeneration:** Monster, die eine Weile nicht im Kampf waren, heilen sich langsam (z. B. der Goblin-Späher 1 HP pro Sekunde nach 10 Sekunden Ruhe). Wer ein Monster angeschlagen stehen lässt, findet es später wieder gesund vor.
 - Ein besiegtes Monster **erscheint nach seiner Respawn-Zeit wieder** (Goblin-Späher 60 s, Hungriger Wolf 90 s).
@@ -239,6 +239,7 @@ Viele Händler haben **Aufträge**. Steht ein Auftraggeber im Raum, zeigt das Pa
 - Manche Aufträge setzen eine Stufe oder einen anderen Auftrag voraus, manche lassen sich wiederholen. Höchstens 10 Aufträge gleichzeitig; abbrechen geht jederzeit, der Fortschritt ist dann verloren.
 - **Einstieg:** Hauptmann Rowan auf dem Marktplatz führt Neulinge mit vier kurzen Aufträgen durch das Wichtigste: Wege und Händler, der erste Kampf, Rasten, Beute verkaufen, Ausrüstung. Wer auf Stufe 1 einloggt und den ersten noch nicht angenommen hat, bekommt einen Hinweis im Log. Der Hauptmann handelt nicht.
 - **Questketten mit Geschichte:** *Der verschwundene Jäger* (Wirtin Hanne und Fischerin Maren, ab Stufe 4), *Die Halle von Khazdur* (Waffenmeisterin Brunhild, ab Stufe 6) und *Die Laternen der Tiefe* (von Kundschafterin Ilva über Taucher Brack und den Händler ohne Gesicht bis zu Schwester Liora, ab Stufe 11).
+- **Kopfgelder:** In jeder Region gibt es einen wiederholbaren Jagdauftrag („Kopfgeld: …“) – Hauptmann Rowan für die Gegend um Oakhaven, die Händler der Regionen für ihre Plagen. Die Belohnung ist etwa die Hälfte der Erfahrung, die die Kills selbst bringen, plus etwas Gold. Kills zählen erst ab dem Annehmen.
 
 | Auftrag | Auftraggeber | ab Stufe | Aufgabe |
 |---|---|---|---|
@@ -308,6 +309,15 @@ Viele Händler haben **Aufträge**. Steht ein Auftraggeber im Raum, zeigt das Pa
 | Unruhe in den Hügeln | Waffenmeisterin Brunhild | 8 | 6× Grabwicht besiegen |
 | Staub der Toten | Schwester Liora | 8 | 5× Grabstaub bringen (nach „Unruhe in den Hügeln“) |
 | Der Wolfskönig | Waffenmeisterin Brunhild | 9 | Grab des Wolfskönigs aufsuchen, dann Wolfskönig Gerulf besiegen (nach „Unruhe in den Hügeln“) |
+| Kopfgeld: Feldratten | Hauptmann Rowan | 1 | 10× Feldratte besiegen (wiederholbar) |
+| Kopfgeld: Hungrige Wölfe | Hauptmann Rowan | 2 | 8× Hungriger Wolf besiegen (wiederholbar) |
+| Kopfgeld: Skelettwächter | Hauptmann Rowan | 4 | 8× Skelettwächter besiegen (wiederholbar) |
+| Kopfgeld: Ertrunkene Seeleute | Fischerin Maren | 5 | 8× Ertrunkener Seemann besiegen (wiederholbar) |
+| Kopfgeld: Eisgolems | Waffenmeisterin Brunhild | 8 | 6× Eisgolem besiegen (wiederholbar) |
+| Kopfgeld: Verdorbene Dryaden | Waldläuferin Nimriel | 9 | 6× Verdorbene Dryade besiegen (wiederholbar) |
+| Kopfgeld: Feuersalamander | Kundschafterin Ilva | 11 | 8× Feuersalamander besiegen (wiederholbar) |
+| Kopfgeld: Ertrunkene Ritter | Taucher Brack | 12 | 6× Ertrunkener Ritter besiegen (wiederholbar) |
+| Kopfgeld: Schattenpirscher | Der Händler ohne Gesicht | 14 | 8× Schattenpirscher besiegen (wiederholbar) |
 
 ## Handwerk
 

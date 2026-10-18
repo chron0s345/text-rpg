@@ -678,3 +678,95 @@
   reward: {xp: 1500, gold: 150, items: [{item_id: elixir}]}
   min_level: 9
   requires: [barrow_unrest]
+
+# --- Kopfgelder: wiederholbare Jagdaufträge, je Region einer ---
+
+- id: bounty_rats
+  name: "Kopfgeld: Feldratten"
+  giver_id: captain
+  description: "Die Ratten am Feldweg fressen uns die Vorräte weg. Zehn Stück, und die Stadtkasse zahlt."
+  completion_text: "Zehn weniger. Es werden wieder mehr – komm dann wieder."
+  objective: {type: kill, monster_id: field_rat, count: 10}
+  reward: {xp: 40, gold: 10}
+  min_level: 1
+  repeatable: true
+
+- id: bounty_wolves
+  name: "Kopfgeld: Hungrige Wölfe"
+  giver_id: captain
+  description: "Die Wölfe im Wald werden dreister. Acht Pelze weniger, und die Händler reisen wieder ruhiger."
+  completion_text: "Gut gemacht. Das Rudel wird sich neu sammeln – wir zahlen auch beim nächsten Mal."
+  objective: {type: kill, monster_id: wolf, count: 8}
+  reward: {xp: 100, gold: 20}
+  min_level: 2
+  repeatable: true
+
+- id: bounty_skeletons
+  name: "Kopfgeld: Skelettwächter"
+  giver_id: captain
+  description: "In den Ruinen stehen die Toten wieder Wache. Schick acht von ihnen zurück in den Staub."
+  completion_text: "Staub zu Staub. Bis die Ruinen sie wieder ausspucken."
+  objective: {type: kill, monster_id: skeleton, count: 8}
+  reward: {xp: 320, gold: 50}
+  min_level: 4
+  repeatable: true
+
+- id: bounty_sailors
+  name: "Kopfgeld: Ertrunkene Seeleute"
+  giver_id: fisherwoman
+  description: "Aus den Gezeitenhöhlen kriechen die Ertrunkenen. Acht, dann können meine Leute wieder Muscheln sammeln."
+  completion_text: "Das Meer gibt sie zurück, und du schickst sie wieder hinein. Danke."
+  objective: {type: kill, monster_id: drowned_sailor, count: 8}
+  reward: {xp: 380, gold: 45}
+  min_level: 5
+  repeatable: true
+
+- id: bounty_golems
+  name: "Kopfgeld: Eisgolems"
+  giver_id: dwarf_armorer
+  description: "Die Golems am Gletscherhang blockieren den Erzweg. Sechs zerschlagen, und die Schmiede zahlt."
+  completion_text: "Das Eis knackt, der Weg ist frei. Bis zum nächsten Frost."
+  objective: {type: kill, monster_id: ice_golem, count: 6}
+  reward: {xp: 690, gold: 65}
+  min_level: 8
+  repeatable: true
+
+- id: bounty_dryads
+  name: "Kopfgeld: Verdorbene Dryaden"
+  giver_id: elf_ranger
+  description: "Die Lichtung im Mondschein wird von verdorbenen Dryaden heimgesucht. Erlöse sechs von ihnen."
+  completion_text: "Der Hain atmet auf. Doch die Fäulnis wächst nach."
+  objective: {type: kill, monster_id: dryad, count: 6}
+  reward: {xp: 900, gold: 65}
+  min_level: 9
+  repeatable: true
+
+- id: bounty_salamanders
+  name: "Kopfgeld: Feuersalamander"
+  giver_id: crater_scout
+  description: "Auf den Basaltstufen wimmelt es von Salamandern. Acht, und das Lager kann wieder schlafen."
+  completion_text: "Asche und Schuppen. Komm wieder, wenn der Krater neue ausbrütet."
+  objective: {type: kill, monster_id: fire_salamander, count: 8}
+  reward: {xp: 1120, gold: 70}
+  min_level: 11
+  repeatable: true
+
+- id: bounty_knights
+  name: "Kopfgeld: Ertrunkene Ritter"
+  giver_id: old_diver
+  description: "Die Ritter in der Halle halten ihren Schwur noch im Tod. Sechs, dann kann ich weitertauchen."
+  completion_text: "Ihr Schwur ist gebrochen – für eine Weile."
+  objective: {type: kill, monster_id: drowned_knight, count: 6}
+  reward: {xp: 1170, gold: 100}
+  min_level: 12
+  repeatable: true
+
+- id: bounty_stalkers
+  name: "Kopfgeld: Schattenpirscher"
+  giver_id: faceless_merchant
+  description: "Pirscher im Riss. Acht. Die Zuflucht zahlt."
+  completion_text: "Acht. Gut. Es gibt immer mehr."
+  objective: {type: kill, monster_id: shadow_stalker, count: 8}
+  reward: {xp: 2400, gold: 145}
+  min_level: 14
+  repeatable: true
