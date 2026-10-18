@@ -19,6 +19,7 @@ import pytest
 
 from app.content.loader import load_content
 from app.content.schemas import MonsterTemplate
+from app.engine.gear import needed_item_ids
 from app.engine.stats import active_set_effects
 
 # (lowest level of the tier, gear budget per item in gold): from level 3 the cheap drops and
@@ -131,6 +132,19 @@ def test_every_recipe_ingredient_can_be_found() -> None:
     for recipe in CONTENT.recipes.values():
         for ingredient in recipe.ingredients:
             assert ingredient.item_id in sources, (recipe.id, ingredient.item_id)
+
+
+def test_boss_trophies_are_worth_more_than_their_price() -> None:
+    """What a boss drops besides gear is wanted by some recipe or quest, never mere vendor
+    trash."""
+    ingredients = needed_item_ids(CONTENT)
+    for monster in CONTENT.monsters.values():
+        if not monster.boss:
+            continue
+        for loot in monster.loot_table:
+            item = CONTENT.items[loot.item_id]
+            if item.kind == "misc" and item.sellable:
+                assert loot.item_id in ingredients, (monster.id, loot.item_id)
 
 
 def test_crafting_is_no_money_machine() -> None:

@@ -13,7 +13,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlmodel import col
 
@@ -64,6 +64,9 @@ from app.services.gear import Comparison, compare
 from app.services.minimap import Minimap, minimap
 
 LOG_LINES = 50
+
+
+ONLINE_SHOWN = 30  # rows in the "Im Spiel" panel
 
 
 @dataclass(frozen=True)
@@ -367,6 +370,22 @@ class BestiaryView:
 
 
 @dataclass(frozen=True)
+class OnlineView:
+    name: str
+    level: int
+    title: str
+    room_name: str
+    state: str
+    me: bool
+
+
+@dataclass(frozen=True)
+class OnlineListView:
+    count: int  # everyone online, even beyond the shown ones
+    players: list[OnlineView]  # highest level first, at most ONLINE_SHOWN
+
+
+@dataclass(frozen=True)
 class GameView:
     player: PlayerView
     room: RoomView
@@ -380,6 +399,7 @@ class GameView:
     equipment: EquipmentView
     achievements: AchievementsView
     bestiary: BestiaryView
+    online: OnlineListView
 
 
 class ViewService:
@@ -577,6 +597,7 @@ class ViewService:
             equipment=equipment,
             achievements=self._achievements(snapshot),
             bestiary=self._bestiary(snapshot),
+            online=await self._online(row.id),
         )
 
     def _quest_rooms(self, player: PlayerSnapshot) -> frozenset[str]:
@@ -860,6 +881,42 @@ class ViewService:
                 and entry.id not in player.locked_item_ids
                 and self.content.items[entry.item_id].kind == "misc"
             ),
+        )
+
+    async def _online(self, player_id: UUID) -> OnlineListView:
+        """Who is in the game right now (``ONLINE_SHOWN`` at most, highest level first)."""
+        online = (col(Player.online), col(Player.deleted_at).is_(None))
+        async with self.sessions() as session:
+            count = await session.scalar(select(func.count()).select_from(Player).where(*online))
+            rows = (
+                await session.execute(
+                    select(
+                        col(Player.id),
+                        col(Player.name),
+                        col(Player.level),
+                        col(Player.title),
+                        col(Player.current_room_id),
+                        col(Player.state),
+                    )
+                    .where(*online)
+                    .order_by(col(Player.level).desc(), col(Player.name))
+                    .limit(ONLINE_SHOWN)
+                )
+            ).all()
+        rooms = self.content.rooms
+        return OnlineListView(
+            count=count or 0,
+            players=[
+                OnlineView(
+                    name=name,
+                    level=level,
+                    title=self._title(title),
+                    room_name=rooms[room].name if room in rooms else "",
+                    state=state,
+                    me=pid == player_id,
+                )
+                for pid, name, level, title, room, state in rows
+            ],
         )
 
     async def _group(self, row: Player, now: datetime) -> GroupView:
