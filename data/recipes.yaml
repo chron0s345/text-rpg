@@ -263,3 +263,22 @@
     - {item_id: nightmare_essence, quantity: 2}
   gold: 150
   min_level: 15
+
+# --- Himmelsfeste ---
+
+- id: skyguard_greaves
+  crafter_id: crater_scout
+  item_id: skyguard_greaves
+  ingredients: [{item_id: iron_greaves}, {item_id: sky_iron, quantity: 5}]
+  gold: 90
+  min_level: 13
+
+- id: thunder_amulet
+  crafter_id: fisherwoman
+  item_id: thunder_amulet
+  ingredients:
+    - {item_id: tharos_horn}
+    - {item_id: storm_amulet}
+    - {item_id: storm_feather, quantity: 4}
+  gold: 140
+  min_level: 14

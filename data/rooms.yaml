@@ -486,6 +486,7 @@
   exits:
     west: crater_camp
     north: giant_forge
+    east: cliff_path
   spawns:
     - monster_id: magma_golem
       count: 2
@@ -962,4 +963,58 @@
     south: barrow_halls
   spawns:
     - monster_id: wolf_king
+  items: []
+
+# --- Himmelsfeste der Sturmriesen (östlich des Lavastroms, Stufe 13–14) ---
+
+- id: cliff_path
+  name: "Felsensteig"
+  description: "Ein in den Fels gehauener Pfad windet sich über dem Lavastrom nach oben. Der Wind reißt an der Kleidung, und über dir kreischt etwas mit grauen Schwingen."
+  exits:
+    west: lava_flow
+    up: eagle_rest
+  spawns:
+    - monster_id: storm_harpy
+      count: 2
+  items: []
+
+- id: eagle_rest
+  name: "Adlerhorst"
+  description: "Eine Felsnische unter einem Überhang, in der jemand vor langer Zeit ein Feuer gemacht hat. Hier oben hört der Sturm für einen Atemzug auf."
+  safe: true
+  checkpoint: true
+  exits:
+    down: cliff_path
+    north: cloud_bridge
+  items: []
+
+- id: cloud_bridge
+  name: "Wolkenbrücke"
+  description: "Eine Brücke aus Stein, die im Nichts zu hängen scheint, darunter nur Wolken. Am anderen Ende ragen die Mauern einer Festung auf, gebaut für Wesen dreimal so groß wie du."
+  exits:
+    south: eagle_rest
+    north: thunder_hall
+  spawns:
+    - monster_id: storm_giant
+    - monster_id: sky_knight
+  items: []
+
+- id: thunder_hall
+  name: "Donnerhalle"
+  description: "Eine Halle, deren Decke im Gewölk verschwindet. Blitze zucken zwischen den Säulen, und jeder Schritt hallt wie ein Trommelschlag."
+  exits:
+    south: cloud_bridge
+    up: storm_throne
+  spawns:
+    - monster_id: storm_giant
+    - monster_id: sky_knight
+  items: []
+
+- id: storm_throne
+  name: "Thron des Sturmkönigs"
+  description: "Ganz oben, unter offenem Himmel, sitzt ein Riese auf einem Thron aus Himmelseisen. Um ihn kreisen Wolken wie Hunde um ihren Herrn."
+  exits:
+    down: thunder_hall
+  spawns:
+    - monster_id: tharos
   items: []

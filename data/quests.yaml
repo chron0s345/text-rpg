@@ -770,3 +770,36 @@
   reward: {xp: 2400, gold: 145}
   min_level: 14
   repeatable: true
+
+# --- Himmelsfeste: der Sturmkönig (Kundschafterin Ilva) ---
+
+- id: storm_over_crater
+  name: "Sturm über dem Krater"
+  giver_id: crater_scout
+  description: "Seit Tagen ziehen Harpyien über den Lavastrom, und der Wind kommt von Osten, wo kein Wind sein dürfte. Steig den Felsensteig hinauf und schlag sechs von ihnen nieder."
+  completion_text: "Sechs Harpyien und ein Adlerhorst, sagst du? Über den Wolken steht eine Festung? Dann wissen wir, woher der Sturm kommt."
+  objective: {type: kill, monster_id: storm_harpy, count: 6}
+  reward: {xp: 1800, gold: 120}
+  min_level: 13
+
+- id: the_storm_king
+  name: "Der Sturmkönig"
+  giver_id: crater_scout
+  description: "Tharos. Ein Riese, der sich König des Himmels nennt und den Krater mit seinen Stürmen füttert. Geh über die Wolkenbrücke, und wenn du oben stehst, bring ihn zu Fall."
+  completion_text: "Der Wind hat gedreht. Zum ersten Mal seit Wochen riecht es hier nach Asche statt nach Gewitter. Danke."
+  steps:
+    - {type: visit, room_id: storm_throne}
+    - {type: kill, monster_id: tharos, count: 1}
+  reward: {xp: 4000, gold: 300, items: [{item_id: phoenix_draught}]}
+  min_level: 14
+  requires: [storm_over_crater]
+
+- id: bounty_giants
+  name: "Kopfgeld: Sturmriesen"
+  giver_id: crater_scout
+  description: "Die Riesen werfen Felsen von der Wolkenbrücke. Sechs von ihnen, und das Lager zahlt."
+  completion_text: "Sechs Riesen. Die Felsen fallen seltener. Bis sie neue schicken."
+  objective: {type: kill, monster_id: storm_giant, count: 6}
+  reward: {xp: 2000, gold: 180}
+  min_level: 14
+  repeatable: true

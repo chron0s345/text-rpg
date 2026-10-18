@@ -86,6 +86,11 @@
   description: Besiege den Kraken Ul'thar.
   condition: {type: kill, monster_id: kraken}
   title: Krakenjäger
+- id: kill_tharos
+  name: "Ruhe nach dem Sturm"
+  description: Besiege den Sturmkönig Tharos.
+  condition: {type: kill, monster_id: tharos}
+  title: Sturmbrecher
 - id: kill_morvath
   name: Königsmord
   description: Besiege den Schattenkönig Morvath.

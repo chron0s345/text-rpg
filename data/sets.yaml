@@ -87,3 +87,10 @@
   bonuses:
     - {pieces: 2, effects: [{stat: attack, amount: 1}]}
     - {pieces: 3, effects: [{stat: defense, amount: 1}, {stat: max_hp, amount: 10}]}
+
+- id: skyguard
+  name: "Himmelswacht"
+  items: [skyguard_helm, skyguard_plate, skyguard_greaves]
+  bonuses:
+    - {pieces: 2, effects: [{stat: defense, amount: 1}]}
+    - {pieces: 3, effects: [{stat: attack, amount: 1}, {stat: max_hp, amount: 15}]}
