@@ -67,6 +67,7 @@ LOG_LINES = 50
 
 
 ONLINE_SHOWN = 30  # rows in the "Im Spiel" panel
+LEADERBOARD_SIZE = 10  # rows per list in the "Rangliste" panel
 
 
 @dataclass(frozen=True)
@@ -386,6 +387,21 @@ class OnlineListView:
 
 
 @dataclass(frozen=True)
+class RankView:
+    rank: int
+    name: str
+    title: str
+    value: str  # "Stufe 12", "17 Erfolge"
+    me: bool
+
+
+@dataclass(frozen=True)
+class LeaderboardView:
+    by_level: list[RankView]  # highest level, then most XP
+    by_achievements: list[RankView]  # most achievements
+
+
+@dataclass(frozen=True)
 class GameView:
     player: PlayerView
     room: RoomView
@@ -400,6 +416,7 @@ class GameView:
     achievements: AchievementsView
     bestiary: BestiaryView
     online: OnlineListView
+    leaderboard: LeaderboardView
 
 
 class ViewService:
@@ -598,6 +615,7 @@ class ViewService:
             achievements=self._achievements(snapshot),
             bestiary=self._bestiary(snapshot),
             online=await self._online(row.id),
+            leaderboard=await self._leaderboard(row.id),
         )
 
     def _quest_rooms(self, player: PlayerSnapshot) -> frozenset[str]:
@@ -881,6 +899,46 @@ class ViewService:
                 and entry.id not in player.locked_item_ids
                 and self.content.items[entry.item_id].kind == "misc"
             ),
+        )
+
+    async def _leaderboard(self, player_id: UUID) -> LeaderboardView:
+        """The best characters of all time (deleted ones aside), ``LEADERBOARD_SIZE`` each; ties
+        go to the name. Read-only."""
+        alive = col(Player.deleted_at).is_(None)
+        earned = func.cardinality(col(Player.achievements))
+        columns = (col(Player.id), col(Player.name), col(Player.title))
+        async with self.sessions() as session:
+            levels = (
+                await session.execute(
+                    select(*columns, col(Player.level))
+                    .where(alive)
+                    .order_by(col(Player.level).desc(), col(Player.xp).desc(), col(Player.name))
+                    .limit(LEADERBOARD_SIZE)
+                )
+            ).all()
+            achievements = (
+                await session.execute(
+                    select(*columns, earned)
+                    .where(alive, earned > 0)
+                    .order_by(earned.desc(), col(Player.name))
+                    .limit(LEADERBOARD_SIZE)
+                )
+            ).all()
+        return LeaderboardView(
+            by_level=[
+                RankView(n, name, self._title(title), f"Stufe {level}", pid == player_id)
+                for n, (pid, name, title, level) in enumerate(levels, start=1)
+            ],
+            by_achievements=[
+                RankView(
+                    n,
+                    name,
+                    self._title(title),
+                    "1 Erfolg" if count == 1 else f"{count} Erfolge",
+                    pid == player_id,
+                )
+                for n, (pid, name, title, count) in enumerate(achievements, start=1)
+            ],
         )
 
     async def _online(self, player_id: UUID) -> OnlineListView:
