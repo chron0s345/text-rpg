@@ -79,6 +79,11 @@ Neue Charaktere starten auf Stufe 1 auf dem **Marktplatz von Oakhaven**.
 | Rastplatz am Kraterrand (nördlich der Stiege) | sicher, Checkpoint, Kundschafterin Ilva (Obsidian, Phönixtränke) |
 | Aschefelder (westlich des Rastplatzes) | zwei Aschegeister, Feuerblüten wachsen in der Asche |
 | Lavastrom (östlich des Rastplatzes) | zwei Magmagolems |
+| Felsensteig (östlich des Lavastroms) | zwei Sturmharpyien, überfallen Eindringlinge (selten: Windsbraut) |
+| Adlerhorst (oberhalb des Steigs) | sicher, Checkpoint |
+| Wolkenbrücke (nördlich des Horsts) | ein Sturmriese und ein Himmelsritter |
+| Donnerhalle (jenseits der Brücke) | ein Sturmriese und ein Himmelsritter |
+| Thron des Sturmkönigs (über der Halle) | Boss: Sturmkönig Tharos |
 | Schmiede der Feuerriesen (nördlich des Lavastroms) | zwei Feuerriesen |
 | Herz des Vulkans (über der Schmiede) | Glutfürst Ignaros – nur für Gruppen |
 | Schattenriss (unter dem Spinnennest) | zwei Schattenpirscher |
@@ -88,7 +93,7 @@ Neue Charaktere starten auf Stufe 1 auf dem **Marktplatz von Oakhaven**.
 | Halle der Stille (nördlich der Zuflucht) | zwei Schattenwächter |
 | Thron der Schatten (nördlich der Halle) | Schattenkönig Morvath – der letzte Gegner, nur für Gruppen |
 
-Die Welt wird nach außen gefährlicher: Rund um Oakhaven, im Wald und in den **Kornfeldern** östlich der Stadt kommt man mit Stufe 1–3 zurecht; Moor, Ruine, Mine und die Gruft unter dem Alten Friedhof sind für Stufe 3–5. Die **Sturmküste** westlich des Waldes schlägt die Brücke zu Stufe 6–7, mit der Seehexe Morwenna im Leuchtturm. Hinter den Kornfeldern liegt, durch alte Grenzsteine gewarnt, der **Silberhain** für Stufe 8–10: ein Elfenwald, den der Schatten verdorben hat. Das **Grauzahn-Gebirge** östlich des Moors und **die Tiefen** unter der Mine sind für Stufe 6–10; die beiden Bosse dort (Spinnenkönigin, Eisdrache) schafft man nur in der Gruppe oder mit vielen Tränken. Im Zwergenposten gibt es eine zweite Bank. Nördlich des Zwergenpostens liegt der **Feuerschlund** für Stufe 11–13, mit dem Glutfürsten Ignaros im Herzen des Vulkans. Wer lieber taucht als schwitzt, findet unter den Gezeitenhöhlen die **Versunkene Stadt Aelmar**, ebenfalls für Stufe 11–13, mit dem Kraken Ul'thar in ihrer Tiefe. Ganz unten, durch einen Riss unter dem Nest der Spinnenkönigin, liegt das **Schattenreich** für Stufe 14–15. Dort wartet der Schattenkönig Morvath, der stärkste Gegner des Spiels.
+Die Welt wird nach außen gefährlicher: Rund um Oakhaven, im Wald und in den **Kornfeldern** östlich der Stadt kommt man mit Stufe 1–3 zurecht; Moor, Ruine, Mine und die Gruft unter dem Alten Friedhof sind für Stufe 3–5. Die **Sturmküste** westlich des Waldes schlägt die Brücke zu Stufe 6–7, mit der Seehexe Morwenna im Leuchtturm. Hinter den Kornfeldern liegt, durch alte Grenzsteine gewarnt, der **Silberhain** für Stufe 8–10: ein Elfenwald, den der Schatten verdorben hat. Das **Grauzahn-Gebirge** östlich des Moors und **die Tiefen** unter der Mine sind für Stufe 6–10; die beiden Bosse dort (Spinnenkönigin, Eisdrache) schafft man nur in der Gruppe oder mit vielen Tränken. Im Zwergenposten gibt es eine zweite Bank. Nördlich des Zwergenpostens liegt der **Feuerschlund** für Stufe 11–13, mit dem Glutfürsten Ignaros im Herzen des Vulkans. Vom Lavastrom führt ein Felsensteig hinauf zur **Himmelsfeste der Sturmriesen** für Stufe 13–14, wo Sturmkönig Tharos über den Wolken thront. Wer lieber taucht als schwitzt, findet unter den Gezeitenhöhlen die **Versunkene Stadt Aelmar**, ebenfalls für Stufe 11–13, mit dem Kraken Ul'thar in ihrer Tiefe. Ganz unten, durch einen Riss unter dem Nest der Spinnenkönigin, liegt das **Schattenreich** für Stufe 14–15. Dort wartet der Schattenkönig Morvath, der stärkste Gegner des Spiels.
 
 In **sicheren Räumen** wird nicht gekämpft und niemand wird überfallen. Betrittst du einen **Checkpoint**, merkt sich dein Charakter diesen Ort; dort erwachst du nach dem Tod.
 
@@ -309,6 +314,9 @@ Viele Händler haben **Aufträge**. Steht ein Auftraggeber im Raum, zeigt das Pa
 | Unruhe in den Hügeln | Waffenmeisterin Brunhild | 8 | 6× Grabwicht besiegen |
 | Staub der Toten | Schwester Liora | 8 | 5× Grabstaub bringen (nach „Unruhe in den Hügeln“) |
 | Der Wolfskönig | Waffenmeisterin Brunhild | 9 | Grab des Wolfskönigs aufsuchen, dann Wolfskönig Gerulf besiegen (nach „Unruhe in den Hügeln“) |
+| Sturm über dem Krater | Kundschafterin Ilva | 13 | 6× Sturmharpyie besiegen |
+| Der Sturmkönig | Kundschafterin Ilva | 14 | Thron des Sturmkönigs aufsuchen, dann Sturmkönig Tharos besiegen (nach „Sturm über dem Krater“) |
+| Kopfgeld: Sturmriesen | Kundschafterin Ilva | 14 | 6× Sturmriese besiegen (wiederholbar) |
 | Kopfgeld: Feldratten | Hauptmann Rowan | 1 | 10× Feldratte besiegen (wiederholbar) |
 | Kopfgeld: Hungrige Wölfe | Hauptmann Rowan | 2 | 8× Hungriger Wolf besiegen (wiederholbar) |
 | Kopfgeld: Skelettwächter | Hauptmann Rowan | 4 | 8× Skelettwächter besiegen (wiederholbar) |
@@ -362,6 +370,8 @@ Manche Händler sind auch **Handwerker**. Steht einer im Raum, zeigt das Panel �
 | Amulett des Krakenauges | Fischerin Maren | 13 | Auge des Kraken, Sturmamulett, 2× Lebende Koralle | 80 |
 | Glutkrone | Kundschafterin Ilva | 13 | Krone des Glutfürsten, 3× Glutkern | 100 |
 | Krone des Siegelwächters | Der Händler ohne Gesicht | 15 | Krone der Schatten, 4× Leerensplitter, 2× Albtraumessenz | 150 |
+| Beinschienen der Himmelswacht | Kundschafterin Ilva | 13 | Eiserne Beinschienen, 5× Himmelseisen | 90 |
+| Donnerhorn-Amulett | Fischerin Maren | 14 | Horn des Sturmkönigs, Sturmamulett, 4× Sturmfeder | 140 |
 
 ## Sets
 
@@ -381,6 +391,7 @@ Manche Ausrüstungsstücke gehören zu einem **Set**; das steht unter dem Namen 
 | Sternenstahl | Sternenstahlhelm, Sternenstahlharnisch, Sternenstahlbeinschienen, Sternenstahlstiefel, Sternenstahlschild | 2 Teile: +1 Verteidigung; 3 Teile: +15 max. HP; 5 Teile: +2 Angriff, +2 Verteidigung |
 | Krone der Schatten | Schattenklinge, Schattenring, Seelenanhänger | 2 Teile: +1 Angriff; 3 Teile: +1 Angriff, +20 max. HP |
 | Erbe des Wolfskönigs | Krone des Wolfskönigs, Pelzmantel des Wolfskönigs, Wolfszahnklinge | 2 Teile: +1 Angriff; 3 Teile: +1 Verteidigung, +10 max. HP |
+| Himmelswacht | Helm der Himmelswacht, Brustpanzer der Himmelswacht, Beinschienen der Himmelswacht | 2 Teile: +1 Verteidigung; 3 Teile: +1 Angriff, +15 max. HP |
 
 ## Erfolge & Titel
 

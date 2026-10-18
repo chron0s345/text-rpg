@@ -38,6 +38,7 @@ BOSSES = {
     "kraken",
     "morvath",
     "wolf_king",
+    "tharos",
 }
 
 CONTENT = load_content(Path(__file__).resolve().parents[2] / "data")

@@ -2170,3 +2170,90 @@
   effects:
     - {type: stat, stat: defense, amount: 6}
     - {type: stat, stat: max_hp, amount: 25}
+
+# --- Himmelsfeste der Sturmriesen ---
+
+- id: storm_feather
+  name: "Sturmfeder"
+  description: "Eine graue Feder, die knistert, wenn man darüberstreicht."
+  kind: misc
+  icon: "trophy"
+  value: 20
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: sky_iron
+  name: "Himmelseisen"
+  description: "Ein Klumpen Metall, das in Gewittern vom Himmel fällt. Leicht wie Holz, hart wie Stein."
+  kind: misc
+  icon: "trophy"
+  value: 30
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: tharos_horn
+  name: "Horn des Sturmkönigs"
+  description: "Ein gewundenes Horn aus dem Helm des Tharos. Wer hineinbläst, hört Donner."
+  kind: misc
+  icon: "trophy"
+  value: 140
+  sellable: true
+  stackable: true
+  max_stack: 5
+
+- id: storm_maul
+  name: "Donnerhammer"
+  description: "Der Hammer eines Sturmriesen, auf Menschenmaß geschmiedet. Jeder Schlag grollt nach."
+  kind: weapon
+  slot: weapon
+  icon: "axe"
+  value: 920
+  effects:
+    - {type: stat, stat: attack, amount: 15}
+    - {type: stat, stat: max_hp, amount: 5}
+
+- id: skyguard_helm
+  name: "Helm der Himmelswacht"
+  description: "Ein hoher Helm mit Flügeln aus Himmelseisen. Er pfeift leise im Wind."
+  kind: armor
+  slot: head
+  icon: "armor"
+  value: 560
+  effects:
+    - {type: stat, stat: defense, amount: 5}
+    - {type: stat, stat: max_hp, amount: 15}
+
+- id: skyguard_plate
+  name: "Brustpanzer der Himmelswacht"
+  description: "Blau schimmernde Platten, über denen kleine Blitze tanzen, wenn es donnert."
+  kind: armor
+  slot: chest
+  icon: "armor"
+  value: 950
+  effects:
+    - {type: stat, stat: defense, amount: 10}
+    - {type: stat, stat: max_hp, amount: 10}
+
+- id: skyguard_greaves
+  name: "Beinschienen der Himmelswacht"
+  description: "Von Kundschafterin Ilva aus Himmelseisen gefertigt, nach Zeichnungen von der Feste."
+  kind: armor
+  slot: legs
+  icon: "armor"
+  value: 520
+  effects:
+    - {type: stat, stat: defense, amount: 5}
+    - {type: stat, stat: max_hp, amount: 10}
+
+- id: thunder_amulet
+  name: "Donnerhorn-Amulett"
+  description: "Ein Splitter vom Horn des Sturmkönigs, in Sturmsilber gefasst. Wer es trägt, steht fest wie ein Berg."
+  kind: armor
+  slot: neck
+  icon: "amulet"
+  value: 900
+  effects:
+    - {type: stat, stat: max_hp, amount: 55}
+    - {type: stat, stat: attack, amount: 1}

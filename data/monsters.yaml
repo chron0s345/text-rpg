@@ -1329,3 +1329,117 @@
       chance: 0.3
     - item_id: elixir
       chance: 0.3
+
+# --- Himmelsfeste der Sturmriesen (östlich des Lavastroms, Stufe 13–14) ---
+
+- id: storm_harpy
+  name: "Sturmharpyie"
+  level: 13
+  max_hp: 160
+  attack: 55
+  defense: 27
+  xp_reward: 500
+  gold_reward: [20, 45]
+  respawn_seconds: 150
+  regen:
+    delay_seconds: 15
+    hp_per_second: 4.0
+  ambush:
+    chance_on_enter: 0.3
+    chance_per_tick: 0.06
+    max_level_difference: 2
+  rare_variant:
+    monster_id: tempest_harpy
+    chance: 0.05
+  loot_table:
+    - item_id: storm_feather
+      chance: 0.7
+    - item_id: storm_essence
+      chance: 0.3
+
+- id: tempest_harpy
+  name: "Windsbraut"
+  level: 14
+  max_hp: 240
+  attack: 58
+  defense: 29
+  xp_reward: 1300
+  gold_reward: [60, 120]
+  respawn_seconds: 150
+  regen:
+    delay_seconds: 15
+    hp_per_second: 5.0
+  ambush:
+    chance_on_enter: 0.3
+    chance_per_tick: 0.06
+    max_level_difference: 2
+  loot_table:
+    - item_id: storm_feather
+      chance: 1.0
+      min_qty: 3
+      max_qty: 4
+    - item_id: skyguard_helm
+      chance: 0.25
+
+- id: storm_giant
+  name: "Sturmriese"
+  level: 14
+  max_hp: 210
+  attack: 57
+  defense: 34
+  xp_reward: 680
+  gold_reward: [30, 60]
+  respawn_seconds: 180
+  regen:
+    delay_seconds: 20
+    hp_per_second: 4.0
+  loot_table:
+    - item_id: sky_iron
+      chance: 0.6
+    - item_id: giant_tooth
+      chance: 0.4
+    - item_id: storm_maul
+      chance: 0.05
+
+- id: sky_knight
+  name: "Himmelsritter"
+  level: 14
+  max_hp: 180
+  attack: 59
+  defense: 33
+  xp_reward: 650
+  gold_reward: [30, 60]
+  respawn_seconds: 180
+  regen:
+    delay_seconds: 20
+    hp_per_second: 4.0
+  ambush:
+    chance_on_enter: 0.25
+    chance_per_tick: 0.05
+    max_level_difference: 2
+  loot_table:
+    - item_id: sky_iron
+      chance: 0.5
+    - item_id: skyguard_helm
+      chance: 0.06
+
+- id: tharos
+  name: "Sturmkönig Tharos"
+  boss: true
+  level: 14
+  max_hp: 620
+  attack: 66
+  defense: 32
+  xp_reward: 2200
+  gold_reward: [200, 400]
+  respawn_seconds: 900
+  regen:
+    delay_seconds: 20
+    hp_per_second: 8.0
+  loot_table:
+    - item_id: tharos_horn
+      chance: 1.0
+    - item_id: skyguard_plate
+      chance: 0.3
+    - item_id: storm_maul
+      chance: 0.25
