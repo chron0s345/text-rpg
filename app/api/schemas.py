@@ -25,6 +25,11 @@ class FleeAction(BaseModel):
     type: Literal["flee"] = "flee"
 
 
+class TravelAction(BaseModel):
+    type: Literal["travel"] = "travel"
+    room_id: str = Field(min_length=1, max_length=64)
+
+
 class UseItemAction(BaseModel):
     type: Literal["use_item"] = "use_item"
     inventory_item_id: UUID
@@ -234,6 +239,7 @@ class LogoutAction(BaseModel):
 
 GameAction = Annotated[
     MoveAction
+    | TravelAction
     | AttackAction
     | FleeAction
     | UseItemAction

@@ -119,6 +119,7 @@ def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegist
 
     validate_content(rooms, monsters, items, merchants, rules)
     validate_rare_variants(rooms, monsters)
+    validate_travel(rooms)
     validate_quests(quests, monsters, items, merchants, rooms)
     if rules.intro_quest_id is not None and rules.intro_quest_id not in quests:
         raise ContentValidationError(f"rules.intro_quest_id '{rules.intro_quest_id}' is no quest")
@@ -138,6 +139,22 @@ def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegist
         achievements=achievements,
         rules=rules,
     )
+
+
+def validate_travel(rooms: dict[str, RoomTemplate]) -> None:
+    for room in rooms.values():
+        targets = [r.room_id for r in room.travel]
+        if targets and not room.safe:
+            raise ContentValidationError(f"Room '{room.id}' has travel routes but is not safe")
+        if len(set(targets)) != len(targets):
+            raise ContentValidationError(f"Room '{room.id}' has two routes to the same room")
+        for target in targets:
+            if target == room.id:
+                raise ContentValidationError(f"Room '{room.id}' has a route to itself")
+            if target not in rooms:
+                raise ContentValidationError(f"Room '{room.id}' travels to unknown '{target}'")
+            if not rooms[target].safe:
+                raise ContentValidationError(f"Room '{room.id}' travels to unsafe '{target}'")
 
 
 def validate_rare_variants(

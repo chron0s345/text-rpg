@@ -94,3 +94,27 @@ def test_set_table_lists_every_set() -> None:
     item_sets = yaml.safe_load((DOC.parents[1] / "data" / "sets.yaml").read_text())
 
     assert documented == [item_set["name"] for item_set in item_sets]
+
+
+def test_travel_table_lists_every_route() -> None:
+    lines = DOC.read_text().splitlines()
+    start = lines.index("| Von | Nach | Mit | Gold | ab Stufe |") + 2
+    documented = set()
+    for line in lines[start:]:
+        if not line.startswith("|"):
+            break
+        origin, target, _, gold, level = (cell.strip() for cell in line.split("|")[1:6])
+        documented.add((origin, target, int(gold), int(level)))
+    rooms = {
+        r["id"]: r for r in yaml.safe_load((DOC.parents[1] / "data" / "rooms.yaml").read_text())
+    }
+    routes = {
+        (room["name"], rooms[t["room_id"]]["name"], t["gold"], t.get("min_level", 1))
+        for room in rooms.values()
+        for t in room.get("travel", [])
+    }
+    # the table lists one direction per ride; every listed ride runs in the data
+    assert documented <= routes
+    assert {(a, b) for a, b, _, _ in routes} <= {
+        pair for a, b, _, _ in documented for pair in ((a, b), (b, a))
+    }

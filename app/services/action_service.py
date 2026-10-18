@@ -70,6 +70,7 @@ from app.api.schemas import (
     TradeOfferItemAction,
     TradeRemoveItemAction,
     TradeRequestAction,
+    TravelAction,
     UnequipAction,
     UseItemAction,
     WhisperAction,
@@ -114,7 +115,7 @@ from app.engine.inventory_actions import (
     resolve_use_item,
 )
 from app.engine.merchant import resolve_buy, resolve_sell, resolve_sell_junk
-from app.engine.movement import resolve_move
+from app.engine.movement import resolve_move, resolve_travel
 from app.engine.presence import (
     LOGGED_OUT,
     connection_expired,
@@ -645,6 +646,9 @@ class ActionService:
         """The room the action ends in, i.e. the room the snapshot must describe."""
         if isinstance(action, MoveAction):
             return self.content.get_room(origin).exits.get(action.direction, origin)
+        if isinstance(action, TravelAction):
+            routes = self.content.get_room(origin).travel
+            return action.room_id if any(r.room_id == action.room_id for r in routes) else origin
         if isinstance(action, RespawnAction):
             return checkpoint
         return origin
@@ -656,6 +660,8 @@ class ActionService:
         match action:
             case MoveAction():
                 return resolve_move(*args, action.direction)
+            case TravelAction():
+                return resolve_travel(*args, action.room_id)
             case AttackAction():
                 return resolve_attack(*args, action.target_id)
             case FleeAction():

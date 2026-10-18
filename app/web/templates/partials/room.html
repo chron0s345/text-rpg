@@ -65,4 +65,15 @@
     <button hx-post="/ui/actions" hx-vals='{{ {"type": "move", "direction": e.direction} | tojson }}' {% if p.state != 'exploring' %}disabled{% endif %} title="{{ e.room_name }}">{{ e.label }}</button>
     {% endfor %}
   </div>
+  {% if r.travel %}
+  <h3>Reisen</h3>
+  <ul class="list travel">
+    {% for t in r.travel %}
+    <li>
+      <span class="stacked"><span>{{ t.room_name }}</span><small class="muted">mit {{ t.by }}{% if t.gold %} · {{ t.gold }} Gold{% endif %}{% if t.min_level > 1 %} · ab Stufe {{ t.min_level }}{% endif %}</small></span>
+      <button hx-post="/ui/actions" hx-vals='{{ {"type": "travel", "room_id": t.room_id} | tojson }}' {% if not t.possible or p.state != 'exploring' %}disabled{% endif %}>Reisen</button>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
 </section>
