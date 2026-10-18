@@ -9,6 +9,7 @@ from uuid import UUID
 from app.content.registry import ContentRegistry
 from app.content.schemas import MonsterTemplate, Rules
 from app.engine.achievements import grant
+from app.engine.buffs import tick_buffs
 from app.engine.events import (
     FloorItemCreate,
     GroupAudience,
@@ -90,6 +91,8 @@ def resolve_kill(
     if group is not None and cursor != group.loot_cursor:
         group.loot_cursor = cursor
         builder.changes.groups.append(GroupUpdate(group_id=group.id, loot_cursor=cursor))
+    for player in recipients:  # a won fight wears boosts down
+        tick_buffs(builder, player, content)
     for player in recipients:  # the bestiary's tally
         player.kills = {
             **player.kills,

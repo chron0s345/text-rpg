@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from app.content.schemas import EquipSlot, Heal, ItemSet, ItemTemplate, StatModifier
+from app.content.schemas import Buff, EquipSlot, Heal, ItemSet, ItemTemplate, StatModifier
 
 SLOT_NAMES: Final[dict[EquipSlot, str]] = {
     "weapon": "Waffe",
@@ -35,6 +35,9 @@ def item_summary(item: ItemTemplate) -> str:
             parts.append(f"{_signed(effect.amount)} {STAT_NAMES[effect.stat]}")
         elif isinstance(effect, Heal):
             parts.append(f"heilt {effect.amount}")
+        elif isinstance(effect, Buff):
+            fights = "1 Sieg" if effect.fights == 1 else f"{effect.fights} Siege"
+            parts.append(f"{_signed(effect.amount)} {STAT_NAMES[effect.stat]} für {fights}")
     if item.bag_slots:
         parts.append(f"+{item.bag_slots} Plätze")
     numbers = ", ".join(parts)

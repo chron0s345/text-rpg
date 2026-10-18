@@ -4,7 +4,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 
 from app.content.schemas import ItemSet, ItemTemplate, StatModifier
-from app.engine.state import InventoryItemState, PlayerSnapshot
+from app.engine.state import ActiveBuff, InventoryItemState, PlayerSnapshot
 
 
 @dataclass(frozen=True)
@@ -20,8 +20,10 @@ def calculate_effective_stats(
     base_defense: int,
     inventory: Sequence[InventoryItemState],
     item_templates: dict[str, ItemTemplate],
+    buffs: Sequence[ActiveBuff] = (),
 ) -> EffectiveStats:
-    """Base values + stat modifiers of equipped items + set bonuses (derived, never stored)."""
+    """Base values + stat modifiers of equipped items + set bonuses + running buffs (derived,
+    never stored)."""
     max_hp, attack, defense = base_max_hp, base_attack, base_defense
     modifiers: list[StatModifier] = []
     for entry in inventory:
@@ -30,6 +32,7 @@ def calculate_effective_stats(
             modifiers += [e for e in item.effects if isinstance(e, StatModifier)]
     for item_set, count in worn_sets(inventory, item_templates):
         modifiers += active_set_effects(item_set, count)
+    modifiers += [StatModifier(stat=b.stat, amount=b.amount) for b in buffs]
 
     for effect in modifiers:
         if effect.stat == "attack":
@@ -68,4 +71,5 @@ def stats_of(player: PlayerSnapshot, item_templates: dict[str, ItemTemplate]) ->
         player.base_defense,
         player.inventory,
         item_templates,
+        player.buffs,
     )

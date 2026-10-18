@@ -117,6 +117,13 @@
   gold: 80
   min_level: 10
 
+- id: dragon_blood
+  crafter_id: dwarf_armorer
+  item_id: dragon_blood
+  ingredients: [{item_id: elixir}, {item_id: drake_scale, quantity: 2}]
+  gold: 40
+  min_level: 10
+
 # --- Silberhain ---
 
 - id: elven_bread

@@ -12,6 +12,7 @@ from app.content.prices import buy_price, sell_price
 from app.content.registry import ContentRegistry
 from app.content.schemas import (
     AchievementTemplate,
+    Buff,
     ItemSet,
     ItemTemplate,
     KillCondition,
@@ -395,6 +396,8 @@ def validate_content(
             raise ContentValidationError(
                 f"Item '{item.id}' of kind '{item.kind}' cannot have an equip slot"
             )
+        if item.kind != "consumable" and any(isinstance(e, Buff) for e in item.effects):
+            raise ContentValidationError(f"Item '{item.id}': only consumables can have buffs")
 
         if not item.stackable and item.max_stack > 1:
             raise ContentValidationError(f"Non-stackable item '{item.id}' has max_stack > 1")

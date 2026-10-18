@@ -167,6 +167,58 @@
     - type: heal
       amount: 35
 
+# --- Stärkungstränke (engine/buffs.py): wirken für die nächsten Siege ---
+
+- id: strength_potion
+  name: "Trank der Stärke"
+  description: "Schmeckt nach Eisen und Pfeffer. Für die nächsten drei Siege schlägst du härter zu."
+  kind: consumable
+  icon: "potion"
+  value: 30
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - {type: buff, stat: attack, amount: 3, fights: 3}
+
+- id: stoneskin_potion
+  name: "Steinhauttrank"
+  description: "Grau und körnig. Die Haut wird zäh wie Leder – für die nächsten drei Siege."
+  kind: consumable
+  icon: "potion"
+  value: 30
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - {type: buff, stat: defense, amount: 3, fights: 3}
+
+- id: vigor_potion
+  name: "Trank der Lebenskraft"
+  description: "Ein warmer, süßer Schluck. Heilt ein wenig und gibt dir für drei Siege mehr Ausdauer."
+  kind: consumable
+  icon: "potion"
+  value: 35
+  sellable: true
+  stackable: true
+  max_stack: 5
+  effects:
+    - {type: buff, stat: max_hp, amount: 20, fights: 3}
+    - {type: heal, amount: 20}
+
+- id: dragon_blood
+  name: "Drachenblut"
+  description: "Aus Drachenschuppen und Lebenselixier gebraut. Es brennt im Hals und dann in den Adern – vier Siege lang."
+  kind: consumable
+  icon: "potion"
+  value: 220
+  sellable: true
+  stackable: true
+  max_stack: 3
+  effects:
+    - {type: buff, stat: attack, amount: 5, fights: 4}
+    - {type: buff, stat: defense, amount: 3, fights: 4}
+
 - id: bog_herb
   name: "Moorkraut"
   description: "Ein bitter riechendes Kraut. Gekaut stellt es 4 Lebenspunkte wieder her."

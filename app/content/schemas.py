@@ -105,7 +105,17 @@ class Heal(BaseModel):
     amount: PositiveInt
 
 
-Effect = Annotated[StatModifier | Heal, Field(discriminator="type")]
+class Buff(BaseModel):
+    """A consumable's lasting boost: ``amount`` on ``stat`` for the next ``fights`` kills the
+    character gets credit for (engine/buffs.py). Lost on death."""
+
+    type: Literal["buff"] = "buff"
+    stat: Literal["attack", "defense", "max_hp"]
+    amount: PositiveInt
+    fights: PositiveInt
+
+
+Effect = Annotated[StatModifier | Heal | Buff, Field(discriminator="type")]
 
 
 class SetBonus(BaseModel):

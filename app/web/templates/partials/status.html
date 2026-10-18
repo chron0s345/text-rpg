@@ -13,4 +13,5 @@
   <span>Angriff {{ p.attack }} · Verteidigung {{ p.defense }}</span>
   <span>{{ p.gold }} Gold</span>
   <span class="state state-{{ p.state }}">{{ state_label(p.state) }}</span>
+  {% for b in p.buffs %}<span class="buff" title="Stärkungstrank">✦ {{ b }}</span>{% endfor %}
 </section>

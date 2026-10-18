@@ -132,6 +132,11 @@ class Player(SQLModel, table=True):
         default_factory=dict,
         sa_column=Column(JSONB, nullable=False, server_default=text("'{}'::jsonb")),
     )
+    # running consumable boosts: [{item_id, stat, amount, fights_left}] (engine/buffs.py)
+    buffs: list[dict[str, Any]] = Field(
+        default_factory=list,
+        sa_column=Column(JSONB, nullable=False, server_default=text("'[]'::jsonb")),
+    )
 
 
 class InventoryItem(SQLModel, table=True):

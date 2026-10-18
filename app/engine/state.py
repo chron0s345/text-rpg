@@ -47,6 +47,15 @@ class QuestState(BaseModel):
     times_completed: int = 0
 
 
+class ActiveBuff(BaseModel):
+    """A running consumable boost (``content.schemas.Buff``); ``fights_left`` counts down."""
+
+    item_id: str
+    stat: Literal["attack", "defense", "max_hp"]
+    amount: int
+    fights_left: int
+
+
 class PlayerSnapshot(BaseModel):
     id: UUID
     account_id: UUID
@@ -73,6 +82,7 @@ class PlayerSnapshot(BaseModel):
     achievements: list[str] = Field(default_factory=list)  # earned ids, in the order earned
     title: str | None = None  # achievement id whose title is shown
     kills: dict[str, int] = Field(default_factory=dict)  # kill credits per monster id
+    buffs: list[ActiveBuff] = Field(default_factory=list)  # running consumable boosts
 
     def item(self, inventory_item_id: UUID) -> InventoryItemState | None:
         return next((i for i in self.inventory if i.id == inventory_item_id), None)

@@ -6,6 +6,7 @@ from uuid import UUID
 
 from app.content.registry import ContentRegistry
 from app.content.schemas import DeathRules, ItemTemplate, Rules
+from app.engine.buffs import clear_buffs
 from app.engine.events import ResultBuilder, RoomAudience
 from app.engine.participation import remove_from_combat
 from app.engine.state import ActionSnapshot, InventoryItemState, PlayerSnapshot
@@ -107,6 +108,7 @@ def apply_player_death(
     if player.combat_target_id is not None:
         remove_from_combat(builder, snapshot, player, player.combat_target_id)
 
+    clear_buffs(builder, player)
     player.hp = 0
     player.state = "dead"
     builder.update_player(player.id, hp=0, state="dead", combat_target_id=None, gold=player.gold)
