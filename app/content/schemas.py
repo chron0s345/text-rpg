@@ -29,6 +29,15 @@ class ItemSpawnRule(BaseModel):
     respawn_seconds: PositiveInt | None = None  # None = einmalig
 
 
+class TravelRoute(BaseModel):
+    """A paid ride from this (safe) room to another safe room."""
+
+    room_id: str
+    gold: NonNegativeInt
+    min_level: PositiveInt = 1
+    by: str = "die Postkutsche"  # "Du nimmst <by> nach …"
+
+
 class RoomTemplate(BaseModel):
     id: str
     name: str
@@ -39,6 +48,7 @@ class RoomTemplate(BaseModel):
     bank: bool = False  # Bankzugang in diesem Raum
     spawns: list[SpawnRule] = Field(default_factory=list)
     items: list[ItemSpawnRule] = Field(default_factory=list)
+    travel: list[TravelRoute] = Field(default_factory=list)  # nur in sicheren Räumen
 
 
 class Regeneration(BaseModel):

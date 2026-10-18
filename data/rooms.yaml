@@ -1,6 +1,11 @@
 - id: town_square
   name: "Marktplatz von Oakhaven"
   description: "Ein lebhafter Platz im Herzen von Oakhaven. Ein plätschernder Brunnen spendet frisches Wasser, Händler rufen, Kinder jagen Tauben. Am Brunnenrand flattert ein frischer Steckbrief im Wind."
+  travel:
+    - {room_id: fishing_village, gold: 10, min_level: 3}
+    - {room_id: dwarf_outpost, gold: 25, min_level: 6}
+    - {room_id: elf_hall, gold: 40, min_level: 8}
+    - {room_id: crater_camp, gold: 60, min_level: 11}
   safe: true
   checkpoint: true
   bank: false
@@ -197,6 +202,8 @@
 - id: dwarf_outpost
   name: "Zwergenposten Khazdur"
   description: "Eine in den Fels gehauene Feste mit glühenden Kohlebecken. Zwerge in schweren Rüstungen nicken dir knapp zu."
+  travel:
+    - {room_id: town_square, gold: 25}
   safe: true
   checkpoint: true
   bank: true
@@ -439,6 +446,8 @@
 - id: crater_camp
   name: "Rastplatz am Kraterrand"
   description: "Ein paar Zelte im Windschatten eines Felsens, mit Asche bestäubt. Von hier sieht man den Krater rot pulsieren."
+  travel:
+    - {room_id: town_square, gold: 60}
   safe: true
   checkpoint: true
   bank: false
@@ -542,6 +551,8 @@
 - id: last_refuge
   name: "Letzte Zuflucht"
   description: "Ein Kreis aus Laternen, deren Licht die Schatten nicht überschreiten. Ein Händler ohne Gesicht wartet hier, als hätte er immer gewartet."
+  travel:
+    - {room_id: town_square, gold: 80, by: "den Schattenpfad"}
   safe: true
   checkpoint: true
   bank: true
@@ -635,6 +646,9 @@
 - id: fishing_village
   name: "Fischerdorf Möwenstein"
   description: "Ein Dutzend Hütten mit Netzen vor der Tür, es riecht nach Rauch und Fisch. Die Leute hier reden wenig und schauen oft zum Leuchtturm."
+  travel:
+    - {room_id: town_square, gold: 10}
+    - {room_id: air_pocket, gold: 30, min_level: 11, by: "das Boot des Tauchers"}
   safe: true
   checkpoint: true
   bank: false
@@ -749,6 +763,8 @@
 - id: elf_hall
   name: "Verfallene Elfenhalle"
   description: "Säulen aus lebendem Holz tragen ein Dach aus Ranken. Eine einzelne Waldläuferin hält hier Wache, ihr Bogen nie weit von der Hand."
+  travel:
+    - {room_id: town_square, gold: 40}
   safe: true
   checkpoint: true
   bank: false
@@ -823,6 +839,8 @@
 - id: air_pocket
   name: "Luftkammer des Tauchers"
   description: "Eine trockene Kammer, deren Tür mit Pech abgedichtet ist. Ein alter Taucher im Messinghelm hat sich hier eingerichtet und verkauft, was er vom Meeresgrund holt."
+  travel:
+    - {room_id: fishing_village, gold: 30, by: "das Boot des Tauchers"}
   safe: true
   checkpoint: true
   bank: false
