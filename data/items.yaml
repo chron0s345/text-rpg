@@ -2038,3 +2038,78 @@
     - type: stat
       stat: max_hp
       amount: 10
+
+# --- Hügelgräber ---
+
+- id: wight_dust
+  name: "Grabstaub"
+  description: "Grauer Staub aus den Hügelgräbern. Er ist kalt, auch in der Hand."
+  kind: misc
+  icon: "trophy"
+  value: 12
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: grave_fang
+  name: "Grabfang"
+  description: "Ein vergilbter Reißzahn eines Knochenhunds, länger als ein Finger."
+  kind: misc
+  icon: "trophy"
+  value: 14
+  sellable: true
+  stackable: true
+  max_stack: 20
+
+- id: gerulf_fang
+  name: "Gerulfs Fang"
+  description: "Der Reißzahn des Wolfskönigs, gelb und gewaltig. Die Zwerge sagen, man könne eine Klinge daraus schleifen."
+  kind: misc
+  icon: "trophy"
+  value: 60
+  sellable: true
+  stackable: true
+  max_stack: 5
+
+- id: wolfking_crown
+  name: "Krone des Wolfskönigs"
+  description: "Ein Reif aus angelaufenem Silber, besetzt mit Wolfszähnen."
+  kind: armor
+  slot: head
+  icon: "armor"
+  value: 340
+  effects:
+    - {type: stat, stat: defense, amount: 4}
+    - {type: stat, stat: max_hp, amount: 10}
+
+- id: wolfking_pelt
+  name: "Pelzmantel des Wolfskönigs"
+  description: "Ein schwerer Mantel aus grauem Wolfspelz über rostigen Kettengliedern. Er riecht nach Erde und Jahrhunderten."
+  kind: armor
+  slot: chest
+  icon: "armor"
+  value: 360
+  effects:
+    - {type: stat, stat: defense, amount: 6}
+    - {type: stat, stat: max_hp, amount: 10}
+
+- id: wolfking_fang
+  name: "Wolfszahnklinge"
+  description: "Die Waffenmeisterin hat Gerulfs Fang auf eine Axtklinge geschmiedet. Sie heult leise, wenn man sie schwingt."
+  kind: weapon
+  slot: weapon
+  icon: "axe"
+  value: 420
+  effects:
+    - {type: stat, stat: attack, amount: 11}
+
+- id: rest_amulet
+  name: "Amulett der Totenruhe"
+  description: "Ein Knochenamulett, von Schwester Liora mit Grabstaub gesegnet. Die Toten erkennen es und zögern."
+  kind: armor
+  slot: neck
+  icon: "amulet"
+  value: 320
+  effects:
+    - {type: stat, stat: max_hp, amount: 30}
+    - {type: stat, stat: defense, amount: 1}

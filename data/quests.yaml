@@ -646,6 +646,39 @@
   reward: {xp: 1800, gold: 250, items: [{item_id: starlight_tonic}]}
   min_level: 14
 
+# --- Hügelgräber: die Wolfskönig-Kette (Waffenmeisterin Brunhild, Schwester Liora) ---
+
+- id: barrow_unrest
+  name: "Unruhe in den Hügeln"
+  giver_id: dwarf_armorer
+  description: "Östlich des Anstiegs stehen die Toten aus ihren Hügeln auf. Meine Späher kommen nicht mehr durch. Schlag sechs dieser Grabwichte nieder, dann reden wir weiter."
+  completion_text: "Sechs? Gut. Aber die Späher sagen, sie kämen alle aus dem Großen Hügel. Da unten liegt etwas, das sie ruft."
+  objective: {type: kill, monster_id: barrow_wight, count: 6}
+  reward: {xp: 800, gold: 60}
+  min_level: 8
+
+- id: dust_of_the_dead
+  name: "Staub der Toten"
+  giver_id: priestess
+  description: "Wenn die Toten in den Hügeln wandeln, brauchen sie Ruhe, nicht nur Klingen. Bring mir fünf Hände Grabstaub, damit ich sie segnen kann."
+  completion_text: "Der Staub wird still unter meinen Händen. Möge das Licht auch die finden, die du noch nicht erschlagen hast."
+  objective: {type: deliver, item_id: wight_dust, quantity: 5}
+  reward: {xp: 500, gold: 40, items: [{item_id: holy_water, quantity: 3}]}
+  min_level: 8
+  requires: [barrow_unrest]
+
+- id: the_wolf_king
+  name: "Der Wolfskönig"
+  giver_id: dwarf_armorer
+  description: "Gerulf. Die alten Lieder nennen ihn den Wolfskönig. Wenn er wieder auf seinem Thron sitzt, hören die Hügel nie auf. Geh hinunter und sorg dafür, dass er liegen bleibt."
+  completion_text: "Sein Fang? Behalt ihn – oder bring ihn mir, und ich schmiede dir etwas, das seiner würdig ist."
+  steps:
+    - {type: visit, room_id: wolf_king_tomb}
+    - {type: kill, monster_id: wolf_king, count: 1}
+  reward: {xp: 1500, gold: 150, items: [{item_id: elixir}]}
+  min_level: 9
+  requires: [barrow_unrest]
+
 # --- Kopfgelder: wiederholbare Jagdaufträge, je Region einer ---
 
 - id: bounty_rats
