@@ -7,6 +7,10 @@
   --accent: #d9a441;
   --danger: #d0574b;
   --good: #6fb36a;
+  --rarity-good: #7cc576;
+  --rarity-rare: #6fa8e8;
+  --rarity-epic: #c08cf0;
+  --rarity-set: #e8a65c;
   --radius: 6px;
   color-scheme: dark;
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -120,6 +124,11 @@ details.card[open] summary { margin-bottom: .75rem; }
 .item-summary { display: block; color: var(--muted); font-size: .8rem; }
 button.link.item-name { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--muted); font: inherit; cursor: help; }
 button.link.item-name:hover { color: var(--accent); }
+/* rarity of gear (describe.rarity): good, rare, epic, set pieces */
+button.link.item-name.rarity-good { color: var(--rarity-good); }
+button.link.item-name.rarity-rare { color: var(--rarity-rare); }
+button.link.item-name.rarity-epic { color: var(--rarity-epic); }
+button.link.item-name.rarity-set { color: var(--rarity-set); }
 .log .log-item-inspected { color: var(--muted); font-style: italic; }
 .quest-text { display: block; font-style: italic; color: var(--text); margin: .2rem 0; }
 .quest-list li { align-items: flex-start; }

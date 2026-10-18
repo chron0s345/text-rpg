@@ -28,6 +28,27 @@ def _signed(amount: int) -> str:
     return f"+{amount}" if amount >= 0 else f"−{-amount}"
 
 
+RARITY_NAMES: Final = {"good": "gut", "rare": "selten", "epic": "episch", "set": "Set-Teil"}
+
+
+def rarity(item: ItemTemplate) -> str:
+    """How special a piece of gear is, for its colour: "good" from 50 gold of value, "rare" from
+    200, "epic" from 500, "set" for set pieces; "" for plain gear and everything else."""
+    if item.slot is None or item.slot == "bag":
+        return ""
+    if item.item_set is not None:
+        return "set"
+    return (
+        "epic"
+        if item.value >= 500
+        else "rare"
+        if item.value >= 200
+        else "good"
+        if item.value >= 50
+        else ""
+    )
+
+
 def item_summary(item: ItemTemplate) -> str:
     parts: list[str] = []
     for effect in item.effects:

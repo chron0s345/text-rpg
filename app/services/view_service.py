@@ -17,7 +17,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlmodel import col
 
-from app.content.describe import SLOT_NAMES, item_summary, modifiers_text
+from app.content.describe import SLOT_NAMES, item_summary, modifiers_text, rarity
 from app.content.prices import buy_price, sell_price
 from app.content.registry import ContentRegistry
 from app.content.schemas import (
@@ -128,6 +128,7 @@ class FloorItemView:
     quantity: int
     item_id: str = ""  # template id, for "Ansehen"
     compare: Comparison | None = None  # against what is worn in its slot
+    rarity: str = ""
 
 
 @dataclass(frozen=True)
@@ -163,6 +164,7 @@ class ItemView:
     summary: str = ""  # what it does, e.g. "Waffe · +3 Angriff"
     item_id: str = ""  # template id, for "Ansehen"
     compare: Comparison | None = None  # carried and banked gear: against what is worn
+    rarity: str = ""  # describe.rarity: colour class of gear names
 
 
 @dataclass(frozen=True)
@@ -198,6 +200,7 @@ class OfferView:
     affordable: bool
     summary: str = ""
     compare: Comparison | None = None
+    rarity: str = ""
 
 
 @dataclass(frozen=True)
@@ -542,6 +545,7 @@ class ViewService:
                     item_row.quantity,
                     item.id,
                     compare(snapshot, item.id, self.content),
+                    rarity(item),
                 )
             )
         room_view = RoomView(
@@ -792,6 +796,7 @@ class ViewService:
             price <= gold,
             item_summary(item),
             compare(player, item.id, self.content),
+            rarity(item),
         )
 
     def _bestiary(self, player: PlayerSnapshot) -> BestiaryView:
@@ -1096,6 +1101,7 @@ class ViewService:
             compare=compare(player, item.id, self.content)
             if player is not None and entry.equipped_slot is None
             else None,
+            rarity=rarity(item),
         )
 
     async def log(self, player_id: UUID, limit: int = LOG_LINES) -> list[LogLine]:
