@@ -63,6 +63,10 @@ Neue Charaktere starten auf Stufe 1 auf dem **Marktplatz von Oakhaven**.
 | Halle der Ruine | zwei Skelettwächter, eine Treppe führt hinab |
 | Alte Mine (unter der Halle) | der Höhlentroll |
 | Steiler Anstieg (östlich des Lagerfeuers) | zwei Felsharpyien |
+| Hügelgräberfeld (östlich des Anstiegs) | zwei Grabwichte (selten: Uralter Grabwicht) |
+| Tor des Großen Hügels (östlich des Gräberfelds) | zwei Knochenhunde, überfallen Eindringlinge |
+| Ahnengänge (unter dem Tor) | ein Grabhüter und ein Grabwicht |
+| Grab des Wolfskönigs (nördlich der Ahnengänge) | Boss: Wolfskönig Gerulf |
 | Zwergenposten Khazdur (nördlich des Anstiegs) | sicher, Checkpoint, Bank, Waffenmeisterin Brunhild (Zwergenstahl, Elixiere) |
 | Frostklamm (östlich des Postens) | zwei Frostwölfe, Frostbeeren wachsen im Eis |
 | Gletscherhang (oberhalb der Klamm) | zwei Eisgolems |
@@ -282,6 +286,9 @@ Viele Händler haben **Aufträge**. Steht ein Auftraggeber im Raum, zeigt das Pa
 | Vermessung des Kraters | Kundschafterin Ilva | 12 | Gehe zu: Basaltstiege → Gehe zu: Lavastrom → Gehe zu: Schmiede der Feuerriesen → Besiege 2× Feuerriese |
 | Karte von Aelmar | Taucher Brack | 12 | Gehe zu: Versunkener Platz → Gehe zu: Halle der Ertrunkenen Ritter → Gehe zu: Korallenpalast → Besiege 2× Korallenwächter |
 | Durch die Dunkelheit | Der Händler ohne Gesicht | 14 | Gehe zu: Schattenriss → Gehe zu: Brücke über das Nichts → Gehe zu: Halle der Stille → Besiege 2× Schattenwächter |
+| Unruhe in den Hügeln | Waffenmeisterin Brunhild | 8 | 6× Grabwicht besiegen |
+| Staub der Toten | Schwester Liora | 8 | 5× Grabstaub bringen (nach „Unruhe in den Hügeln“) |
+| Der Wolfskönig | Waffenmeisterin Brunhild | 9 | Grab des Wolfskönigs aufsuchen, dann Wolfskönig Gerulf besiegen (nach „Unruhe in den Hügeln“) |
 
 ## Handwerk
 
@@ -318,6 +325,8 @@ Manche Händler sind auch **Handwerker**. Steht einer im Raum, zeigt das Panel �
 | Wappenschild von Aelmar | Taucher Brack | 12 | Zwergischer Turmschild, 3× Wappen von Aelmar, Lebende Koralle | 80 |
 | Sternenlichttonikum | Der Händler ohne Gesicht | 14 | 2× Mondlilie, Albtraumessenz | 60 |
 | Leerenschneide | Der Händler ohne Gesicht | 15 | Leerenbrecher, 6× Leerensplitter, 2× Albtraumessenz | 200 |
+| Wolfszahnklinge | Waffenmeisterin Brunhild | 10 | Gerulfs Fang, 4× Grabfang, Kriegsaxt | 80 |
+| Amulett der Totenruhe | Schwester Liora | 8 | Knochenamulett, 5× Grabstaub | 70 |
 
 ## Sets
 
@@ -336,6 +345,7 @@ Manche Ausrüstungsstücke gehören zu einem **Set**; das steht unter dem Namen 
 | Wacht von Aelmar | Dreizack von Aelmar, Perlmuttschild, Perlenkette, Taucherhelm | 2 Teile: +10 max. HP; 4 Teile: +1 Angriff, +2 Verteidigung |
 | Sternenstahl | Sternenstahlhelm, Sternenstahlharnisch, Sternenstahlbeinschienen, Sternenstahlstiefel, Sternenstahlschild | 2 Teile: +1 Verteidigung; 3 Teile: +15 max. HP; 5 Teile: +2 Angriff, +2 Verteidigung |
 | Krone der Schatten | Schattenklinge, Schattenring, Seelenanhänger | 2 Teile: +1 Angriff; 3 Teile: +1 Angriff, +20 max. HP |
+| Erbe des Wolfskönigs | Krone des Wolfskönigs, Pelzmantel des Wolfskönigs, Wolfszahnklinge | 2 Teile: +1 Angriff; 3 Teile: +1 Verteidigung, +10 max. HP |
 
 ## Erfolge & Titel
 
