@@ -1,0 +1,23 @@
+{% set lb = view.leaderboard %}
+{% macro ranks(rows) %}
+<ol class="list ranking">
+  {% for r in rows %}
+  <li{% if r.me %} class="me"{% endif %}>
+    <span><span class="rank">{{ r.rank }}.</span> {{ r.name }}{% if r.title %} <span class="title">{{ r.title }}</span>{% endif %}</span>
+    <span class="muted small">{{ r.value }}</span>
+  </li>
+  {% endfor %}
+</ol>
+{% endmacro %}
+<section id="leaderboard" class="panel leaderboard" aria-labelledby="leaderboard-title"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <h2 id="leaderboard-title">Rangliste</h2>
+  <details data-keep-open="leaderboard">
+    <summary>Die Besten nach Stufe und Erfolgen</summary>
+    <h3>Stufe</h3>
+    {{ ranks(lb.by_level) }}
+    {% if lb.by_achievements %}
+    <h3>Erfolge</h3>
+    {{ ranks(lb.by_achievements) }}
+    {% endif %}
+  </details>
+</section>

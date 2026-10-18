@@ -242,3 +242,26 @@ async def test_healing_items_at_hand_in_a_fight(api: Api) -> None:
             await db.execute(update(Player).where(col(Player.id) == me).values(state="exploring"))
         calm = actions_panel((await client.get("/")).text)  # full HP in town: nothing to heal
         assert '"type": "use_item"' not in calm
+
+
+async def test_leaderboard_ranks_by_level_and_achievements(api: Api) -> None:
+    async with api.client() as first, api.client() as second:
+        low = await playing(api, first)
+        high = await playing(api, second)
+        async with api.committed.session() as db, db.begin():
+            await db.execute(
+                update(Player)
+                .where(col(Player.name) == high)
+                .values(level=15, xp=999_999, achievements=["kill_morvath", "level_15"])
+            )
+            await db.execute(
+                update(Player).where(col(Player.name) == low).values(achievements=["level_5"])
+            )
+        page = (await first.get("/")).text
+        panel = page[page.index('id="leaderboard"') :]
+        panel = panel[: panel.index("</section>")]
+        by_level, by_achievements = panel.split("<h3>Erfolge</h3>")
+        assert high in by_level and "Stufe 15" in by_level
+        assert by_level.index(high) < by_level.index("</li>")  # first place
+        assert "2 Erfolge" in by_achievements and "1 Erfolg" in by_achievements
+        assert 'class="me"' in panel

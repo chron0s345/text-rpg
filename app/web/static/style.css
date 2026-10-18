@@ -201,6 +201,13 @@ button.small { font-size: .75rem; }
 /* who is online */
 .online summary { cursor: pointer; color: var(--muted); }
 .online-list li.me { border-left: 2px solid var(--accent); padding-left: .4rem; }
+
+/* leaderboard */
+.leaderboard summary { cursor: pointer; color: var(--muted); }
+.leaderboard h3 { margin: .6rem 0 .2rem; }
+.ranking { padding-left: 0; }
+.ranking li.me { border-left: 2px solid var(--accent); padding-left: .4rem; }
+.ranking .rank { display: inline-block; min-width: 1.8em; color: var(--muted); font-variant-numeric: tabular-nums; }
 .stacked { display: flex; flex-direction: column; min-width: 0; }
 
 /* healing at hand in a fight (actions panel) */
