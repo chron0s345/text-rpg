@@ -147,6 +147,10 @@ class BankDepositAction(BaseModel):
     quantity: PositiveInt = 1
 
 
+class BankDepositMaterialsAction(BaseModel):
+    type: Literal["bank_deposit_materials"] = "bank_deposit_materials"
+
+
 class BankWithdrawAction(BaseModel):
     type: Literal["bank_withdraw"] = "bank_withdraw"
     bank_item_id: UUID
@@ -255,6 +259,7 @@ GameAction = Annotated[
     | TradeConfirmAction
     | TradeCancelAction
     | BankDepositAction
+    | BankDepositMaterialsAction
     | BankWithdrawAction
     | BuyAction
     | SellAction

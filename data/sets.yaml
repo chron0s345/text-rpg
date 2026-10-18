@@ -80,3 +80,10 @@
   bonuses:
     - {pieces: 2, effects: [{stat: attack, amount: 1}]}
     - {pieces: 3, effects: [{stat: attack, amount: 1}, {stat: max_hp, amount: 20}]}
+
+- id: wolfking
+  name: "Erbe des Wolfskönigs"
+  items: [wolfking_crown, wolfking_pelt, wolfking_fang]
+  bonuses:
+    - {pieces: 2, effects: [{stat: attack, amount: 1}]}
+    - {pieces: 3, effects: [{stat: defense, amount: 1}, {stat: max_hp, amount: 10}]}

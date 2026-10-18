@@ -8,7 +8,11 @@ import pytest
 from app.content.prices import buy_price, sell_price
 from app.content.registry import ContentRegistry
 from app.content.schemas import MerchantOffer, Rules
-from app.engine.bank import resolve_bank_deposit, resolve_bank_withdraw
+from app.engine.bank import (
+    resolve_bank_deposit,
+    resolve_bank_deposit_materials,
+    resolve_bank_withdraw,
+)
 from app.engine.merchant import resolve_buy, resolve_sell
 from app.engine.state import ActionSnapshot, InventoryItemState
 from tests.engine.factories import NOW, actor_texts, fight, make_monster, make_player, player_update
@@ -225,3 +229,53 @@ def test_withdraw_into_a_full_inventory(content: ContentRegistry, rules: Rules) 
     )
     assert actor_texts(result) == ["Dein Inventar ist voll."]
     assert result.changes.bank_upsert == [] and result.changes.bank_delete == []
+
+
+def test_deposit_materials_stores_loot_but_keeps_gear_and_potions(
+    content: ContentRegistry, rules: Rules
+) -> None:
+    actor = make_player(room=BANK)
+    ears, dust, potion, dagger = (
+        stack("goblin_ear", 5),
+        stack("bone_dust", 3),
+        stack("healing_potion", 2),
+        stack("rusty_dagger"),
+    )
+    offered = stack("crab_shell", 2)
+    actor.inventory = [ears, dust, potion, dagger, offered]
+    actor.locked_item_ids = [offered.id]
+    snapshot = ActionSnapshot(actor=actor, bank=[stack("goblin_ear", 18)])
+
+    result = resolve_bank_deposit_materials(snapshot, content, rules, NOW, RNG)
+
+    assert actor_texts(result) == ["Du lagerst 5x Goblinohr, 3x Knochenstaub ein."]
+    assert sorted(result.changes.inventory_delete) == sorted([ears.id, dust.id])
+    assert sorted(i.item_id for i in actor.inventory) == [
+        "crab_shell",
+        "healing_potion",
+        "rusty_dagger",
+    ]
+    assert sorted(u.item.quantity for u in result.changes.bank_upsert) == [3, 3, 20]
+
+
+def test_deposit_materials_rejections_and_a_full_bank(
+    content: ContentRegistry, rules: Rules
+) -> None:
+    actor = make_player(room=BANK)
+    actor.inventory = [stack("healing_potion")]
+    nothing = resolve_bank_deposit_materials(ActionSnapshot(actor=actor), content, rules, NOW, RNG)
+    assert actor_texts(nothing) == ["Du hast kein Material dabei."]
+
+    actor.inventory = [stack("goblin_ear", 4)]
+    full = [stack("rusty_dagger") for _ in range(rules.bank.slots)]
+    result = resolve_bank_deposit_materials(
+        ActionSnapshot(actor=actor, bank=full), content, rules, NOW, RNG
+    )
+    assert actor_texts(result) == ["Deine Bank ist voll."]
+
+    elsewhere = make_player()  # dark forest: no bank
+    elsewhere.inventory = [stack("goblin_ear", 4)]
+    result = resolve_bank_deposit_materials(
+        ActionSnapshot(actor=elsewhere), content, rules, NOW, RNG
+    )
+    assert actor_texts(result) == ["Hier gibt es keine Bank."]
