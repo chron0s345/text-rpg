@@ -184,6 +184,26 @@ async def test_bestiary_and_achievement_panels(api: Api) -> None:
         assert 'id="bestiary"' in panels
 
 
+async def test_travel_from_the_market_square(api: Api) -> None:
+    async with api.client() as client:
+        await playing(api, client)
+        me = await character_id(client)
+        page = (await client.get("/")).text
+        assert "Reisen" in page and "Fischerdorf Möwenstein" in page
+        async with api.committed.session() as db, db.begin():
+            await db.execute(update(Player).where(col(Player.id) == me).values(level=3, gold=12))
+        response = await act(api, client, type="travel", room_id="fishing_village")
+        assert "Du nimmst die Postkutsche nach Fischerdorf Möwenstein für 10 Gold." in response
+        async with api.committed.session() as db:
+            row = await db.get(Player, UUID(me))
+            assert row is not None
+            assert (row.current_room_id, row.gold, row.checkpoint_room_id) == (
+                "fishing_village",
+                2,
+                "fishing_village",
+            )
+
+
 async def test_healing_items_at_hand_in_a_fight(api: Api) -> None:
     async with api.client() as client:
         await playing(api, client)

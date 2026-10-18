@@ -562,7 +562,7 @@ Unabhängig davon ist ein Charakter `online` oder offline.
 
 | Aktion | exploring | in_combat | dead |
 |---|---|---|---|
-| move | ✓ | ✗ | ✗ |
+| move / travel | ✓ | ✗ | ✗ |
 | attack | ✓ (startet Kampf, nicht in `safe`-Räumen) | ✓ | ✗ |
 | flee | ✗ | ✓ | ✗ |
 | use_item | ✓ | ✓ (kostet Runde) | ✗ |
@@ -572,7 +572,7 @@ Unabhängig davon ist ein Charakter `online` oder offline.
 | group_say / whisper | ✓ | ✓ | ✓ |
 | group_invite / accept / leave / kick | ✓ | ✓ (außer kick) | ✓ (nur leave) |
 | trade_* | ✓ | ✗ (laufender Handel wird abgebrochen) | ✗ |
-| bank_deposit / bank_withdraw | ✓ (nur in Bank-Räumen) | ✗ | ✗ |
+| bank_deposit / bank_deposit_materials / bank_withdraw | ✓ (nur in Bank-Räumen) | ✗ | ✗ |
 | buy / sell / sell_junk | ✓ (nur beim Händler im Raum) | ✗ | ✗ |
 | respawn | ✗ | ✗ | ✓ |
 | logout | ✓ | ✓ (mit Bestätigung → Tod) | ✓ |
@@ -681,6 +681,7 @@ Umsetzung (`engine/trade.py`, `Repository.load_trade_snapshot`):
 - Zugang nur in Räumen mit `bank: true`, im Zustand `exploring`.
 - Jeder Charakter hat sein eigenes Lager mit `bank.slots` Plätzen; Stapelregeln wie im Inventar.
 - `bank_deposit` verschiebt Items (auch Teilmengen) vom Inventar in die Bank, `bank_withdraw` zurück. Beide prüfen die Kapazität des Ziels.
+- `bank_deposit_materials` lagert alle freien, nicht angebotenen `misc`-Stapel ein (Beute, Handwerksmaterial, Trophäen, Fundstücke), so weit die Bank Platz hat; Ausrüstung, Verbrauchsgegenstände und Taschen bleiben im Rucksack. Ein Logeintrag.
 - Ausgerüstete Items und Items in einem laufenden Handel können nicht eingelagert werden.
 - Gold wird nicht eingelagert. Es bleibt beim Charakter und unterliegt der Todesstrafe (siehe *Offene Entscheidungen*).
 - Bankinhalte sind vor Verlust beim Tod geschützt.
@@ -778,6 +779,11 @@ Umsetzung (`engine/groups.py`, `Repository.load_group_snapshot`):
 - **Bestiarium:** `player.kills` (JSONB, Monster-ID → Anzahl; seltene Varianten unter ihrer eigenen ID) zählt Kill-Gutschriften. `rewards.resolve_kill` erhöht den Zähler für jedes Mitglied der Partei mit Kill-Gutschrift (dieselben Empfänger wie Gold und Beute). Das Bestiarium-Panel zeigt besiegte Gegner mit Stufe, Boss/Selten, Anzahl und Fundorten (Räume mit Spawn-Regel der Grundart).
 - `engine/achievements.grant(builder, player, content)` prüft nur den Zustand (Stufe, erledigte Aufträge, Kill-Zähler, getragene Sets) und vergibt alles, was der Charakter jetzt erfüllt und noch nicht hat, mit einer Log-Zeile je Erfolg (`achievement.earned`). Aufgerufen bei Kills (für jeden Spieler im Raum: Zähler und Stufenaufstiege aus dem XP-Anteil), Auftragsabgabe, Ausrüsten (`equip`, `equip_best`) und Login (holt neu hinzugekommene Erfolge nach).
 - `set_title(achievement_id | None)` (in jedem Zustand) führt den Titel eines errungenen Erfolgs bzw. legt ihn ab. Angezeigt in der Statusleiste und in der Raumliste.
+
+### Reisen
+
+- Content: `RoomTemplate.travel` – Routen `{room_id, gold, min_level, by}` von einem sicheren Raum zu einem anderen sicheren Raum (der Loader prüft beides, keine Route zu sich selbst, keine doppelten). Routen sind gerichtet; der Rückweg ist eine eigene Route.
+- `travel(room_id)` (`movement.resolve_travel`, nur `exploring`): Stufe und Gold prüfen, Gold abziehen, Raum wechseln. Die Ankunft (`movement._arrive`: Gruppenort, Besuchsziele, Checkpoint) ist dieselbe wie beim Gehen. Kein Überfall, weil das Ziel sicher ist. Wie bei `move` beschreibt der Snapshot den Zielraum (`ActionService._target_room`).
 
 ### Tod & Checkpoint
 
@@ -1088,7 +1094,7 @@ class DropAction(BaseModel):
 # ... flee, use_item, equip, equip_best, unequip, inventory, inspect (item_id: Beschreibung + Werte ins Log),
 #     group_leave, group_kick, respawn, look,
 #     trade_request, trade_accept, trade_offer_gold, trade_remove_item, trade_cancel,
-#     bank_deposit, bank_withdraw, buy, sell, sell_junk (merchant_id)
+#     bank_deposit, bank_deposit_materials, bank_withdraw, buy, sell, sell_junk (merchant_id)
 
 Action = Annotated[
     MoveAction | AttackAction | SayAction | GroupInviteAction | LogoutAction | ...,

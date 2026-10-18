@@ -63,6 +63,10 @@ Neue Charaktere starten auf Stufe 1 auf dem **Marktplatz von Oakhaven**.
 | Halle der Ruine | zwei Skelettwächter, eine Treppe führt hinab |
 | Alte Mine (unter der Halle) | der Höhlentroll |
 | Steiler Anstieg (östlich des Lagerfeuers) | zwei Felsharpyien |
+| Hügelgräberfeld (östlich des Anstiegs) | zwei Grabwichte (selten: Uralter Grabwicht) |
+| Tor des Großen Hügels (östlich des Gräberfelds) | zwei Knochenhunde, überfallen Eindringlinge |
+| Ahnengänge (unter dem Tor) | ein Grabhüter und ein Grabwicht |
+| Grab des Wolfskönigs (nördlich der Ahnengänge) | Boss: Wolfskönig Gerulf |
 | Zwergenposten Khazdur (nördlich des Anstiegs) | sicher, Checkpoint, Bank, Waffenmeisterin Brunhild (Zwergenstahl, Elixiere) |
 | Frostklamm (östlich des Postens) | zwei Frostwölfe, Frostbeeren wachsen im Eis |
 | Gletscherhang (oberhalb der Klamm) | zwei Eisgolems |
@@ -87,6 +91,21 @@ Neue Charaktere starten auf Stufe 1 auf dem **Marktplatz von Oakhaven**.
 Die Welt wird nach außen gefährlicher: Rund um Oakhaven, im Wald und in den **Kornfeldern** östlich der Stadt kommt man mit Stufe 1–3 zurecht; Moor, Ruine, Mine und die Gruft unter dem Alten Friedhof sind für Stufe 3–5. Die **Sturmküste** westlich des Waldes schlägt die Brücke zu Stufe 6–7, mit der Seehexe Morwenna im Leuchtturm. Hinter den Kornfeldern liegt, durch alte Grenzsteine gewarnt, der **Silberhain** für Stufe 8–10: ein Elfenwald, den der Schatten verdorben hat. Das **Grauzahn-Gebirge** östlich des Moors und **die Tiefen** unter der Mine sind für Stufe 6–10; die beiden Bosse dort (Spinnenkönigin, Eisdrache) schafft man nur in der Gruppe oder mit vielen Tränken. Im Zwergenposten gibt es eine zweite Bank. Nördlich des Zwergenpostens liegt der **Feuerschlund** für Stufe 11–13, mit dem Glutfürsten Ignaros im Herzen des Vulkans. Wer lieber taucht als schwitzt, findet unter den Gezeitenhöhlen die **Versunkene Stadt Aelmar**, ebenfalls für Stufe 11–13, mit dem Kraken Ul'thar in ihrer Tiefe. Ganz unten, durch einen Riss unter dem Nest der Spinnenkönigin, liegt das **Schattenreich** für Stufe 14–15. Dort wartet der Schattenkönig Morvath, der stärkste Gegner des Spiels.
 
 In **sicheren Räumen** wird nicht gekämpft und niemand wird überfallen. Betrittst du einen **Checkpoint**, merkt sich dein Charakter diesen Ort; dort erwachst du nach dem Tod.
+
+### Reisen
+
+Von einigen sicheren Orten fahren Kutschen und Boote gegen Gold zu anderen sicheren Orten. Die Ankunft zählt wie Hingehen (Checkpoint, Besuchsziele), nur ohne Gefahr unterwegs.
+
+| Von | Nach | Mit | Gold | ab Stufe |
+|---|---|---|---|---|
+| Marktplatz von Oakhaven | Fischerdorf Möwenstein | Postkutsche | 10 | 3 |
+| Marktplatz von Oakhaven | Zwergenposten Khazdur | Postkutsche | 25 | 6 |
+| Marktplatz von Oakhaven | Verfallene Elfenhalle | Postkutsche | 40 | 8 |
+| Marktplatz von Oakhaven | Rastplatz am Kraterrand | Postkutsche | 60 | 11 |
+| Fischerdorf Möwenstein | Luftkammer des Tauchers | Boot des Tauchers | 30 | 11 |
+| Letzte Zuflucht | Marktplatz von Oakhaven | Schattenpfad | 80 | 1 |
+
+Jede Kutsche und das Boot fahren zum gleichen Preis auch zurück. Zur Letzten Zuflucht führt kein Weg außer dem eigenen.
 
 ## Werte & Stufen
 
@@ -282,6 +301,9 @@ Viele Händler haben **Aufträge**. Steht ein Auftraggeber im Raum, zeigt das Pa
 | Vermessung des Kraters | Kundschafterin Ilva | 12 | Gehe zu: Basaltstiege → Gehe zu: Lavastrom → Gehe zu: Schmiede der Feuerriesen → Besiege 2× Feuerriese |
 | Karte von Aelmar | Taucher Brack | 12 | Gehe zu: Versunkener Platz → Gehe zu: Halle der Ertrunkenen Ritter → Gehe zu: Korallenpalast → Besiege 2× Korallenwächter |
 | Durch die Dunkelheit | Der Händler ohne Gesicht | 14 | Gehe zu: Schattenriss → Gehe zu: Brücke über das Nichts → Gehe zu: Halle der Stille → Besiege 2× Schattenwächter |
+| Unruhe in den Hügeln | Waffenmeisterin Brunhild | 8 | 6× Grabwicht besiegen |
+| Staub der Toten | Schwester Liora | 8 | 5× Grabstaub bringen (nach „Unruhe in den Hügeln“) |
+| Der Wolfskönig | Waffenmeisterin Brunhild | 9 | Grab des Wolfskönigs aufsuchen, dann Wolfskönig Gerulf besiegen (nach „Unruhe in den Hügeln“) |
 
 ## Handwerk
 
@@ -318,6 +340,8 @@ Manche Händler sind auch **Handwerker**. Steht einer im Raum, zeigt das Panel �
 | Wappenschild von Aelmar | Taucher Brack | 12 | Zwergischer Turmschild, 3× Wappen von Aelmar, Lebende Koralle | 80 |
 | Sternenlichttonikum | Der Händler ohne Gesicht | 14 | 2× Mondlilie, Albtraumessenz | 60 |
 | Leerenschneide | Der Händler ohne Gesicht | 15 | Leerenbrecher, 6× Leerensplitter, 2× Albtraumessenz | 200 |
+| Wolfszahnklinge | Waffenmeisterin Brunhild | 10 | Gerulfs Fang, 4× Grabfang, Kriegsaxt | 80 |
+| Amulett der Totenruhe | Schwester Liora | 8 | Knochenamulett, 5× Grabstaub | 70 |
 
 ## Sets
 
@@ -336,6 +360,7 @@ Manche Ausrüstungsstücke gehören zu einem **Set**; das steht unter dem Namen 
 | Wacht von Aelmar | Dreizack von Aelmar, Perlmuttschild, Perlenkette, Taucherhelm | 2 Teile: +10 max. HP; 4 Teile: +1 Angriff, +2 Verteidigung |
 | Sternenstahl | Sternenstahlhelm, Sternenstahlharnisch, Sternenstahlbeinschienen, Sternenstahlstiefel, Sternenstahlschild | 2 Teile: +1 Verteidigung; 3 Teile: +15 max. HP; 5 Teile: +2 Angriff, +2 Verteidigung |
 | Krone der Schatten | Schattenklinge, Schattenring, Seelenanhänger | 2 Teile: +1 Angriff; 3 Teile: +1 Angriff, +20 max. HP |
+| Erbe des Wolfskönigs | Krone des Wolfskönigs, Pelzmantel des Wolfskönigs, Wolfszahnklinge | 2 Teile: +1 Angriff; 3 Teile: +1 Verteidigung, +10 max. HP |
 
 ## Erfolge & Titel
 
@@ -350,7 +375,7 @@ Manche Ausrüstungsstücke gehören zu einem **Set**; das steht unter dem Namen 
 - **Elira** (Kaufmannsstand) verkauft Heiltränke, Brot und Kleine Taschen und kauft alles Verkaufbare an.
 - Kaufen kostet den Listenpreis (sonst Wert × `merchant.buy_ratio`), Verkaufen bringt **abgerundet** Wert × `merchant.sell_ratio`. Ausgerüstete und angebotene Gegenstände kannst du nicht verkaufen; verkaufte Gegenstände verschwinden.
 - **Ramsch verkaufen:** Bei jedem Händler, der etwas davon annimmt, verkauft ein Knopf alles auf einmal, was du nicht brauchst – mit Anzahl und Erlös vorab auf dem Knopf. Ramsch sind: Waffen und Rüstungen, die **▼ schlechter** oder **= gleichwertig** zu deinem getragenen Stück sind (außer Set-Teilen), und Beute, die kein Rezept und kein Auftrag verlangt. Nie Ramsch: Verbrauchsgegenstände, Taschen, Getragenes, Angebotenes, Set-Teile und alles, was ein Rezept oder eine Lieferung braucht.
-- Die **Bank** (Bank von Oakhaven) hat `bank.slots` Plätze pro Charakter – nicht pro Account. Einlagern und Abheben nur dort und nicht im Kampf. **Gold** kann nicht eingelagert werden.
+- Die **Bank** (Bank von Oakhaven) hat `bank.slots` Plätze pro Charakter – nicht pro Account. Einlagern und Abheben nur dort und nicht im Kampf. **Gold** kann nicht eingelagert werden. **Material einlagern** legt mit einem Knopf alle Beute, Handwerksmaterialien, Trophäen und Fundstücke aus dem Rucksack in die Bank, so weit Platz ist; Ausrüstung, Tränke und Essen bleiben bei dir.
 
 ## Ausloggen & Verbindung
 
