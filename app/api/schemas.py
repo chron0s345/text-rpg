@@ -25,6 +25,11 @@ class FleeAction(BaseModel):
     type: Literal["flee"] = "flee"
 
 
+class TravelAction(BaseModel):
+    type: Literal["travel"] = "travel"
+    room_id: str = Field(min_length=1, max_length=64)
+
+
 class UseItemAction(BaseModel):
     type: Literal["use_item"] = "use_item"
     inventory_item_id: UUID
@@ -142,6 +147,10 @@ class BankDepositAction(BaseModel):
     quantity: PositiveInt = 1
 
 
+class BankDepositMaterialsAction(BaseModel):
+    type: Literal["bank_deposit_materials"] = "bank_deposit_materials"
+
+
 class BankWithdrawAction(BaseModel):
     type: Literal["bank_withdraw"] = "bank_withdraw"
     bank_item_id: UUID
@@ -225,6 +234,7 @@ class LogoutAction(BaseModel):
 
 GameAction = Annotated[
     MoveAction
+    | TravelAction
     | AttackAction
     | FleeAction
     | UseItemAction
@@ -249,6 +259,7 @@ GameAction = Annotated[
     | TradeConfirmAction
     | TradeCancelAction
     | BankDepositAction
+    | BankDepositMaterialsAction
     | BankWithdrawAction
     | BuyAction
     | SellAction

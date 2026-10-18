@@ -1,6 +1,11 @@
 - id: town_square
   name: "Marktplatz von Oakhaven"
   description: "Ein lebhafter Platz im Herzen von Oakhaven. Ein plätschernder Brunnen spendet frisches Wasser, Händler rufen, Kinder jagen Tauben. Am Brunnenrand flattert ein frischer Steckbrief im Wind."
+  travel:
+    - {room_id: fishing_village, gold: 10, min_level: 3}
+    - {room_id: dwarf_outpost, gold: 25, min_level: 6}
+    - {room_id: elf_hall, gold: 40, min_level: 8}
+    - {room_id: crater_camp, gold: 60, min_level: 11}
   safe: true
   checkpoint: true
   bank: false
@@ -188,6 +193,7 @@
   exits:
     west: bog_camp
     north: dwarf_outpost
+    east: barrow_fields
   spawns:
     - monster_id: mountain_harpy
       count: 2
@@ -196,6 +202,8 @@
 - id: dwarf_outpost
   name: "Zwergenposten Khazdur"
   description: "Eine in den Fels gehauene Feste mit glühenden Kohlebecken. Zwerge in schweren Rüstungen nicken dir knapp zu."
+  travel:
+    - {room_id: town_square, gold: 25}
   safe: true
   checkpoint: true
   bank: true
@@ -438,6 +446,8 @@
 - id: crater_camp
   name: "Rastplatz am Kraterrand"
   description: "Ein paar Zelte im Windschatten eines Felsens, mit Asche bestäubt. Von hier sieht man den Krater rot pulsieren."
+  travel:
+    - {room_id: town_square, gold: 60}
   safe: true
   checkpoint: true
   bank: false
@@ -541,6 +551,8 @@
 - id: last_refuge
   name: "Letzte Zuflucht"
   description: "Ein Kreis aus Laternen, deren Licht die Schatten nicht überschreiten. Ein Händler ohne Gesicht wartet hier, als hätte er immer gewartet."
+  travel:
+    - {room_id: town_square, gold: 80, by: "den Schattenpfad"}
   safe: true
   checkpoint: true
   bank: true
@@ -634,6 +646,9 @@
 - id: fishing_village
   name: "Fischerdorf Möwenstein"
   description: "Ein Dutzend Hütten mit Netzen vor der Tür, es riecht nach Rauch und Fisch. Die Leute hier reden wenig und schauen oft zum Leuchtturm."
+  travel:
+    - {room_id: town_square, gold: 10}
+    - {room_id: air_pocket, gold: 30, min_level: 11, by: "das Boot des Tauchers"}
   safe: true
   checkpoint: true
   bank: false
@@ -748,6 +763,8 @@
 - id: elf_hall
   name: "Verfallene Elfenhalle"
   description: "Säulen aus lebendem Holz tragen ein Dach aus Ranken. Eine einzelne Waldläuferin hält hier Wache, ihr Bogen nie weit von der Hand."
+  travel:
+    - {room_id: town_square, gold: 40}
   safe: true
   checkpoint: true
   bank: false
@@ -822,6 +839,8 @@
 - id: air_pocket
   name: "Luftkammer des Tauchers"
   description: "Eine trockene Kammer, deren Tür mit Pech abgedichtet ist. Ein alter Taucher im Messinghelm hat sich hier eingerichtet und verkauft, was er vom Meeresgrund holt."
+  travel:
+    - {room_id: fishing_village, gold: 30, by: "das Boot des Tauchers"}
   safe: true
   checkpoint: true
   bank: false
@@ -900,3 +919,47 @@
     - item_id: temple_prayer
       quantity: 1
       respawn_seconds: 900
+
+# --- Hügelgräber (östlich des Steilen Anstiegs, Stufe 8–10) ---
+
+- id: barrow_fields
+  name: "Hügelgräberfeld"
+  description: "Grasbewachsene Hügel, so regelmäßig, dass sie niemand aufgeschüttet haben kann, der noch lebt. Zwischen ihnen hängt Nebel, der sich nicht vom Wind bewegen lässt."
+  exits:
+    west: mountain_trail
+    east: barrow_gate
+  spawns:
+    - monster_id: barrow_wight
+      count: 2
+  items: []
+
+- id: barrow_gate
+  name: "Tor des Großen Hügels"
+  description: "Zwei aufrechte Steine, dazwischen eine Treppe ins Dunkel. Auf den Steinen sind Wölfe eingeritzt, die einen gekrönten Wolf umringen."
+  exits:
+    west: barrow_fields
+    down: barrow_halls
+  spawns:
+    - monster_id: bone_hound
+      count: 2
+  items: []
+
+- id: barrow_halls
+  name: "Ahnengänge"
+  description: "Lange, niedrige Gänge mit Nischen voller Gebeine. Manche Schädel tragen Reifen aus grünem Kupfer. Weiter vorn brennt ein Licht, das niemand entzündet hat."
+  exits:
+    up: barrow_gate
+    north: wolf_king_tomb
+  spawns:
+    - monster_id: grave_warden
+    - monster_id: barrow_wight
+  items: []
+
+- id: wolf_king_tomb
+  name: "Grab des Wolfskönigs"
+  description: "Eine runde Kammer, die Wände bedeckt mit Wolfsfellen, die längst zu Staub zerfallen müssten. Auf einem Thron aus Knochen sitzt ein Riese mit einer Krone aus Zähnen – und hebt den Kopf."
+  exits:
+    south: barrow_halls
+  spawns:
+    - monster_id: wolf_king
+  items: []

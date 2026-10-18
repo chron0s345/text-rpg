@@ -18,6 +18,7 @@ _EXPLORING: Final = frozenset({"exploring"})
 
 ALLOWED_STATES: Final[dict[str, frozenset[str]]] = {
     "move": _EXPLORING,
+    "travel": _EXPLORING,
     "attack": _ALIVE,
     "flee": frozenset({"in_combat"}),
     "use_item": _ALIVE,
@@ -42,6 +43,7 @@ ALLOWED_STATES: Final[dict[str, frozenset[str]]] = {
     "trade_confirm": _EXPLORING,
     "trade_cancel": _EXPLORING,
     "bank_deposit": _EXPLORING,
+    "bank_deposit_materials": _EXPLORING,
     "bank_withdraw": _EXPLORING,
     "buy": _EXPLORING,
     "sell": _EXPLORING,

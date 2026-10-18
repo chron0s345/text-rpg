@@ -3,6 +3,9 @@
 <section id="bank" class="panel bank" aria-labelledby="bank-title"{% if b is none %} hidden{% endif %}{% if oob %} hx-swap-oob="true"{% endif %}>
   {% if b is not none %}
   <h2 id="bank-title">Bankfach <span class="muted">{{ b.used }}/{{ b.capacity }} Plätze</span></h2>
+  {% if b.materials and p.state == 'exploring' %}
+  <p class="quick-action"><button hx-post="/ui/actions" hx-vals='{"type": "bank_deposit_materials"}' title="Legt Beute, Handwerksmaterial und Trophäen aus dem Rucksack ein">Material einlagern <span class="muted">({{ b.materials }} Stapel)</span></button></p>
+  {% endif %}
   {% if b.items %}
   <ul class="list">
     {% for i in b.items %}
