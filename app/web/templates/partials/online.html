@@ -1,0 +1,18 @@
+{% set o = view.online %}
+<section id="online" class="panel online" aria-labelledby="online-title"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <h2 id="online-title">Im Spiel <span class="muted">{{ o.count }}</span></h2>
+  <details data-keep-open="online">
+    <summary>Wer ist da?</summary>
+    <ul class="list online-list">
+      {% for m in o.players %}
+      <li{% if m.me %} class="me"{% endif %}>
+        <span class="stacked">
+          <span>{{ m.name }}{% if m.title %} <span class="title">{{ m.title }}</span>{% endif %} <span class="muted small">Stufe {{ m.level }}</span>{% if m.state != 'exploring' %} <span class="muted small">({{ state_label(m.state) }})</span>{% endif %}</span>
+          {% if m.room_name %}<small class="muted">{{ m.room_name }}</small>{% endif %}
+        </span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% if o.count > o.players | length %}<p class="muted small">… und {{ o.count - o.players | length }} weitere.</p>{% endif %}
+  </details>
+</section>

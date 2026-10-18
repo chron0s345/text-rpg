@@ -2113,3 +2113,60 @@
   effects:
     - {type: stat, stat: max_hp, amount: 30}
     - {type: stat, stat: defense, amount: 1}
+
+# --- Aus Boss-Trophäen geschmiedet (recipes.yaml, "Trophäen") ---
+
+- id: rat_king_ring
+  name: "Ring des Rattenkönigs"
+  description: "Die Goldschmiedin hat die verknotete Rattenkrone in Silber gefasst. Er riecht noch ein wenig nach Keller."
+  kind: armor
+  slot: ring
+  icon: "ring"
+  value: 60
+  effects:
+    - {type: stat, stat: attack, amount: 1}
+    - {type: stat, stat: max_hp, amount: 5}
+
+- id: boarding_axe
+  name: "Enterbeil"
+  description: "Ein Kriegsbeil, an dessen Rücken der Taucher drei Enterhaken der Plünderer geschweißt hat. Es reißt, wo andere schneiden."
+  kind: weapon
+  slot: weapon
+  icon: "axe"
+  value: 500
+  effects:
+    - {type: stat, stat: attack, amount: 12}
+    - {type: stat, stat: max_hp, amount: 5}
+
+- id: kraken_amulet
+  name: "Amulett des Krakenauges"
+  description: "Das Auge Ul'thars, geschrumpft und in Sturmsilber gefasst. Es blinzelt, wenn Gefahr naht."
+  kind: armor
+  slot: neck
+  icon: "amulet"
+  value: 520
+  effects:
+    - {type: stat, stat: max_hp, amount: 45}
+    - {type: stat, stat: defense, amount: 1}
+
+- id: ember_crown
+  name: "Glutkrone"
+  description: "Der Reif des Glutfürsten, mit Glutkernen neu entfacht. Er wärmt, aber er verbrennt nicht – nicht seinen Träger."
+  kind: armor
+  slot: head
+  icon: "armor"
+  value: 520
+  effects:
+    - {type: stat, stat: defense, amount: 5}
+    - {type: stat, stat: max_hp, amount: 15}
+
+- id: warden_crown
+  name: "Krone des Siegelwächters"
+  description: "Morvaths Krone, mit Leerensplittern gebrochen und neu gebunden. Wer sie trägt, hütet nun, was der König beherrschen wollte."
+  kind: armor
+  slot: head
+  icon: "armor"
+  value: 900
+  effects:
+    - {type: stat, stat: defense, amount: 6}
+    - {type: stat, stat: max_hp, amount: 25}

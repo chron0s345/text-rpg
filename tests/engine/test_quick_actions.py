@@ -5,6 +5,8 @@ import dataclasses
 import random
 from uuid import uuid4
 
+import pytest
+
 from app.content.prices import sell_price
 from app.content.registry import ContentRegistry
 from app.content.schemas import ItemTemplate, Rules, StatModifier
@@ -16,6 +18,13 @@ from app.engine.stats import stats_of
 from tests.engine.factories import NOW, actor_texts, make_player, player_update
 
 RNG = random.Random(1)
+
+
+@pytest.fixture(scope="module")
+def content(content: ContentRegistry) -> ContentRegistry:
+    """Plus loot nobody asks for (the real world has none left: bosses' trophies are crafted)."""
+    trinket = ItemTemplate(id="trinket", name="Tand", description="", kind="misc", value=20)
+    return dataclasses.replace(content, items={**content.items, "trinket": trinket})
 
 
 def entry(item_id: str, slot: str | None = None, quantity: int = 1) -> InventoryItemState:
@@ -121,7 +130,7 @@ def test_sell_junk_sells_old_gear_and_unneeded_loot(content: ContentRegistry, ru
         entry("short_sword", "weapon"),
         entry("pitchfork"),  # worse than the short sword
         entry("short_sword"),  # same as the worn one
-        entry("raider_hook", quantity=2),  # loot no recipe or quest asks for
+        entry("trinket", quantity=2),  # loot no recipe or quest asks for
         entry("goblin_ear", quantity=3),  # a recipe ingredient
         entry("healing_potion"),  # consumables are never junk
         entry("leather_cap"),  # empty head slot: an upgrade
@@ -132,13 +141,13 @@ def test_sell_junk_sells_old_gear_and_unneeded_loot(content: ContentRegistry, ru
     alchemist = content.get_merchant("alchemist")
     expected = sum(
         (sell_price(content.items[i], alchemist, rules) or 0) * q
-        for i, q in (("pitchfork", 1), ("short_sword", 1), ("raider_hook", 2))
+        for i, q in (("pitchfork", 1), ("short_sword", 1), ("trinket", 2))
     )
 
     result = resolve_sell_junk(ActionSnapshot(actor=actor), content, rules, NOW, RNG, "alchemist")
 
     assert actor_texts(result) == [
-        f"Du verkaufst Mistgabel, Kurzschwert, 2x Enterhaken für {expected} Gold."
+        f"Du verkaufst Mistgabel, Kurzschwert, 2x Tand für {expected} Gold."
     ]
     assert player_update(result, actor.id)["gold"] == 10 + expected
     left = sorted(i.item_id for i in actor.inventory)
@@ -162,7 +171,7 @@ def test_sell_junk_keeps_set_pieces_and_what_the_merchant_does_not_buy(
     actor.inventory = [
         entry("leather_armor", "chest"),
         entry("leather_armor"),  # a spare set piece
-        entry("raider_hook"),
+        entry("trinket"),
         entry("pitchfork"),
     ]
     junk = junk_for(actor, content.get_merchant("smith"), content, rules)
@@ -173,6 +182,6 @@ def test_sell_junk_keeps_set_pieces_and_what_the_merchant_does_not_buy(
 
 def test_sell_junk_needs_the_merchant_here(content: ContentRegistry, rules: Rules) -> None:
     actor = make_player()  # dark forest
-    actor.inventory = [entry("raider_hook")]
+    actor.inventory = [entry("trinket")]
     result = resolve_sell_junk(ActionSnapshot(actor=actor), content, rules, NOW, RNG, "alchemist")
     assert actor_texts(result) == ["Dieser Händler ist nicht hier."]
