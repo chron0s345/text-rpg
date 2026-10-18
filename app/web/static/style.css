@@ -202,3 +202,6 @@ button.small { font-size: .75rem; }
 .online summary { cursor: pointer; color: var(--muted); }
 .online-list li.me { border-left: 2px solid var(--accent); padding-left: .4rem; }
 .stacked { display: flex; flex-direction: column; min-width: 0; }
+
+/* healing at hand in a fight (actions panel) */
+.actions button.heal { border-color: var(--good); }

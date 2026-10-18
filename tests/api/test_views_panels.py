@@ -220,3 +220,25 @@ async def test_online_panel_lists_who_is_playing(api: Api) -> None:
         assert anna in panel and bert in panel and "Feuerbändiger" in panel
         assert panel.index(bert) < panel.index(anna)  # highest level first
         assert 'class="me"' in panel
+
+
+async def test_healing_items_at_hand_in_a_fight(api: Api) -> None:
+    async with api.client() as client:
+        await playing(api, client)
+        me = await character_id(client)
+        async with api.committed.session() as db, db.begin():
+            db.add(InventoryItem(player_id=UUID(me), item_id="healing_potion", quantity=3))
+            db.add(InventoryItem(player_id=UUID(me), item_id="short_sword", quantity=1))
+            await db.execute(update(Player).where(col(Player.id) == me).values(state="in_combat"))
+
+        def actions_panel(page: str) -> str:
+            panel = page[page.index('id="actions"') :]
+            return panel[: panel.index("</section>")]
+
+        fighting = actions_panel((await client.get("/")).text)
+        assert '"type": "use_item"' in fighting and "Heiltrank" in fighting and "×3" in fighting
+        assert "Kurzschwert" not in fighting
+        async with api.committed.session() as db, db.begin():
+            await db.execute(update(Player).where(col(Player.id) == me).values(state="exploring"))
+        calm = actions_panel((await client.get("/")).text)  # full HP in town: nothing to heal
+        assert '"type": "use_item"' not in calm
