@@ -188,6 +188,7 @@
   exits:
     west: bog_camp
     north: dwarf_outpost
+    east: barrow_fields
   spawns:
     - monster_id: mountain_harpy
       count: 2
@@ -900,3 +901,47 @@
     - item_id: temple_prayer
       quantity: 1
       respawn_seconds: 900
+
+# --- Hügelgräber (östlich des Steilen Anstiegs, Stufe 8–10) ---
+
+- id: barrow_fields
+  name: "Hügelgräberfeld"
+  description: "Grasbewachsene Hügel, so regelmäßig, dass sie niemand aufgeschüttet haben kann, der noch lebt. Zwischen ihnen hängt Nebel, der sich nicht vom Wind bewegen lässt."
+  exits:
+    west: mountain_trail
+    east: barrow_gate
+  spawns:
+    - monster_id: barrow_wight
+      count: 2
+  items: []
+
+- id: barrow_gate
+  name: "Tor des Großen Hügels"
+  description: "Zwei aufrechte Steine, dazwischen eine Treppe ins Dunkel. Auf den Steinen sind Wölfe eingeritzt, die einen gekrönten Wolf umringen."
+  exits:
+    west: barrow_fields
+    down: barrow_halls
+  spawns:
+    - monster_id: bone_hound
+      count: 2
+  items: []
+
+- id: barrow_halls
+  name: "Ahnengänge"
+  description: "Lange, niedrige Gänge mit Nischen voller Gebeine. Manche Schädel tragen Reifen aus grünem Kupfer. Weiter vorn brennt ein Licht, das niemand entzündet hat."
+  exits:
+    up: barrow_gate
+    north: wolf_king_tomb
+  spawns:
+    - monster_id: grave_warden
+    - monster_id: barrow_wight
+  items: []
+
+- id: wolf_king_tomb
+  name: "Grab des Wolfskönigs"
+  description: "Eine runde Kammer, die Wände bedeckt mit Wolfsfellen, die längst zu Staub zerfallen müssten. Auf einem Thron aus Knochen sitzt ein Riese mit einer Krone aus Zähnen – und hebt den Kopf."
+  exits:
+    south: barrow_halls
+  spawns:
+    - monster_id: wolf_king
+  items: []

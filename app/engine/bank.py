@@ -106,3 +106,51 @@ def resolve_bank_withdraw(
         text += f" Kein Platz für {quantity - added} weitere."
     builder.to_actor("bank.withdrawn", text, item_id=item.id, quantity=added)
     return builder.build()
+
+
+def resolve_bank_deposit_materials(
+    snapshot: ActionSnapshot,
+    content: ContentRegistry,
+    rules: Rules,
+    now: datetime,
+    rng: random.Random,
+) -> ActionResult:
+    """Stores every free stack of materials (``misc``: loot, crafting goods, trophies, finds) as
+    far as the bank has room; gear, consumables and bags stay in the backpack."""
+    actor = snapshot.actor
+    if denied := check_state("bank_deposit_materials", actor):
+        return denied
+    if not content.get_room(actor.current_room_id).bank:
+        return rejected(NO_BANK)
+    materials = [
+        entry
+        for entry in actor.inventory
+        if entry.equipped_slot is None
+        and entry.id not in actor.locked_item_ids
+        and content.get_item(entry.item_id).kind == "misc"
+    ]
+    if not materials:
+        return rejected("Du hast kein Material dabei.")
+
+    builder = ResultBuilder(actor_id=actor.id)
+    stored: list[str] = []
+    left = 0
+    for entry in materials:
+        item = content.get_item(entry.item_id)
+        quantity = entry.quantity
+        added, touched = add_item_to_inventory(
+            snapshot.bank, item, quantity, rules.bank.slots, lambda: new_id(rng)
+        )
+        left += quantity - added
+        if added <= 0:
+            continue
+        builder.upsert_bank(actor.id, touched)
+        remove_quantity(builder, actor, entry, added)
+        stored.append(_label(added, item.name))
+    if not stored:
+        return rejected("Deine Bank ist voll.")
+    text = f"Du lagerst {', '.join(stored)} ein."
+    if left:
+        text += f" Kein Platz für {left} weitere."
+    builder.to_actor("bank.deposited", text, quantity=len(stored))
+    return builder.build()

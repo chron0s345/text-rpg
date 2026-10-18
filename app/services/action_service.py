@@ -32,6 +32,7 @@ from sqlmodel import col
 from app.api.schemas import (
     AttackAction,
     BankDepositAction,
+    BankDepositMaterialsAction,
     BankWithdrawAction,
     BuyAction,
     CraftAction,
@@ -88,7 +89,11 @@ from app.engine.actions import (
     resolve_whisper,
 )
 from app.engine.ambush import resolve_idle_ambush
-from app.engine.bank import resolve_bank_deposit, resolve_bank_withdraw
+from app.engine.bank import (
+    resolve_bank_deposit,
+    resolve_bank_deposit_materials,
+    resolve_bank_withdraw,
+)
 from app.engine.combat import resolve_attack, resolve_flee
 from app.engine.crafting import resolve_craft
 from app.engine.events import ActionResult, ActorAudience, GameEvent, rejected
@@ -262,7 +267,9 @@ class ActionService:
             player_id,
             self._room_loader(
                 lambda pre: self._target_room(action, pre.room_id, pre.checkpoint_room_id),
-                with_bank=isinstance(action, BankDepositAction | BankWithdrawAction),
+                with_bank=isinstance(
+                    action, BankDepositAction | BankDepositMaterialsAction | BankWithdrawAction
+                ),
             ),
             resolve,
             LOGOUT if isinstance(action, LogoutAction) else PLAYER_ACTION,
@@ -703,6 +710,8 @@ class ActionService:
                 return resolve_sell_junk(*args, action.merchant_id)
             case BankDepositAction():
                 return resolve_bank_deposit(*args, action.inventory_item_id, action.quantity)
+            case BankDepositMaterialsAction():
+                return resolve_bank_deposit_materials(*args)
             case BankWithdrawAction():
                 return resolve_bank_withdraw(*args, action.bank_item_id, action.quantity)
             case _:

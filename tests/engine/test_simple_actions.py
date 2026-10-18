@@ -51,6 +51,7 @@ RNG = random.Random(1)
         ("group_kick", {"exploring"}),
         ("trade_request", {"exploring"}),
         ("bank_deposit", {"exploring"}),
+        ("bank_deposit_materials", {"exploring"}),
         ("buy", {"exploring"}),
         ("respawn", {"dead"}),
         ("logout", {"exploring", "in_combat", "dead"}),
