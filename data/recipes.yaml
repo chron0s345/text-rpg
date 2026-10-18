@@ -195,6 +195,25 @@
   gold: 200
   min_level: 15
 
+# --- Hügelgräber ---
+
+- id: wolfking_fang
+  crafter_id: dwarf_armorer
+  item_id: wolfking_fang
+  ingredients:
+    - {item_id: gerulf_fang}
+    - {item_id: grave_fang, quantity: 4}
+    - {item_id: war_axe}
+  gold: 80
+  min_level: 10
+
+- id: rest_amulet
+  crafter_id: priestess
+  item_id: rest_amulet
+  ingredients: [{item_id: bone_amulet}, {item_id: wight_dust, quantity: 5}]
+  gold: 70
+  min_level: 8
+
 # --- Trophäen: was Bosse hinterlassen, wird zu Ausrüstung ---
 
 - id: rat_king_ring

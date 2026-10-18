@@ -572,7 +572,7 @@ Unabhängig davon ist ein Charakter `online` oder offline.
 | group_say / whisper | ✓ | ✓ | ✓ |
 | group_invite / accept / leave / kick | ✓ | ✓ (außer kick) | ✓ (nur leave) |
 | trade_* | ✓ | ✗ (laufender Handel wird abgebrochen) | ✗ |
-| bank_deposit / bank_withdraw | ✓ (nur in Bank-Räumen) | ✗ | ✗ |
+| bank_deposit / bank_deposit_materials / bank_withdraw | ✓ (nur in Bank-Räumen) | ✗ | ✗ |
 | buy / sell / sell_junk | ✓ (nur beim Händler im Raum) | ✗ | ✗ |
 | respawn | ✗ | ✗ | ✓ |
 | logout | ✓ | ✓ (mit Bestätigung → Tod) | ✓ |
@@ -681,6 +681,7 @@ Umsetzung (`engine/trade.py`, `Repository.load_trade_snapshot`):
 - Zugang nur in Räumen mit `bank: true`, im Zustand `exploring`.
 - Jeder Charakter hat sein eigenes Lager mit `bank.slots` Plätzen; Stapelregeln wie im Inventar.
 - `bank_deposit` verschiebt Items (auch Teilmengen) vom Inventar in die Bank, `bank_withdraw` zurück. Beide prüfen die Kapazität des Ziels.
+- `bank_deposit_materials` lagert alle freien, nicht angebotenen `misc`-Stapel ein (Beute, Handwerksmaterial, Trophäen, Fundstücke), so weit die Bank Platz hat; Ausrüstung, Verbrauchsgegenstände und Taschen bleiben im Rucksack. Ein Logeintrag.
 - Ausgerüstete Items und Items in einem laufenden Handel können nicht eingelagert werden.
 - Gold wird nicht eingelagert. Es bleibt beim Charakter und unterliegt der Todesstrafe (siehe *Offene Entscheidungen*).
 - Bankinhalte sind vor Verlust beim Tod geschützt.
@@ -1088,7 +1089,7 @@ class DropAction(BaseModel):
 # ... flee, use_item, equip, equip_best, unequip, inventory, inspect (item_id: Beschreibung + Werte ins Log),
 #     group_leave, group_kick, respawn, look,
 #     trade_request, trade_accept, trade_offer_gold, trade_remove_item, trade_cancel,
-#     bank_deposit, bank_withdraw, buy, sell, sell_junk (merchant_id)
+#     bank_deposit, bank_deposit_materials, bank_withdraw, buy, sell, sell_junk (merchant_id)
 
 Action = Annotated[
     MoveAction | AttackAction | SayAction | GroupInviteAction | LogoutAction | ...,

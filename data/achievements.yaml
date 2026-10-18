@@ -67,6 +67,11 @@
   description: Besiege den Eisdrachen Hrimfang.
   condition: {type: kill, monster_id: ice_drake}
   title: Drachentöter
+- id: kill_wolf_king
+  name: "Der König schläft wieder"
+  description: Besiege den Wolfskönig Gerulf.
+  condition: {type: kill, monster_id: wolf_king}
+  title: Grabwächter
 - id: kill_corrupted_warden
   name: Heiler des Hains
   description: Besiege den Verderbten Hüter.

@@ -42,6 +42,7 @@ ALLOWED_STATES: Final[dict[str, frozenset[str]]] = {
     "trade_confirm": _EXPLORING,
     "trade_cancel": _EXPLORING,
     "bank_deposit": _EXPLORING,
+    "bank_deposit_materials": _EXPLORING,
     "bank_withdraw": _EXPLORING,
     "buy": _EXPLORING,
     "sell": _EXPLORING,
