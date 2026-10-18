@@ -48,6 +48,7 @@ from app.api.schemas import (
     GroupLeaveAction,
     GroupSayAction,
     InspectAction,
+    InspectMonsterAction,
     InspectPlayerAction,
     InventoryAction,
     LogoutAction,
@@ -82,6 +83,7 @@ from app.engine.achievements import resolve_set_title
 from app.engine.actions import (
     resolve_group_say,
     resolve_inspect,
+    resolve_inspect_monster,
     resolve_inspect_player,
     resolve_look,
     resolve_respawn,
@@ -678,6 +680,8 @@ class ActionService:
                 return resolve_respawn(*args)
             case SetTitleAction():
                 return resolve_set_title(*args, action.achievement_id)
+            case InspectMonsterAction():
+                return resolve_inspect_monster(*args, action.monster_id)
             case InspectPlayerAction():
                 return resolve_inspect_player(*args, action.player_id)
             case InspectAction():

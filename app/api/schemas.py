@@ -222,6 +222,11 @@ class InspectPlayerAction(BaseModel):
     player_id: UUID
 
 
+class InspectMonsterAction(BaseModel):
+    type: Literal["inspect_monster"] = "inspect_monster"
+    monster_id: UUID
+
+
 class SetTitleAction(BaseModel):
     type: Literal["set_title"] = "set_title"
     achievement_id: str | None = Field(default=None, max_length=64)  # None/"": no title
@@ -279,6 +284,7 @@ GameAction = Annotated[
     | CraftAction
     | InspectAction
     | InspectPlayerAction
+    | InspectMonsterAction
     | SetTitleAction
     | LogoutAction,
     Field(discriminator="type"),
