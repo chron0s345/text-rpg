@@ -217,6 +217,8 @@ Gruppenchat und Flüstern gehen auch, wenn du tot bist. Chatten zählt wie jede 
 
 **Im Spiel:** Das Panel „Im Spiel“ zeigt, wie viele Charaktere gerade online sind, und aufgeklappt die höchsten 30 mit Stufe, Titel, Ort und Zustand – praktisch, um jemandem zu flüstern oder eine Gruppe zu finden.
 
+**Ansehen:** Mit „Ansehen“ neben einem Namen in der Raumliste siehst du Stufe, Titel, Werte, getragene Ausrüstung, Erfolge und die Zahl der besiegten Arten. Der andere bemerkt es („… mustert dich.“). Das geht in jedem Zustand.
+
 ## Handel
 
 - **Anfrage** an jemanden im selben Raum; sie läuft nach `trade.request_ttl_seconds` Sekunden ab. Nicht zwischen Charakteren desselben Accounts.
