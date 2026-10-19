@@ -66,6 +66,11 @@ class SayAction(BaseModel):
     text: str = Field(min_length=1, max_length=300)
 
 
+class EmoteAction(BaseModel):
+    type: Literal["emote"] = "emote"
+    text: str = Field(min_length=1, max_length=300)
+
+
 class GroupSayAction(BaseModel):
     type: Literal["group_say"] = "group_say"
     text: str = Field(min_length=1, max_length=300)
@@ -254,6 +259,7 @@ GameAction = Annotated[
     | PickUpAction
     | DropAction
     | SayAction
+    | EmoteAction
     | GroupSayAction
     | WhisperAction
     | GroupInviteAction

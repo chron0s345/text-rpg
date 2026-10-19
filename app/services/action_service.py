@@ -37,6 +37,7 @@ from app.api.schemas import (
     BuyAction,
     CraftAction,
     DropAction,
+    EmoteAction,
     EquipAction,
     EquipBestAction,
     FleeAction,
@@ -81,6 +82,7 @@ from app.db.models import Player, Trade
 from app.db.repository import Repository, SnapshotChangedError, UnknownPlayerError
 from app.engine.achievements import resolve_set_title
 from app.engine.actions import (
+    resolve_emote,
     resolve_group_say,
     resolve_inspect,
     resolve_inspect_monster,
@@ -670,6 +672,8 @@ class ActionService:
                 return resolve_flee(*args)
             case SayAction():
                 return resolve_say(*args, action.text)
+            case EmoteAction():
+                return resolve_emote(*args, action.text)
             case GroupSayAction():
                 return resolve_group_say(*args, action.text)
             case LookAction():

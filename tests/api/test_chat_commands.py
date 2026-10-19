@@ -20,6 +20,9 @@ from tests.api.test_views import playing
             {"type": "whisper", "player_name": "Ben", "text": "Treffen um acht"},
         ),
         ("/flüstern Ben hi", {"type": "whisper", "player_name": "Ben", "text": "hi"}),
+        ("/me winkt fröhlich", {"type": "emote", "text": "winkt fröhlich"}),
+        ("/ICH gähnt", {"type": "emote", "text": "gähnt"}),
+        ("/me  ", "Was möchtest du tun?"),
         ("/g", "Was möchtest du sagen?"),
         ("/w Ben", "Flüstern: /w Name Text"),
         ("/w", "Flüstern: /w Name Text"),
@@ -54,5 +57,10 @@ async def test_chat_field_whispers_and_explains(api: Api) -> None:
         said = await anna.post("/ui/actions", data={"type": "chat", "text": "Hallo"})
         assert "Du sagst: Hallo" in said.text
 
+        api.clock.advance(seconds=1)
+        waved = await anna.post("/ui/actions", data={"type": "chat", "text": "/me winkt"})
+        assert '<li class="log-chat-emote">' in waved.text
+
         page = await ben.get("/")
         assert "flüstert dir zu: psst" in page.text  # in Ben's log
+        assert " winkt</li>" in page.text

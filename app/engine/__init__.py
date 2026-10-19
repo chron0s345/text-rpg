@@ -1,7 +1,7 @@
 """Pure game logic. Actions take ``(snapshot, content, rules, now, rng, ...)`` and return an
 ``ActionResult``; the service layer loads/locks state, applies the changes and publishes events."""
 
-from app.engine.actions import resolve_look, resolve_respawn, resolve_say
+from app.engine.actions import resolve_emote, resolve_look, resolve_respawn, resolve_say
 from app.engine.ambush import resolve_idle_ambush
 from app.engine.combat import calculate_damage, resolve_attack, resolve_flee
 from app.engine.death import DeathLossResult, resolve_death_losses
@@ -93,6 +93,7 @@ __all__ = [
     "resolve_attack",
     "resolve_death_losses",
     "resolve_drop",
+    "resolve_emote",
     "resolve_equip",
     "resolve_flee",
     "resolve_idle_ambush",
