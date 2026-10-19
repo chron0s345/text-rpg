@@ -153,6 +153,7 @@
   max_hp: 75
   attack: 26
   defense: 6
+  abilities: [{type: crushing_blow, chance: 0.2, multiplier: 2}]
   xp_reward: 170
   gold_reward: [15, 30]
   respawn_seconds: 300
@@ -230,6 +231,7 @@
   max_hp: 90
   attack: 29
   defense: 13
+  abilities: [{type: crushing_blow, chance: 0.15, multiplier: 2}]
   xp_reward: 230
   gold_reward: [10, 25]
   respawn_seconds: 180
@@ -279,6 +281,7 @@
   max_hp: 52
   attack: 27
   defense: 8
+  abilities: [{type: life_drain, share: 0.25}]
   xp_reward: 120
   gold_reward: [3, 10]
   respawn_seconds: 120
@@ -461,6 +464,7 @@
   max_hp: 120
   attack: 21
   defense: 6
+  abilities: [{type: life_drain, share: 0.3}]
   xp_reward: 260
   gold_reward: [30, 60]
   respawn_seconds: 600
@@ -507,6 +511,7 @@
   max_hp: 95
   attack: 55
   defense: 20
+  abilities: [{type: life_drain, share: 0.3}]
   xp_reward: 300
   gold_reward: [10, 24]
   respawn_seconds: 120
@@ -531,6 +536,7 @@
   max_hp: 160
   attack: 50
   defense: 26
+  abilities: [{type: crushing_blow, chance: 0.2, multiplier: 2}]
   xp_reward: 380
   gold_reward: [15, 35]
   respawn_seconds: 180
@@ -551,6 +557,7 @@
   max_hp: 170
   attack: 54
   defense: 26
+  abilities: [{type: crushing_blow, chance: 0.2, multiplier: 2}]
   xp_reward: 480
   gold_reward: [25, 50]
   respawn_seconds: 240
@@ -604,6 +611,7 @@
   max_hp: 150
   attack: 60
   defense: 30
+  abilities: [{type: life_drain, share: 0.3}]
   xp_reward: 600
   gold_reward: [20, 45]
   respawn_seconds: 150
@@ -644,6 +652,7 @@
   max_hp: 170
   attack: 66
   defense: 32
+  abilities: [{type: life_drain, share: 0.25}]
   xp_reward: 750
   gold_reward: [25, 55]
   respawn_seconds: 150
@@ -691,6 +700,7 @@
   max_hp: 800
   attack: 64
   defense: 34
+  abilities: [{type: life_drain, share: 0.2}, {type: crushing_blow, chance: 0.15, multiplier: 2}]
   xp_reward: 3000
   gold_reward: [300, 600]
   respawn_seconds: 1800
@@ -1228,6 +1238,7 @@
   max_hp: 85
   attack: 31
   defense: 12
+  abilities: [{type: life_drain, share: 0.3}]
   xp_reward: 240
   gold_reward: [8, 20]
   respawn_seconds: 120
@@ -1251,6 +1262,7 @@
   max_hp: 130
   attack: 34
   defense: 14
+  abilities: [{type: life_drain, share: 0.3}]
   xp_reward: 700
   gold_reward: [40, 80]
   respawn_seconds: 120
@@ -1316,6 +1328,7 @@
   max_hp: 450
   attack: 41
   defense: 18
+  abilities: [{type: crushing_blow, chance: 0.15, multiplier: 2}]
   xp_reward: 1150
   gold_reward: [90, 170]
   respawn_seconds: 900
@@ -1387,6 +1400,7 @@
   max_hp: 210
   attack: 57
   defense: 34
+  abilities: [{type: crushing_blow, chance: 0.15, multiplier: 2}]
   xp_reward: 680
   gold_reward: [30, 60]
   respawn_seconds: 180
@@ -1430,6 +1444,7 @@
   max_hp: 620
   attack: 66
   defense: 32
+  abilities: [{type: crushing_blow, chance: 0.2, multiplier: 1.5}]
   xp_reward: 2200
   gold_reward: [200, 400]
   respawn_seconds: 900

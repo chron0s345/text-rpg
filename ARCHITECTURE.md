@@ -55,7 +55,7 @@ app/
 │   ├── permissions.py   # Erlaubte Aktionen je Charakterzustand
 │   ├── actions.py       # say, emote, group_say, whisper, look, respawn
 │   ├── combat.py        # attack, flee
-│   ├── encounter.py     # Gemeinsame Kampfbausteine (Schaden, Kampfkontakt, Monsterschlag)
+│   ├── encounter.py     # Gemeinsame Kampfbausteine (Schaden, Kampfkontakt, Monsterschlag, Fähigkeiten, Kampfschätzung)
 │   ├── participation.py # Kampfteilnahme & Aufheben der Markierung
 │   ├── rewards.py       # Kill: XP, Gold, Beute
 │   ├── ambush.py        # Überfälle durch Monster (beim Betreten & für den Ticker)
@@ -224,6 +224,18 @@ class MonsterTemplate(BaseModel):
     ambush: Ambush | None = None  # None = greift nie von selbst an
     loot_table: list[LootEntry] = []
     rare_variant: RareVariant | None = None  # seltene Form, gewürfelt bei jedem Respawn
+    abilities: list[CrushingBlow | LifeDrain] = []  # je Art höchstens einmal
+
+
+class CrushingBlow(BaseModel):  # mit chance trifft der Schlag multiplier-fach
+    type: Literal["crushing_blow"]
+    chance: float = Field(gt=0, le=1)
+    multiplier: float = Field(gt=1, le=4)
+
+
+class LifeDrain(BaseModel):  # heilt share des zugefügten Schadens, bis max_hp
+    type: Literal["life_drain"]
+    share: float = Field(gt=0, le=1)
 
 
 class RareVariant(BaseModel):

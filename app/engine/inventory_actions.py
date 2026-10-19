@@ -306,7 +306,7 @@ def resolve_use_item(
     if actor.state == "in_combat" and monster is not None and monster.alive:
         template = content.get_monster(monster.monster_id)
         touch_monster(builder, monster, template, now)
-        monster_strikes(builder, snapshot, actor, template, content, rules, rng)
+        monster_strikes(builder, snapshot, actor, monster, template, content, rules, rng)
     return builder.build()
 
 

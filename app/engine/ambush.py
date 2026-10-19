@@ -100,7 +100,7 @@ def apply_ambush(
             player_id=str(victim.id),
             room_id=victim.current_room_id,
         )
-    monster_strikes(builder, snapshot, victim, template, content, rules, rng)
+    monster_strikes(builder, snapshot, victim, monster, template, content, rules, rng)
 
 
 def resolve_idle_ambush(
