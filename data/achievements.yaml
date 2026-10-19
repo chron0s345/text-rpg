@@ -8,11 +8,20 @@
   name: Kein Grünschnabel mehr
   description: Erreiche Stufe 5.
   condition: {type: level, level: 5}
+- id: level_8
+  name: Über die Felder hinaus
+  description: Erreiche Stufe 8.
+  condition: {type: level, level: 8}
 - id: level_10
   name: Erfahrene Klinge
   description: Erreiche Stufe 10.
   condition: {type: level, level: 10}
   title: die Erfahrene Klinge
+- id: level_12
+  name: Gestählt im Feuer
+  description: Erreiche Stufe 12.
+  condition: {type: level, level: 12}
+  title: die Gestählte
 - id: level_15
   name: Legende von Oakhaven
   description: Erreiche die höchste Stufe.
@@ -28,6 +37,10 @@
   name: Helfende Hand
   description: Erledige 10 verschiedene Aufträge.
   condition: {type: quests, count: 10}
+- id: quests_20
+  name: Man kennt deinen Namen
+  description: Erledige 20 verschiedene Aufträge.
+  condition: {type: quests, count: 20}
 - id: quests_30
   name: Gefragt in allen Landen
   description: Erledige 30 verschiedene Aufträge.
@@ -112,6 +125,37 @@
   name: Wolfsjäger
   description: Besiege 50 hungrige Wölfe.
   condition: {type: kill, monster_id: wolf, count: 50}
+- id: skeletons_50
+  name: Knochenbrecher
+  description: Besiege 50 Skelettwächter.
+  condition: {type: kill, monster_id: skeleton, count: 50}
+  title: Knochenbrecher
+- id: spiders_50
+  name: Spinnenfeind
+  description: Besiege 50 Höhlenspinnen.
+  condition: {type: kill, monster_id: cave_spider, count: 50}
+- id: smugglers_30
+  name: Küstenwache
+  description: Besiege 30 Schmuggler.
+  condition: {type: kill, monster_id: smuggler, count: 30}
+  title: die Küstenwache
+- id: bone_hounds_30
+  name: Hundefänger der Hügel
+  description: Besiege 30 Knochenhunde.
+  condition: {type: kill, monster_id: bone_hound, count: 30}
+- id: salamanders_40
+  name: Feuerfest
+  description: Besiege 40 Feuersalamander.
+  condition: {type: kill, monster_id: fire_salamander, count: 40}
+- id: drowned_knights_25
+  name: Ritter der Tiefe
+  description: Besiege 25 Ertrunkene Ritter.
+  condition: {type: kill, monster_id: drowned_knight, count: 25}
+- id: storm_giants_20
+  name: Riesenfäller
+  description: Besiege 20 Sturmriesen.
+  condition: {type: kill, monster_id: storm_giant, count: 20}
+  title: Riesenfäller
 - id: void_knights_25
   name: Leerenbrecher
   description: Besiege 25 Leerenritter.
@@ -125,6 +169,10 @@
   name: Monsterkundler
   description: Besiege 25 verschiedene Arten von Gegnern.
   condition: {type: species, count: 25}
+- id: species_40
+  name: Wandelndes Lexikon
+  description: Besiege 40 verschiedene Arten von Gegnern.
+  condition: {type: species, count: 40}
 - id: species_all
   name: Das vollständige Bestiarium
   description: Besiege jede Art von Gegner der Welt.
@@ -141,6 +189,20 @@
   name: Wie aus einem Guss
   description: Trage alle Teile eines Ausrüstungssets zugleich.
   condition: {type: set}
+- id: set_leather
+  name: Jäger von Oakhaven
+  description: Trage das vollständige Jägerleder-Set.
+  condition: {type: set, set_id: leather}
+- id: set_wolfking
+  name: Erbe des Königs
+  description: Trage das vollständige Set des Wolfskönigs.
+  condition: {type: set, set_id: wolfking}
+  title: Wolfserbe
+- id: set_skyguard
+  name: Über den Wolken
+  description: Trage das vollständige Set der Himmelswacht.
+  condition: {type: set, set_id: skyguard}
+  title: Himmelswächter
 - id: set_shadow_king
   name: Krone der Schatten
   description: Trage das vollständige Set des Schattenkönigs.
