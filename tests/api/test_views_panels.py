@@ -77,6 +77,21 @@ async def test_room_shows_monsters_and_visible_floor_items(api: Api) -> None:
         del content.rooms[room]
 
 
+async def test_backpack_is_sorted_gear_potions_bags_materials(api: Api) -> None:
+    async with api.client() as client:
+        await playing(api, client)
+        me = UUID(await character_id(client))
+        async with api.committed.session() as db, db.begin():
+            for item_id in ("goblin_ear", "small_bag", "bread", "leather_boots", "short_sword"):
+                db.add(InventoryItem(player_id=me, item_id=item_id, quantity=1))
+        page = (await client.get("/")).text
+        backpack = page[page.index('id="inventory"') :]
+        backpack = backpack[: backpack.index("</section>")]
+        order = ["Kurzschwert", "Lederstiefel", "Frisches Brot", "Kleine Tasche", "Goblinohr"]
+        positions = [backpack.index(f">{name}<") for name in order]
+        assert positions == sorted(positions)
+
+
 async def test_group_panel_with_members(api: Api) -> None:
     async with api.client() as anna, api.client() as ben:
         await playing(api, anna)

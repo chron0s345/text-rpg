@@ -10,7 +10,7 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
+from typing import Any, get_args
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -24,6 +24,7 @@ from app.content.schemas import (
     Buff,
     Direction,
     Heal,
+    ItemKind,
     ItemSet,
     KillObjective,
     MerchantOffer,
@@ -585,7 +586,7 @@ class ViewService:
             ),
             bags=sum(1 for i in snapshot.inventory if i.equipped_slot == "bag"),
             bag_slots=rules.inventory.bag_slots,
-            carried=[i for i in items if i.equipped_slot is None],
+            carried=sorted((i for i in items if i.equipped_slot is None), key=self._backpack_order),
             equipped=[i for i in items if i.equipped_slot is not None],
             sets=[
                 self._set(item_set, worn)
@@ -837,6 +838,15 @@ class ViewService:
             name = item.name if item is not None else item_id
             texts.append(f"{name}: {buff_text(buffs)} (noch {fights_text(left)})")
         return texts
+
+    def _backpack_order(self, item: ItemView) -> tuple[int, int, str]:
+        """Gear first (in the order of the equipment slots), then consumables, bags and
+        materials; alphabetical within each."""
+        template = self.content.items[item.item_id]
+        kinds = get_args(ItemKind)  # weapon, armor, consumable, bag, misc
+        slots = list(SLOT_NAMES)
+        slot = slots.index(template.slot) if template.slot in slots else len(slots)
+        return kinds.index(template.kind), slot, item.name
 
     def _title(self, achievement_id: str | None) -> str:
         achievement = self.content.achievements.get(achievement_id or "")
