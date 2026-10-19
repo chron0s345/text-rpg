@@ -47,3 +47,20 @@ def test_set_pieces_and_bonus_texts() -> None:
     )
     effects = [e for b in leather.item_set.bonuses for e in b.effects]
     assert modifiers_text(effects, combine=True) == "+1 Verteidigung, +8 max. HP"
+
+
+def test_rarity_of_gear() -> None:
+    from pathlib import Path
+
+    from app.content.describe import rarity
+    from app.content.loader import load_content
+
+    items = load_content(Path("data")).items
+    assert rarity(items["rusty_dagger"]) == ""  # 10 gold
+    assert rarity(items["short_sword"]) == ""  # 40
+    assert rarity(items["war_axe"]) == "good"  # 180
+    assert rarity(items["magma_hammer"]) == "rare"  # 450
+    assert rarity(items["voidbreaker"]) == "epic"  # 750
+    assert rarity(items["leather_cap"]) == "set"  # cheap, but a set piece
+    assert rarity(items["healing_potion"]) == ""  # no gear
+    assert rarity(items["small_bag"]) == ""

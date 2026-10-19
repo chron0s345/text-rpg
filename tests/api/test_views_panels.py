@@ -282,3 +282,17 @@ async def test_leaderboard_ranks_by_level_and_achievements(api: Api) -> None:
         assert by_level.index(high) < by_level.index("</li>")  # first place
         assert "2 Erfolge" in by_achievements and "1 Erfolg" in by_achievements
         assert 'class="me"' in panel
+
+
+async def test_gear_names_carry_their_rarity(api: Api) -> None:
+    async with api.client() as client:
+        await playing(api, client)
+        me = UUID(await character_id(client))
+        async with api.committed.session() as db, db.begin():
+            for item_id in ("war_axe", "voidbreaker", "leather_cap", "rusty_dagger"):
+                db.add(InventoryItem(player_id=me, item_id=item_id, quantity=1))
+        page = (await client.get("/")).text
+        backpack = page[page.index('id="inventory"') :]
+        for css in ("rarity-good", "rarity-epic", "rarity-set"):
+            assert css in backpack
+        assert "rarity-rare" not in backpack  # nothing worth 200–499 here
