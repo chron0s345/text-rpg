@@ -1,5 +1,5 @@
 """Simple actions without their own module: chat (``say``, ``group_say``, ``whisper``),
-``inspect``, ``inspect_player``, ``rest``, ``look``, ``respawn``."""
+``inspect``, ``inspect_player``, ``inspect_monster``, ``rest``, ``look``, ``respawn``."""
 
 from __future__ import annotations
 
@@ -196,6 +196,63 @@ def resolve_inspect_player(
             f"{actor.name} mustert dich.",
             player_id=str(actor.id),
         )
+    return builder.build()
+
+
+def _chance_word(chance: float) -> str:
+    return "häufig" if chance >= 0.5 else "gelegentlich" if chance >= 0.15 else "selten"
+
+
+def _danger_word(taken: int, hp: int) -> str:
+    if taken >= hp:
+        return "tödlich – allein kaum zu schaffen"
+    share = taken / max(1, hp)
+    return "leicht" if share < 0.3 else "fordernd" if share < 0.7 else "gefährlich"
+
+
+def resolve_inspect_monster(
+    snapshot: ActionSnapshot,
+    content: ContentRegistry,
+    rules: Rules,
+    now: datetime,
+    rng: random.Random,
+    monster_id: UUID,
+) -> ActionResult:
+    """Sizes up a monster in the room: level, HP, attack and defense, how an even fight would
+    go (average hits, no variance) and what it may drop."""
+    actor = snapshot.actor
+    if denied := check_state("inspect_monster", actor):
+        return denied
+    monster = snapshot.monster(monster_id)
+    if monster is None or not monster.alive or monster.room_id != actor.current_room_id:
+        return rejected("Diesen Gegner gibt es hier nicht.")
+    template = content.get_monster(monster.monster_id)
+    hp = calculate_current_monster_hp(template, monster.hp, monster.last_combat_at, now)
+    stats = stats_of(actor, content.items)
+    minimum = rules.combat.min_damage
+    my_hit = max(minimum, stats.attack - template.defense)
+    its_hit = max(minimum, template.attack - stats.defense)
+    hits = -(-hp // my_hit)
+    taken = (hits - 1) * its_hit
+    lines = [
+        f"{template.name} – Stufe {template.level}"
+        + (" (Boss)" if template.boss else "")
+        + f", {hp}/{template.max_hp} HP, Angriff {template.attack}, "
+        f"Verteidigung {template.defense}.",
+        f"Du triffst für etwa {my_hit}, {template.name} für etwa {its_hit}. Nach etwa {hits} "
+        f"Treffern liegt der Gegner; das kostet dich rund {taken} HP ({actor.hp} hast du): "
+        f"{_danger_word(taken, actor.hp)}.",
+    ]
+    if template.loot_table:
+        loot = ", ".join(
+            f"{content.get_item(e.item_id).name} ({_chance_word(e.chance)})"
+            for e in sorted(template.loot_table, key=lambda e: -e.chance)
+        )
+        lines.append(f"Beute: {loot}.")
+    if kills := actor.kills.get(template.id, 0):
+        lines.append(f"Von dir besiegt: {kills}×.")
+    builder = ResultBuilder(actor_id=actor.id)
+    builder.to_actor("monster.inspected", "\n".join(lines), monster_id=template.id)
     return builder.build()
 
 

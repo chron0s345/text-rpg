@@ -11,7 +11,7 @@
     {% for m in r.monsters %}
     <li class="{% if m.fighting_me %}fighting{% endif %}">
       <span class="monster">
-        <span>{{ m.name }} <span class="muted">Stufe {{ m.level }}</span>{% if m.boss %} <span class="tag boss">Boss</span>{% endif %}{% if m.rare %} <span class="tag rare">selten</span>{% endif %}</span>
+        <span><button class="link item-name" hx-post="/ui/actions" hx-vals='{{ {"type": "inspect_monster", "monster_id": m.id | string} | tojson }}' title="Einschätzen: Werte, Kampfverlauf, Beute">{{ m.name }}</button> <span class="muted">Stufe {{ m.level }}</span>{% if m.boss %} <span class="tag boss">Boss</span>{% endif %}{% if m.rare %} <span class="tag rare">selten</span>{% endif %}</span>
         <meter min="0" max="{{ m.max_hp }}" low="{{ (m.max_hp * 0.3) | round(0, 'ceil') | int }}" high="{{ (m.max_hp * 0.6) | int }}" optimum="{{ m.max_hp }}" value="{{ m.hp }}" title="{{ m.hp }}/{{ m.max_hp }} HP" aria-label="HP von {{ m.name }}: {{ m.hp }} von {{ m.max_hp }}"></meter>
         <span class="muted small">{{ m.hp }}/{{ m.max_hp }} HP</span>
       </span>

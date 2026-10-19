@@ -59,6 +59,7 @@ ALLOWED_STATES: Final[dict[str, frozenset[str]]] = {
     "craft": _EXPLORING,
     "inspect": _ALL,
     "inspect_player": _ALL,
+    "inspect_monster": _ALL,
     "set_title": _ALL,
 }
 

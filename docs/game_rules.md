@@ -140,6 +140,7 @@ Ein **Stufenaufstieg** heilt vollständig (inklusive der HP aus Ausrüstung). Re
 
 ## Kampf
 
+- **Einschätzen:** Ein Klick auf den Namen eines Gegners schreibt Stufe, HP, Angriff und Verteidigung ins Log, dazu eine Schätzung für einen Kampf allein (wie viele Treffer, wie viele HP er dich kostet: leicht, fordernd, gefährlich oder tödlich), die mögliche Beute und wie oft du ihn schon besiegt hast. Geht in jedem Zustand, auch mitten im Kampf.
 - **Angreifen** startet einen Kampf gegen ein Monster im Raum. Jeder Angriff ist eine **Runde**: Du schlägst zu, danach schlägt das Monster **dich** zurück (sofern es noch lebt).
 - **Schaden** = Angriff − Verteidigung des Gegners, zufällig um ±`combat.damage_variance` verschoben, aber mindestens `combat.min_damage`.
 - Mehrere Spielende können **dasselbe Monster** angreifen; jeder bekommt den Gegenschlag für die eigene Runde.
