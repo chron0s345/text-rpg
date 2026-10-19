@@ -28,6 +28,7 @@ ALLOWED_STATES: Final[dict[str, frozenset[str]]] = {
     "pick_up": _EXPLORING,
     "drop": _EXPLORING,
     "say": _ALIVE,
+    "emote": _ALIVE,
     "group_say": _ALL,  # the dead may still talk to their group and whisper
     "whisper": _ALL,
     "group_invite": _ALIVE,

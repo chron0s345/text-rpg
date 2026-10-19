@@ -1,5 +1,6 @@
-"""Simple actions without their own module: chat (``say``, ``group_say``, ``whisper``),
-``inspect``, ``inspect_player``, ``inspect_monster``, ``rest``, ``look``, ``respawn``."""
+"""Simple actions without their own module: chat (``say``, ``emote``, ``group_say``,
+``whisper``), ``inspect``, ``inspect_player``, ``inspect_monster``, ``rest``, ``look``,
+``respawn``."""
 
 from __future__ import annotations
 
@@ -50,6 +51,36 @@ def resolve_say(
         "chat.say",
         RoomAudience(room_id=actor.current_room_id),
         f"{actor.name} sagt: {message}",
+        exclude=[actor.id],
+        player_id=str(actor.id),
+        message=message,
+    )
+    return builder.build()
+
+
+def resolve_emote(
+    snapshot: ActionSnapshot,
+    content: ContentRegistry,
+    rules: Rules,
+    now: datetime,
+    rng: random.Random,
+    text: str,
+) -> ActionResult:
+    """Room emote (``/me lacht``): everyone, the actor included, reads "Anna lacht"."""
+    actor = snapshot.actor
+    if denied := check_state("emote", actor):
+        return denied
+    message = " ".join(text.split())
+    if not message:
+        return rejected("Was möchtest du tun?")
+
+    builder = ResultBuilder(actor_id=actor.id)
+    line = f"{actor.name} {message}"
+    builder.to_actor("chat.emote", line, message=message)
+    builder.event(
+        "chat.emote",
+        RoomAudience(room_id=actor.current_room_id),
+        line,
         exclude=[actor.id],
         player_id=str(actor.id),
         message=message,

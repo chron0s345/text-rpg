@@ -1,13 +1,15 @@
 """The chat field of the game page: plain text is said in the room, a prefix picks another
-channel (``/g Text`` group, ``/w Name Text`` whisper). Turns the input into action fields."""
+channel (``/g Text`` group, ``/w Name Text`` whisper, ``/me Text`` emote). Turns the input into
+action fields."""
 
 from __future__ import annotations
 
 from typing import Final
 
-HELP: Final = "Befehle: /g Text (Gruppe), /w Name Text (flüstern)."
+HELP: Final = "Befehle: /g Text (Gruppe), /w Name Text (flüstern), /me Text (Geste)."
 GROUP_PREFIXES: Final = ("/g", "/gruppe")
 WHISPER_PREFIXES: Final = ("/w", "/flüstern")
+EMOTE_PREFIXES: Final = ("/me", "/ich")
 
 
 def chat_action(text: str) -> dict[str, str] | str:
@@ -19,6 +21,8 @@ def chat_action(text: str) -> dict[str, str] | str:
     command = command.lower()
     if command in GROUP_PREFIXES:
         return {"type": "group_say", "text": rest} if rest.strip() else "Was möchtest du sagen?"
+    if command in EMOTE_PREFIXES:
+        return {"type": "emote", "text": rest} if rest.strip() else "Was möchtest du tun?"
     if command in WHISPER_PREFIXES:
         name, _, message = rest.strip().partition(" ")
         if not name or not message.strip():

@@ -7,6 +7,7 @@ import pytest
 from app.content.registry import ContentRegistry
 from app.content.schemas import PlayerState, Rules
 from app.engine.actions import (
+    resolve_emote,
     resolve_group_say,
     resolve_inspect,
     resolve_look,
@@ -45,6 +46,7 @@ RNG = random.Random(1)
         ("equip_best", {"exploring"}),
         ("pick_up", {"exploring"}),
         ("say", {"exploring", "in_combat"}),
+        ("emote", {"exploring", "in_combat"}),
         ("group_say", {"exploring", "in_combat", "dead"}),
         ("whisper", {"exploring", "in_combat", "dead"}),
         ("group_invite", {"exploring", "in_combat"}),
@@ -90,7 +92,7 @@ def test_state_table_matches_architecture(action: str, allowed: set[str]) -> Non
 
 def test_every_action_type_has_an_entry() -> None:
     # every row of the table above is checked in test_state_table_matches_architecture
-    assert len(ALLOWED_STATES) == 44
+    assert len(ALLOWED_STATES) == 45
 
 
 def test_check_state_messages() -> None:
@@ -131,6 +133,31 @@ def test_say_rejects_blank_and_dead(content: ContentRegistry, rules: Rules) -> N
     assert actor_texts(resolve_say(ActionSnapshot(actor=dead), content, rules, NOW, RNG, "hi")) == [
         "Du bist tot."
     ]
+
+
+# --- emote ---------------------------------------------------------------------------------
+
+
+def test_emote_reads_the_same_for_everyone(content: ContentRegistry, rules: Rules) -> None:
+    actor = make_player()
+    result = resolve_emote(ActionSnapshot(actor=actor), content, rules, NOW, RNG, " lacht\n laut ")
+
+    assert actor_texts(result) == ["Anna lacht laut"]
+    [room] = [e for e in result.events if e.audience.kind == "room"]
+    assert (room.kind, room.text) == ("chat.emote", "Anna lacht laut")
+    assert room.exclude_player_ids == [actor.id]
+    assert result.changes.players == []
+
+
+def test_emote_rejects_blank_and_dead(content: ContentRegistry, rules: Rules) -> None:
+    snapshot = ActionSnapshot(actor=make_player())
+    assert actor_texts(resolve_emote(snapshot, content, rules, NOW, RNG, "  ")) == [
+        "Was möchtest du tun?"
+    ]
+    dead = make_player()
+    dead.state = "dead"
+    result = resolve_emote(ActionSnapshot(actor=dead), content, rules, NOW, RNG, "x")
+    assert actor_texts(result) == ["Du bist tot."]
 
 
 # --- group chat & whispers -----------------------------------------------------------------
