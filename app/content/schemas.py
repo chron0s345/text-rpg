@@ -77,6 +77,25 @@ class RareVariant(BaseModel):
     chance: float = Field(gt=0, le=1)
 
 
+class CrushingBlow(BaseModel):
+    """With ``chance`` a strike hits ``multiplier`` times as hard (before armor counts again:
+    the multiplied damage is what the player takes)."""
+
+    type: Literal["crushing_blow"] = "crushing_blow"
+    chance: float = Field(gt=0, le=1)
+    multiplier: float = Field(gt=1, le=4)
+
+
+class LifeDrain(BaseModel):
+    """The monster heals ``share`` of the damage it deals (rounded down, up to its max HP)."""
+
+    type: Literal["life_drain"] = "life_drain"
+    share: float = Field(gt=0, le=1)
+
+
+MonsterAbility = Annotated[CrushingBlow | LifeDrain, Field(discriminator="type")]
+
+
 class MonsterTemplate(BaseModel):
     id: str
     name: str
@@ -92,6 +111,14 @@ class MonsterTemplate(BaseModel):
     loot_table: list[LootEntry] = Field(default_factory=list)
     rare_variant: RareVariant | None = None  # seltene Form, gewürfelt bei jedem Respawn
     boss: bool = False  # nur in der Gruppe oder mit Tränken zu schaffen (Anzeige, Balance-Test)
+    abilities: list[MonsterAbility] = Field(default_factory=list)  # each kind at most once
+
+    @model_validator(mode="after")
+    def _one_ability_per_kind(self) -> MonsterTemplate:
+        kinds = [a.type for a in self.abilities]
+        if len(kinds) != len(set(kinds)):
+            raise ValueError(f"monster '{self.id}' lists an ability twice")
+        return self
 
 
 class StatModifier(BaseModel):

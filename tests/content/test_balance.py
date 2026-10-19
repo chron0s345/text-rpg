@@ -1,7 +1,8 @@
 """Balancing guard rails for all monsters, computed from the real data.
 
-A fight is estimated without randomness: the player strikes first, the monster strikes back
-after every hit it survives, damage is ``attack - defense`` (at least ``combat.min_damage``).
+A fight is estimated without randomness (``estimate_fight``): the player strikes first, the
+monster strikes back after every hit it survives, damage is ``attack - defense`` (at least
+``combat.min_damage``); crushing blows and life drain count with their average.
 The player has the level of the monster and wears, per slot, the best item worth at most the
 gear budget of the monster's tier: what one can afford by the time one gets there.
 
@@ -19,6 +20,7 @@ import pytest
 
 from app.content.loader import load_content
 from app.content.schemas import MonsterTemplate
+from app.engine.encounter import estimate_fight
 from app.engine.gear import needed_item_ids
 from app.engine.stats import active_set_effects
 
@@ -73,10 +75,9 @@ def damage_taken(monster: MonsterTemplate, geared: bool = True) -> tuple[int, in
     budget = gear_budget(monster.level) if geared else 0
     attack = level.attack + gear_bonus("attack", budget)
     defense = level.defense + gear_bonus("defense", budget)
-    minimum = rules.combat.min_damage
-    hits_needed = -(-monster.max_hp // max(minimum, attack - monster.defense))
-    per_hit = max(minimum, monster.attack - defense)
-    return (hits_needed - 1) * per_hit, level.max_hp + gear_bonus("max_hp", budget)
+    fight = estimate_fight(attack, defense, monster.max_hp, monster, rules.combat)
+    assert fight.taken is not None, f"{monster.id} heals faster than its level can hurt it"
+    return fight.taken, level.max_hp + gear_bonus("max_hp", budget)
 
 
 MONSTERS = sorted(CONTENT.monsters.values(), key=lambda m: (m.level, m.id))

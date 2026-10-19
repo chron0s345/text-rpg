@@ -86,7 +86,7 @@ def resolve_attack(
     if monster.hp <= 0:
         resolve_kill(builder, snapshot, monster, template, actor, content, rules, now, rng)
     else:
-        monster_strikes(builder, snapshot, actor, template, content, rules, rng)
+        monster_strikes(builder, snapshot, actor, monster, template, content, rules, rng)
     return builder.build()
 
 
@@ -128,5 +128,5 @@ def resolve_flee(
 
     touch_monster(builder, monster, template, now)
     builder.to_actor("combat.flee_failed", "Die Flucht misslingt!")
-    monster_strikes(builder, snapshot, actor, template, content, rules, rng)
+    monster_strikes(builder, snapshot, actor, monster, template, content, rules, rng)
     return builder.build()

@@ -9,8 +9,9 @@ from uuid import UUID
 
 from app.content.describe import SLOT_NAMES, item_summary, set_bonuses_text
 from app.content.registry import ContentRegistry
-from app.content.schemas import Rules
+from app.content.schemas import CrushingBlow, LifeDrain, MonsterAbility, Rules
 from app.engine.achievements import species_killed, title_of
+from app.engine.encounter import estimate_fight
 from app.engine.events import (
     ActionResult,
     GroupAudience,
@@ -203,6 +204,23 @@ def _chance_word(chance: float) -> str:
     return "häufig" if chance >= 0.5 else "gelegentlich" if chance >= 0.15 else "selten"
 
 
+def ability_text(ability: MonsterAbility) -> str:
+    match ability:
+        case CrushingBlow():
+            return (
+                f"Wuchtschlag ({round(ability.chance * 100)} %: "
+                f"{_times(ability.multiplier)} Schaden)"
+            )
+        case LifeDrain():
+            return f"Lebensraub (heilt sich um {round(ability.share * 100)} % des Schadens)"
+    return ""  # pragma: no cover - the match is exhaustive
+
+
+def _times(multiplier: float) -> str:
+    words = {1.5: "anderthalbfacher", 2.0: "doppelter", 3.0: "dreifacher"}
+    return words.get(multiplier, f"{multiplier:g}-facher".replace(".", ","))
+
+
 def _danger_word(taken: int, hp: int) -> str:
     if taken >= hp:
         return "tödlich – allein kaum zu schaffen"
@@ -229,20 +247,23 @@ def resolve_inspect_monster(
     template = content.get_monster(monster.monster_id)
     hp = calculate_current_monster_hp(template, monster.hp, monster.last_combat_at, now)
     stats = stats_of(actor, content.items)
-    minimum = rules.combat.min_damage
-    my_hit = max(minimum, stats.attack - template.defense)
-    its_hit = max(minimum, template.attack - stats.defense)
-    hits = -(-hp // my_hit)
-    taken = (hits - 1) * its_hit
+    fight = estimate_fight(stats.attack, stats.defense, hp, template, rules.combat)
     lines = [
         f"{template.name} – Stufe {template.level}"
         + (" (Boss)" if template.boss else "")
         + f", {hp}/{template.max_hp} HP, Angriff {template.attack}, "
         f"Verteidigung {template.defense}.",
-        f"Du triffst für etwa {my_hit}, {template.name} für etwa {its_hit}. Nach etwa {hits} "
-        f"Treffern liegt der Gegner; das kostet dich rund {taken} HP ({actor.hp} hast du): "
-        f"{_danger_word(taken, actor.hp)}.",
     ]
+    if template.abilities:
+        lines.append(f"Fähigkeiten: {', '.join(ability_text(a) for a in template.abilities)}.")
+    hits = f"Du triffst für etwa {fight.my_hit}, {template.name} für etwa {fight.its_hit}. "
+    if fight.hits is None or fight.taken is None:
+        lines.append(hits + "Er heilt sich schneller, als du ihm schadest: aussichtslos.")
+    else:
+        lines.append(
+            hits + f"Nach etwa {fight.hits} Treffern liegt der Gegner; das kostet dich rund "
+            f"{fight.taken} HP ({actor.hp} hast du): {_danger_word(fight.taken, actor.hp)}."
+        )
     if template.loot_table:
         loot = ", ".join(
             f"{content.get_item(e.item_id).name} ({_chance_word(e.chance)})"
