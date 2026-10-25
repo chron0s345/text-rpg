@@ -11,7 +11,7 @@
       <h2>Einloggen</h2>
       <label>Benutzername <input name="username" autocomplete="username" required maxlength="32" value="{{ username or '' }}"></label>
       <label>Passwort <input name="password" type="password" autocomplete="current-password" required maxlength="128"></label>
-      <button type="submit">Einloggen</button>
+      <button type="submit" class="primary">Einloggen</button>
     </form>
     <form method="post" action="/welcome/register" class="card">
       <h2>Neuer Account</h2>

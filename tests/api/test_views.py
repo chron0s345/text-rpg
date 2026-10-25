@@ -132,6 +132,8 @@ async def test_static_files_are_served(api: Api) -> None:
             "/static/app.js",
             "/static/style.css",
             "/static/icons/dagger.svg",
+            "/static/fonts/press-start-2p-latin.woff2",
+            "/static/fonts/vt323-latin.woff2",
         ):
             assert (await client.get(path)).status_code == 200, path
 

@@ -27,7 +27,7 @@
         <span class="muted">Level {{ c.level }} · {{ state_label(c.state) }}{% if c.online %} · eingeloggt{% endif %}</span>
       </div>
       <div class="buttons">
-        <form method="post" action="/select/{{ c.id }}/play"><button type="submit">Spielen</button></form>
+        <form method="post" action="/select/{{ c.id }}/play"><button type="submit" class="primary">Spielen</button></form>
         {% if not c.online %}
         <form method="post" action="/select/{{ c.id }}/delete" data-confirm="{{ c.name }} wirklich löschen? Das lässt sich nicht rückgängig machen.">
           <button type="submit" class="danger subtle">Löschen</button>
