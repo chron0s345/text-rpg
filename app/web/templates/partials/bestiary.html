@@ -7,6 +7,7 @@
     <ul class="list beast-list">
       {% for m in b.beasts %}
       <li>
+        <img class="sprite sprite-small" src="/static/sprites/{{ m.monster_id }}.svg" alt="" width="32" height="32">
         <span class="beast">
           <span>{{ m.name }} <span class="muted small">Stufe {{ m.level }}</span>{% if m.boss %} <span class="tag boss">Boss</span>{% endif %}{% if m.rare %} <span class="tag rare">selten</span>{% endif %}</span>
           {% if m.where %}<small class="muted">{{ m.where }}</small>{% endif %}

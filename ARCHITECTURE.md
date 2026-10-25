@@ -104,7 +104,7 @@ app/
 └── web/
     ├── render.py        # Jinja2-Umgebung (Autoescape), gemeinsam für Seiten und SSE
     ├── templates/       # Seiten + partials/ (status, room, actions, inventory, log_line)
-    └── static/          # style.css, app.js, icons/, fonts/, vendor/ (htmx, htmx-ext-sse, unverändert)
+    └── static/          # style.css, app.js, icons/, fonts/, sprites/ (generiert), vendor/ (htmx, htmx-ext-sse, unverändert)
 data/
 ├── rooms.yaml
 ├── monsters.yaml
@@ -1162,6 +1162,7 @@ Umsetzung (`app/api/views.py`, `app/web/`, `app/services/view_service.py`):
 - Die Panels liest `ViewService` ungesperrt und ohne Log-Einträge; abgeleitete Werte (effektive Werte, regenerierte Monster-HP, Kapazität) kommen aus denselben Engine-Funktionen wie bei den Aktionen. Buttons zeigen nur, was im aktuellen Zustand sinnvoll ist; entschieden wird trotzdem ausschließlich in der Engine.
 - Nach einem SSE-Reconnect lädt die Seite Log und Panels neu. Buttons sind während ihres Requests deaktiviert.
 - htmx 2.0.4 und htmx-ext-sse 2.2.2 liegen unverändert unter `static/vendor/` (0BSD); kein CDN, kein Build-Schritt.
+- Monster-Porträts: `data/sprites.yaml` beschreibt 16×16-Pixel-Formen (ein Buchstabe pro Pixel: Umriss, Körper, Augen, Akzent, Stoff) und je Monster Form und Farben; Schatten und Glanzlichter werden abgeleitet. `python -m app.content.sprites` (`app/content/sprites.py`) erzeugt daraus `static/sprites/<monster_id>.svg`; die Dateien sind eingecheckt, ein Test prüft, dass sie zur YAML passen und jedes Monster eins hat. Gezeigt werden sie in der Raumliste, im Bestiarium und groß als Gegnerkarte im Aktionspanel während eines Kampfes.
 - Pixel-Look: Die Schriften Press Start 2P (Überschriften, Beschriftungen, Knöpfe) und VT323 (Fließtext) liegen als `latin`-WOFF2 unter `static/fonts/` (SIL Open Font License, Lizenztexte daneben). `style.css` bindet sie per `@font-face` ein, also ebenfalls ohne CDN; die CSP (`default-src 'self'`) erlaubt sie. Farben und Schriften stehen als Variablen in `:root`.
 - Gruppenpanel: Mitglieder mit HP-Balken, Aufenthaltsort und Leitung, offene Einladungen (Annehmen/Ablehnen), Einladen per Name, Verlassen, Entfernen (nur Leitung, nicht im Kampf).
 - Händleransicht: Sortiment mit Preisen (nicht leistbar = ausgegraut), am Inventar „Verkaufen“ mit Erlös pro Stück und für den ganzen Stapel bzw. „Unverkäuflich“.

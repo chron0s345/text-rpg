@@ -112,6 +112,7 @@ class TravelView:
 @dataclass(frozen=True)
 class MonsterView:
     id: UUID
+    monster_id: str  # the template: names its portrait, static/sprites/<monster_id>.svg
     name: str
     hp: int
     max_hp: int
@@ -361,6 +362,7 @@ class AchievementsView:
 
 @dataclass(frozen=True)
 class BeastView:
+    monster_id: str
     name: str
     level: int
     kills: int
@@ -524,6 +526,7 @@ class ViewService:
             monster_views.append(
                 MonsterView(
                     id=monster.id,
+                    monster_id=template.id,
                     name=template.name,
                     hp=hp,
                     max_hp=template.max_hp,
@@ -816,6 +819,7 @@ class ViewService:
             base = content.base_monster_id(monster_id)
             beasts.append(
                 BeastView(
+                    monster_id=template.id,
                     name=template.name,
                     level=template.level,
                     kills=kills,
