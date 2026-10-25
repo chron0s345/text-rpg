@@ -68,6 +68,7 @@ async def test_room_shows_monsters_and_visible_floor_items(api: Api) -> None:
             page = (await client.get("/")).text
 
         assert "Goblin-Späher" in page and "7/12 HP" in page
+        assert 'src="/static/sprites/goblin.svg"' in page  # its portrait
         assert "Hungriger Wolf" not in page  # dead monsters are not shown
         assert '"type": "attack"' in page
         assert "Am Boden" in page and "3× <button" in page and ">Goblinohr</button>" in page
@@ -194,6 +195,7 @@ async def test_bestiary_and_achievement_panels(api: Api) -> None:
         page = (await client.get("/")).text
         assert "Bestiarium" in page and "2/" in page and "5 besiegt" in page
         assert "Goldener Goblin" in page and "Glutfürst Ignaros" in page and "3×" in page
+        assert 'src="/static/sprites/golden_goblin.svg"' in page
         assert "Feuerbändiger" in page  # the title, in the status bar
         panels = await act(api, client, type="look")
         assert 'id="bestiary"' in panels

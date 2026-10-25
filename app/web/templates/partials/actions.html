@@ -4,6 +4,15 @@
     <button class="primary" hx-post="/ui/actions" hx-vals='{"type": "respawn"}'>Am Checkpoint erwachen</button>
   {% elif p.state == 'in_combat' %}
     {% for m in view.room.monsters if m.fighting_me %}
+    <div class="foe">
+      <img class="sprite sprite-large" src="/static/sprites/{{ m.monster_id }}.svg" alt="" width="80" height="80">
+      <div class="foe-info">
+        <span class="foe-tags">{% if m.boss %}Boss · {% elif m.rare %}Selten · {% endif %}Stufe {{ m.level }}</span>
+        <strong class="foe-name">{{ m.name }}</strong>
+        <meter min="0" max="{{ m.max_hp }}" low="{{ (m.max_hp * 0.3) | round(0, 'ceil') | int }}" high="{{ (m.max_hp * 0.6) | int }}" optimum="{{ m.max_hp }}" value="{{ m.hp }}" aria-label="HP von {{ m.name }}: {{ m.hp }} von {{ m.max_hp }}"></meter>
+        <span class="muted small">{{ m.hp }}/{{ m.max_hp }} HP</span>
+      </div>
+    </div>
     <button class="primary" hx-post="/ui/actions" hx-vals='{{ {"type": "attack", "target_id": m.id | string} | tojson }}'>{{ m.name }} angreifen</button>
     {% endfor %}
     <button hx-post="/ui/actions" hx-vals='{"type": "flee"}'>Fliehen</button>

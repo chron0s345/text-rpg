@@ -1,0 +1,442 @@
+# Pixel portraits of the monsters (app/content/sprites.py explains the pixel letters).
+# After a change: python -m app.content.sprites (writes app/web/static/sprites/).
+
+shapes:
+  goblin:
+    - "................"
+    - "................"
+    - ".....oooooo....."
+    - "....obbbbbbo...."
+    - "oo.obllbbbbbo.oo"
+    - "obooblbbbbbbbobo"
+    - ".obbbbbbbbbbbbo."
+    - "..oobwebbwebdo.."
+    - "...obbbbbbbbdo.."
+    - "...obowwwwwodo.."
+    - "....obbbbbbdo.o."
+    - "...occccccCco.ao"
+    - "..obcccccccCboAo"
+    - "..odocccccCo.oo."
+    - "....obdo.obdo..."
+    - "....ooo..ooo...."
+  wolf:
+    - "................"
+    - "..o.......o....."
+    - ".obo.....obo...."
+    - ".obbo...obbo...."
+    - ".obbboooobbbo..."
+    - ".obbbbbbbbbbo..."
+    - ".obwebbbbwebo..."
+    - ".obbbbbbbbbbbo.."
+    - "..obblllbbbbbo.."
+    - "..olbbobolllbo.."
+    - "...ooaoaobbbbo.."
+    - "....ooooobdbbo.."
+    - ".......obbdbbbo."
+    - "......obdbbobdo."
+    - "......obo.obo.o."
+    - "......ooo.ooo..."
+  blob:
+    - "................"
+    - "................"
+    - "................"
+    - "......oooo......"
+    - "....oobbbbo....."
+    - "...obbllbbboo..."
+    - "..obllbbbbbbbo.."
+    - "..oblbwebwebbo.."
+    - ".obbbbbbbbbbbbo."
+    - ".obbbbooooobbbo."
+    - "obbbbowwwwobbbdo"
+    - "obbbbbooooobbbdo"
+    - "obdbbbbbbbbbbddo"
+    - ".oddbbbbbbbbddo."
+    - "..ooddddddddoo.."
+    - "....oooooooo...."
+  skeleton:
+    - "................"
+    - ".....oooooo....."
+    - "....owwwwwwo...."
+    - "...owwwwwwwwo..."
+    - "...owoowoowwo..."
+    - "...owoewoewwo..."
+    - "...owwwwowwwo..."
+    - "....owowowwo...."
+    - ".....owwwwo..a.."
+    - "...oo.owwo..oao."
+    - "..owooowwooowAo."
+    - "..owowwwwwwowo.."
+    - "...o.owowowo.o.."
+    - ".....owwwwo....."
+    - "....owo..owo...."
+    - "....ooo..ooo...."
+  brute:
+    - "................"
+    - ".....oooooo....."
+    - "....obbbbbbo...."
+    - "...obllbbbbbo..."
+    - "...obwebbwebo..."
+    - "...obbbbbbbbo..."
+    - "..oobowwwwobdoo."
+    - ".obbobbbbbbobdbo"
+    - "obblbbbbbbbbbbdo"
+    - "obbobbcccbbbobdo"
+    - "obbobccccCbbobdo"
+    - ".ooobcccccCbooo."
+    - "....obbbbbbbo..."
+    - "....obbo.obbo..."
+    - "...obbdo.obbdo.."
+    - "...oooo...oooo.."
+  bird:
+    - "................"
+    - "................"
+    - ".....ooo........"
+    - "....obbbo......."
+    - "...obwebbo......"
+    - "..oaobbbbo......"
+    - ".oaAobbbbbo....."
+    - "..oo.obbbbbooo.."
+    - "....obbllbbbddo."
+    - "...obbbllbbbbddo"
+    - "..obddbbbbbbbdo."
+    - ".obd.obbbbbbdo.."
+    - ".oo..obbbbbdo..."
+    - "......oboobo...."
+    - ".....oaoooao...."
+    - ".....oo...oo...."
+  golem:
+    - "................"
+    - "....oooooooo...."
+    - "...obbbbbbbbo..."
+    - "...oblbbbbbdo..."
+    - "...obeebbeebo..."
+    - "...obbbbbbbbo..."
+    - ".oooobbddbbooooo"
+    - "obbbobbbbbbobbdo"
+    - "oblbobbdbbbobbdo"
+    - "obbbobbbbbdobbdo"
+    - "obbdobbbdbbobbdo"
+    - "oooooobbbbbooooo"
+    - "....obbbobbbo..."
+    - "....obbo.obbo..."
+    - "...obbdo.obbdo.."
+    - "...ooooo.ooooo.."
+  drake:
+    - "................"
+    - "..aa......aa...."
+    - "...aooooooa....."
+    - "...obbbbbbbo...."
+    - "..obllbbbbbbo..."
+    - "..obwebbbbwebo.."
+    - "..obbbbbbbbbbo.."
+    - "...oowowowobbo.."
+    - "oo...ooooobbbo.."
+    - "obo...obbbbbbbo."
+    - "obbo.obbbllbbbbo"
+    - ".obboobbbbbbbbdo"
+    - "..obbbbbddbbbdo."
+    - "...oobbdo.obdo.."
+    - "....oaoo...oao.."
+    - "....oo.....oo..."
+  ghoul:
+    - "................"
+    - ".....oooooo....."
+    - "....obbbbbbo...."
+    - "...obbbbbbbbo..."
+    - "...obeobbeobo..."
+    - "...obbbbbbbbo..."
+    - "....oboooobo...."
+    - "....obwowowo...."
+    - "..oooobbbbooooo."
+    - ".obbccccccccbbo."
+    - ".obocccCccccobo."
+    - ".oao.ccccCcc.oao"
+    - "..o..cccccCc..o."
+    - ".....ccco.cco..."
+    - "....obbo..obo..."
+    - "....ooo...ooo..."
+  spider:
+    - "................"
+    - "................"
+    - "................"
+    - ".....oooooo....."
+    - "....obbbbbbo...."
+    - "...obllbbbbbo..."
+    - "d..obbbbbbbbo..d"
+    - ".d.obbbbbbbdo.d."
+    - "..ddbbbbbbbdddd."
+    - "ddddbebebbebbddd"
+    - "...ddbbbbbbbdd.."
+    - "..d.oaoooaoo.d.."
+    - ".d..d.d..d.d..d."
+    - "d..d..d..d..d..d"
+    - "..d...d..d...d.."
+    - ".d....d..d....d."
+  rat:
+    - "................"
+    - "................"
+    - "................"
+    - "................"
+    - ".oo..oo........."
+    - "obbooobbo......."
+    - "oblbbbbbbo......"
+    - ".obwebbbbbooo..."
+    - "oobbbbbbbbbbbo.."
+    - "owobbbbbbbbbbdo."
+    - ".ooobbbbbbbbbdo."
+    - "....obbbbbbbdo.o"
+    - "....obdooobbdo.o"
+    - "....oo....ooooo."
+    - "................"
+    - "................"
+  boar:
+    - "................"
+    - "................"
+    - "................"
+    - "................"
+    - "...oo..........."
+    - "..obbo.oooooo..."
+    - ".obbbbobbbbbbo.."
+    - "obwebbbbbbbbbbo."
+    - "obbbbbbbbbbbbdo."
+    - "owbbbbbbllbbbdo."
+    - "oawobbbbbbbbbdo."
+    - ".ooobbbbbbbbdbo."
+    - "....obdbbbobdbo."
+    - "....obdo...obdo."
+    - "....ooo....ooo.."
+    - "................"
+  knight:
+    - "................"
+    - ".....oooooo....."
+    - "....occcccco...."
+    - "...occcccccCo..."
+    - "...occcccccCo..."
+    - "...ooooooooCo..."
+    - "...oeeoeeooCo..."
+    - "...occcccccCo..."
+    - "....occcccCo..a."
+    - "..ooocccccooooa."
+    - ".occocccccCoccAo"
+    - ".occoccCcccocco."
+    - ".ooooccccccoooo."
+    - "....occoocco...."
+    - "....occo.occo..."
+    - "....oooo.oooo..."
+  sorcerer:
+    - "................"
+    - "....a.a..a.a...."
+    - "....aaaaaaaa...."
+    - "....oooooooo...."
+    - "...obbbbbbbbo..."
+    - "...obwebbwebo..."
+    - "...obbbbbbbbo..."
+    - "....obboobbo...."
+    - "..oooccccccooo.."
+    - ".occcccccccccco."
+    - ".occcaccccccCco."
+    - ".occcocccccCoco."
+    - ".ooo.occcccCo..."
+    - ".....occccccCo.."
+    - "....occcccccCCo."
+    - "....oooooooooo.."
+  ghost:
+    - "................"
+    - ".....oooooo....."
+    - "....obbbbbbo...."
+    - "...obllbbbbbo..."
+    - "..obllbbbbbbbo.."
+    - "..oblooobooobo.."
+    - "..obloeeboeebo.."
+    - "..obbooobooobo.."
+    - "..obbbbbbbbbbo.."
+    - "..obbbbooobbbo.."
+    - "..obbbobbbobbo.."
+    - "..obbbbbbbbbdo.."
+    - "..obdbbbbbbbdo.."
+    - "..obdbdbbdbbdo.."
+    - "..obo.obbo.obo.."
+    - "..oo..oooo..oo.."
+  wisp:
+    - "................"
+    - "................"
+    - ".......oo......."
+    - "......obbo......"
+    - ".....obllbo....."
+    - "....obllllbo...."
+    - "...obllwwllbo..."
+    - "..oblllwwlllbo.."
+    - "..oblllllllbbo.."
+    - "...obllllllbo..."
+    - "....obbbbbbo...."
+    - ".....obbbbo....."
+    - "......obbo......"
+    - ".......oo......."
+    - "................"
+    - "................"
+  rogue:
+    - "................"
+    - ".....oooooo....."
+    - "....occccccCo..."
+    - "...occcccccCo..."
+    - "...ooooooooCo..."
+    - "...obbbbbbbbo..."
+    - "...obwebbwebo..."
+    - "...obbbbbbbbo..."
+    - "....obbbbbbo...."
+    - "..ooocccccooo..."
+    - ".occcccccccCco.."
+    - ".obocacccccobo.."
+    - ".obo.ccccCc.obo."
+    - ".oo..ccccCc..oa."
+    - "....occo.occo..."
+    - "....oooo.oooo..."
+  crab:
+    - "................"
+    - "................"
+    - "................"
+    - "oo............oo"
+    - "obo..........obo"
+    - "oabo........obao"
+    - "oaao.o....o.oaao"
+    - ".oaaoeo..oeoaao."
+    - "..oaobooooboao.."
+    - "..oobbbbbbbboo.."
+    - ".oobbllbbbbbdoo."
+    - "dd.obbbbbbbbdo.d"
+    - "d.dobbbbbbbbdod."
+    - "..d.ooddddoo.d.."
+    - ".d..d.oooo.d..d."
+    - "................"
+  treant:
+    - ".....o..o..o...."
+    - "....oao.oao.o..."
+    - ".o..oAaoaAoao..."
+    - "oao..oaAAaaAo..."
+    - ".oaooobbbbbbo..."
+    - "..oAobbbbbbbbo.."
+    - "...obbeobbeobbo."
+    - "...obbbbbbbbbbo."
+    - "...obbbooooobbo."
+    - "...obbbbbbbbbbo."
+    - "..ooobbbdbbbbo.."
+    - ".oaaobbbdbbbooo."
+    - "oaAoobbbdbbboaao"
+    - ".oo.obbbdbbbo.oo"
+    - "...obbdo.obbdo.."
+    - "...ooooo.ooooo.."
+  kraken:
+    - "................"
+    - ".....oooooo....."
+    - "....obbbbbbo...."
+    - "...obllbbbbbo..."
+    - "...obbbbbbbbo..."
+    - "...oweobboweo..."
+    - "...obbbbbbbbo..."
+    - "...obbbbbbbbo..."
+    - "..oobdbbbbdboo.."
+    - ".obobdobbodobo.."
+    - "obo.obo..obo.obo"
+    - "obo.obo..obo.obo"
+    - ".obo.obo.obo.obo"
+    - "..oo.obo..oobo.."
+    - ".....oo....oo..."
+    - "................"
+  eye:
+    - "................"
+    - "................"
+    - ".o...o....o...o."
+    - ".bo..bo..ob..ob."
+    - "..bo.bo..ob.ob.."
+    - "..oooooooooooo.."
+    - ".obbbbbbbbbbbbo."
+    - ".obbbowwwwobbbo."
+    - "obbbowwwwwwobbbo"
+    - "obbbowweewwobbdo"
+    - "obbbowweewwobbdo"
+    - ".obbbowwwwobbdo."
+    - ".obbbbooooobbdo."
+    - "..obwwowwowwdo.."
+    - "...oobbbbbbdo..."
+    - ".....oooooo....."
+  dryad:
+    - "................"
+    - ".....aaaaa......"
+    - "....aooooooa...."
+    - "...aobbbbbbo...."
+    - "...obllbbbbbo..."
+    - "...obwebbwebo..."
+    - "...obbbbbbbbo..."
+    - "....obboobbo...."
+    - "...ooccccccoo..."
+    - "..obcccccccCbo.."
+    - "..obcccccccCbo.."
+    - "...occcccccCo..."
+    - "...occcccccCo..."
+    - "..occcccccccCo.."
+    - ".occcccccccccCo."
+    - ".oooooooooooooo."
+
+monsters:
+  goblin: {shape: goblin, body: "#6aa84f", cloth: "#7a4b2a"}
+  golden_goblin: {shape: goblin, body: "#e8b83a", eye: "#fff4b0", cloth: "#9a5b1c", accent: "#fff4b0"}
+  goblin_warrior: {shape: goblin, body: "#4f8a3c", eye: "#ff5a3c", cloth: "#6d6f78"}
+  field_rat: {shape: rat, body: "#8a7060", eye: "#ff5a3c"}
+  rat_king: {shape: rat, body: "#6a5a5a", eye: "#ffd23f"}
+  wolf: {shape: wolf, body: "#8a7a6a"}
+  white_wolf: {shape: wolf, body: "#d8d8e0", eye: "#6fb3ff"}
+  frost_wolf: {shape: wolf, body: "#9fc6e6", eye: "#e8faff"}
+  silverfang: {shape: wolf, body: "#b8c0cc", eye: "#ff5a3c"}
+  bone_hound: {shape: wolf, body: "#d8cfb8", eye: "#7cff9a"}
+  wolf_king: {shape: wolf, body: "#4a4058", eye: "#ff3b3b"}
+  wild_boar: {shape: boar, body: "#6a4a3a", eye: "#ff5a3c", accent: "#f2ecdc"}
+  thorn_beast: {shape: boar, body: "#4a6a2a", eye: "#ff7a3c", accent: "#c9a060"}
+  giant_crow: {shape: bird, body: "#3a3448", eye: "#ff5a3c", accent: "#d8c070"}
+  mountain_harpy: {shape: bird, body: "#9a7a5a", accent: "#d8c070"}
+  storm_harpy: {shape: bird, body: "#6a7ab8", eye: "#e8faff", accent: "#f2c14e"}
+  tempest_harpy: {shape: bird, body: "#c8d8ff", eye: "#6fb3ff", accent: "#f2c14e"}
+  bog_lurker: {shape: blob, body: "#5d7a3a"}
+  ancient_lurker: {shape: blob, body: "#3f5a2a", eye: "#ff7a3c"}
+  skeleton: {shape: skeleton, body: "#f2ecdc", eye: "#ff4a3a", accent: "#a0a0a8"}
+  skeleton_champion: {shape: skeleton, body: "#f2ecdc", eye: "#6fb3ff", accent: "#f2c14e"}
+  cave_troll: {shape: brute, body: "#7c8a6a", cloth: "#6b4a2a"}
+  fire_giant: {shape: brute, body: "#c4542e", cloth: "#3a2a2a"}
+  storm_giant: {shape: brute, body: "#7a8fb8", eye: "#e8faff", cloth: "#4a5a8a"}
+  ice_golem: {shape: golem, body: "#8fc7e8", eye: "#e8faff"}
+  magma_golem: {shape: golem, body: "#7a3a2a", eye: "#ffb03a", light: "#ff7a3c"}
+  obsidian_golem: {shape: golem, body: "#2e2a3a", eye: "#c792ff", light: "#5a4a7a"}
+  coral_guardian: {shape: golem, body: "#e07a7a", eye: "#7ad8e8"}
+  ice_drake: {shape: drake, body: "#8fc7e8", eye: "#ff5a3c", accent: "#e8faff"}
+  fire_salamander: {shape: drake, body: "#e0632e", accent: "#ffb03a"}
+  mine_ghoul: {shape: ghoul, body: "#8a9a7a", cloth: "#4a4040"}
+  ghoul_lord: {shape: ghoul, body: "#6a7a5a", eye: "#ff3b3b", cloth: "#5a2a3a"}
+  shambling_corpse: {shape: ghoul, body: "#9aa088", eye: "#f2ecdc", cloth: "#5a5040"}
+  drowned_sailor: {shape: ghoul, body: "#7aa0a0", eye: "#f2ecdc", cloth: "#2e4a6a"}
+  cave_spider: {shape: spider, body: "#4a3a3a", eye: "#ff3b3b"}
+  spider_queen: {shape: spider, body: "#5a2a6a"}
+  crypt_knight: {shape: knight, body: "#6d6f78", eye: "#ff4a3a", cloth: "#6d6f78"}
+  void_knight: {shape: knight, body: "#3a2e5a", eye: "#c792ff", cloth: "#3a2e5a", accent: "#9a7aff"}
+  drowned_knight: {shape: knight, body: "#3a6a6a", eye: "#7ad8e8", cloth: "#3a6a6a", accent: "#a0c0c0"}
+  sky_knight: {shape: knight, body: "#c8d0e0", eye: "#6fb3ff", cloth: "#c8d0e0", accent: "#f2c14e"}
+  shadow_warden: {shape: knight, body: "#2a2238", eye: "#ff3b3b", cloth: "#2a2238", accent: "#6a5a8a"}
+  grave_warden: {shape: knight, body: "#5a5a50", eye: "#7cff9a", cloth: "#5a5a50", accent: "#a09070"}
+  grave_lord: {shape: sorcerer, body: "#c8c0a8", eye: "#7cff9a", cloth: "#3a5a3a", accent: "#f2c14e"}
+  sea_witch: {shape: sorcerer, body: "#7ab8a0", cloth: "#2e4a6a", accent: "#e8b83a"}
+  ignaros: {shape: sorcerer, body: "#e0632e", cloth: "#7a1e1e", accent: "#ffb03a"}
+  tharos: {shape: sorcerer, body: "#8fa8d8", eye: "#e8faff", cloth: "#3a4a8a", accent: "#f2c14e"}
+  morvath: {shape: sorcerer, body: "#3a3050", eye: "#ff3b3b", cloth: "#241c38", accent: "#c792ff"}
+  smuggler: {shape: rogue, body: "#d8a07a", eye: "#3a2a2a", cloth: "#3a3a4a"}
+  smuggler_king: {shape: rogue, body: "#c88a6a", eye: "#3a2a2a", cloth: "#7a1e2e", accent: "#f2c14e"}
+  deep_raider: {shape: rogue, body: "#6a9a9a", cloth: "#2e3a4a", accent: "#a0c0c0"}
+  ash_wraith: {shape: ghost, body: "#6a6060", eye: "#ffb03a"}
+  storm_spirit: {shape: ghost, body: "#8fa8d8", eye: "#e8faff"}
+  barrow_wight: {shape: ghost, body: "#8a9a8a", eye: "#7cff9a"}
+  ancient_wight: {shape: ghost, body: "#5a6a5a", eye: "#b0ff7a"}
+  shadow_stalker: {shape: ghost, body: "#2e2640", eye: "#c792ff", light: "#4a3e66"}
+  nightmare: {shape: eye, body: "#6a3a8a", eye: "#ff3b3b"}
+  night_terror: {shape: eye, body: "#3a1e4a", eye: "#ffd23f"}
+  will_o_wisp: {shape: wisp, body: "#7ad8e8", light: "#e8faff"}
+  rock_crab: {shape: crab, body: "#8a7a6a", accent: "#c8603a"}
+  dryad: {shape: dryad, body: "#8ab870", cloth: "#4a6a2a", accent: "#c87ab0"}
+  corrupted_warden: {shape: treant, body: "#5a4a3a", eye: "#c792ff", accent: "#4a6a2a"}
+  kraken: {shape: kraken, body: "#6a3a6a"}
