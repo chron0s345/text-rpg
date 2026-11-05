@@ -106,7 +106,7 @@
   description: "Eine gepolsterte Kappe aus gehärtetem Leder."
   kind: armor
   slot: head
-  icon: "armor"
+  icon: "helmet"
   value: 12
   sellable: true
   stackable: false
@@ -120,7 +120,7 @@
   description: "Feste Stiefel, die auch im Moor trocken halten – meistens."
   kind: armor
   slot: feet
-  icon: "armor"
+  icon: "boots"
   value: 12
   sellable: true
   stackable: false
@@ -259,7 +259,7 @@
   description: "Weiche Lederhosen mit eingenähten Polstern."
   kind: armor
   slot: legs
-  icon: "armor"
+  icon: "legs"
   value: 15
   sellable: true
   stackable: false
@@ -273,7 +273,7 @@
   description: "Zwergische Schienen, die Knie und Schienbeine schützen."
   kind: armor
   slot: legs
-  icon: "armor"
+  icon: "legs"
   value: 50
   sellable: true
   stackable: false
@@ -287,7 +287,7 @@
   description: "Ein schwerer Helm mit Nasenschutz, geschmiedet in Khazdur."
   kind: armor
   slot: head
-  icon: "armor"
+  icon: "helmet"
   value: 45
   sellable: true
   stackable: false
@@ -301,7 +301,7 @@
   description: "Stiefel mit Stahlkappen. Schwer, aber nichts dringt durch."
   kind: armor
   slot: feet
-  icon: "armor"
+  icon: "boots"
   value: 45
   sellable: true
   stackable: false
@@ -591,7 +591,7 @@
   description: "Aus vulkanischem Glas geschliffen, leicht und härter als Stahl."
   kind: armor
   slot: head
-  icon: "armor"
+  icon: "helmet"
   value: 120
   sellable: true
   stackable: false
@@ -605,7 +605,7 @@
   description: "Schwarze Platten, die bei jedem Schritt leise klirren."
   kind: armor
   slot: legs
-  icon: "armor"
+  icon: "legs"
   value: 130
   sellable: true
   stackable: false
@@ -619,7 +619,7 @@
   description: "Ihre Sohlen halten selbst glühender Asche stand."
   kind: armor
   slot: feet
-  icon: "armor"
+  icon: "boots"
   value: 120
   sellable: true
   stackable: false
@@ -767,7 +767,7 @@
   description: "Geschmiedet aus Metall, das vom Himmel fiel. Er schimmert wie eine klare Nacht."
   kind: armor
   slot: head
-  icon: "armor"
+  icon: "helmet"
   value: 400
   sellable: true
   stackable: false
@@ -781,7 +781,7 @@
   description: "Leicht wie Leder, hart wie der Fels, aus dem sie geschlagen wurden."
   kind: armor
   slot: legs
-  icon: "armor"
+  icon: "legs"
   value: 420
   sellable: true
   stackable: false
@@ -795,7 +795,7 @@
   description: "Wer sie trägt, hinterlässt Spuren aus schwachem Licht."
   kind: armor
   slot: feet
-  icon: "armor"
+  icon: "boots"
   value: 400
   sellable: true
   stackable: false
@@ -1663,7 +1663,7 @@
   description: "Ein Messinghelm mit runden Bullaugen. Schwer, aber er hält mehr ab als Wasser."
   kind: armor
   slot: head
-  icon: "armor"
+  icon: "helmet"
   value: 160
   sellable: true
   stackable: false
@@ -1977,7 +1977,7 @@
   description: "Brunhild hat die Schuppen von Hrimfang auf einen Eisenhelm genietet. Er ist immer ein bisschen kalt."
   kind: armor
   slot: head
-  icon: "armor"
+  icon: "helmet"
   value: 380
   sellable: true
   stackable: false
@@ -2045,7 +2045,7 @@
   description: "Obsidianstiefel, mit Salamanderschuppen gefüttert. Damit läufst du über glühende Asche."
   kind: armor
   slot: feet
-  icon: "armor"
+  icon: "boots"
   value: 220
   sellable: true
   stackable: false
@@ -2128,7 +2128,7 @@
   description: "Ein Reif aus angelaufenem Silber, besetzt mit Wolfszähnen."
   kind: armor
   slot: head
-  icon: "armor"
+  icon: "helmet"
   value: 340
   effects:
     - {type: stat, stat: defense, amount: 4}
@@ -2206,7 +2206,7 @@
   description: "Der Reif des Glutfürsten, mit Glutkernen neu entfacht. Er wärmt, aber er verbrennt nicht – nicht seinen Träger."
   kind: armor
   slot: head
-  icon: "armor"
+  icon: "helmet"
   value: 520
   effects:
     - {type: stat, stat: defense, amount: 5}
@@ -2217,7 +2217,7 @@
   description: "Morvaths Krone, mit Leerensplittern gebrochen und neu gebunden. Wer sie trägt, hütet nun, was der König beherrschen wollte."
   kind: armor
   slot: head
-  icon: "armor"
+  icon: "helmet"
   value: 900
   effects:
     - {type: stat, stat: defense, amount: 6}
@@ -2271,7 +2271,7 @@
   description: "Ein hoher Helm mit Flügeln aus Himmelseisen. Er pfeift leise im Wind."
   kind: armor
   slot: head
-  icon: "armor"
+  icon: "helmet"
   value: 560
   effects:
     - {type: stat, stat: defense, amount: 5}
@@ -2293,7 +2293,7 @@
   description: "Von Kundschafterin Ilva aus Himmelseisen gefertigt, nach Zeichnungen von der Feste."
   kind: armor
   slot: legs
-  icon: "armor"
+  icon: "legs"
   value: 520
   effects:
     - {type: stat, stat: defense, amount: 5}

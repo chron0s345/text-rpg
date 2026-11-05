@@ -128,8 +128,9 @@ meter:-moz-meter-sub-sub-optimum::-moz-meter-bar { background: var(--danger); }
 .list li.fighting { color: var(--danger); }
 .list li.unaffordable > span { opacity: .5; }
 .list li .buttons { flex-wrap: wrap; justify-content: flex-end; }
-.icon { width: 1.1rem; height: 1.1rem; vertical-align: -.2rem; margin-right: .35rem;
-  filter: invert(.9); /* stroke=currentColor renders black inside <img> */ }
+/* item icons: 16×16 pixel art (data/sprites.yaml), shown at 2× so every pixel stays square */
+.icon { width: 32px; height: 32px; vertical-align: middle; margin-right: .35rem; }
+button .icon { width: 16px; height: 16px; vertical-align: -2px; }
 .exits, .actions { display: flex; flex-wrap: wrap; gap: .4rem; }
 
 .log { flex: 1; overflow-y: auto; margin: 0; padding: .8rem 1rem; list-style: none;

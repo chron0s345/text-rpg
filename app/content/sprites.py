@@ -1,7 +1,9 @@
-"""Pixel portraits of the monsters (``data/sprites.yaml`` → ``static/sprites/<monster_id>.svg``).
+"""Pixel art (``data/sprites.yaml``): monster portraits → ``static/sprites/<monster_id>.svg``,
+item icons → ``static/icons/<icon>.svg``.
 
 A *shape* is a 16×16 grid of characters, one per pixel; a monster picks a shape and the colors
-that fill it, so one goblin shape serves the scout, the warrior and the golden goblin:
+that fill it, so one goblin shape serves the scout, the warrior and the golden goblin (icons
+work the same way, one per ``ItemTemplate.icon``):
 
 - ``.`` transparent, ``o`` outline
 - ``b`` body, ``d`` body shade, ``l`` body highlight
@@ -55,6 +57,7 @@ class SpriteColors(BaseModel):
 class SpriteSheet(BaseModel):
     shapes: dict[str, list[str]]
     monsters: dict[str, SpriteColors] = Field(default_factory=dict)
+    icons: dict[str, SpriteColors] = Field(default_factory=dict)
 
     @field_validator("shapes")
     @classmethod
@@ -69,9 +72,9 @@ class SpriteSheet(BaseModel):
 
     @model_validator(mode="after")
     def _known_shapes(self) -> SpriteSheet:
-        for monster_id, colors in self.monsters.items():
+        for name, colors in [*self.monsters.items(), *self.icons.items()]:
             if colors.shape not in self.shapes:
-                raise ValueError(f"sprite '{monster_id}' uses unknown shape '{colors.shape}'")
+                raise ValueError(f"sprite '{name}' uses unknown shape '{colors.shape}'")
         return self
 
 
@@ -135,6 +138,14 @@ def render_all(sheet: SpriteSheet, names: dict[str, str]) -> dict[str, str]:
     }
 
 
+def render_icons(sheet: SpriteSheet) -> dict[str, str]:
+    """File name → SVG for every item icon."""
+    return {
+        f"{name}.svg": render_svg(sheet.shapes[colors.shape], colors, name)
+        for name, colors in sheet.icons.items()
+    }
+
+
 def write_all(files: dict[str, str], out_dir: Path) -> Iterable[str]:
     """Writes the files and removes stale ones; yields what changed."""
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -156,4 +167,6 @@ if __name__ == "__main__":  # pragma: no cover - developer tool
     sheet = load_sprites(root / "data" / "sprites.yaml")
     names = {m.id: m.name for m in content.monsters.values()}
     for line in write_all(render_all(sheet, names), root / "app/web/static/sprites"):
+        print(line)
+    for line in write_all(render_icons(sheet), root / "app/web/static/icons"):
         print(line)
