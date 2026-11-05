@@ -20,6 +20,7 @@ import pytest
 
 from app.content.loader import load_content
 from app.content.schemas import MonsterTemplate
+from app.content.sprites import load_sprites
 from app.engine.encounter import estimate_fight
 from app.engine.gear import needed_item_ids
 from app.engine.stats import active_set_effects
@@ -43,6 +44,7 @@ BOSSES = {
     "tharos",
 }
 
+LORE_SHAPES = {"scroll", "letter", "book", "tablet", "map"}
 CONTENT = load_content(Path(__file__).resolve().parents[2] / "data")
 
 
@@ -119,7 +121,13 @@ def test_rare_variants_are_worth_the_luck() -> None:
 
 
 def test_lore_items_are_story_not_money() -> None:
-    lore = [i for i in CONTENT.items.values() if i.icon == "scroll"]
+    """Lore is what is drawn as something to read (data/sprites.yaml)."""
+    sheet = load_sprites(Path(__file__).resolve().parents[2] / "data" / "sprites.yaml")
+    lore = [
+        i
+        for i in CONTENT.items.values()
+        if i.icon is not None and sheet.icons[i.icon].shape in LORE_SHAPES
+    ]
     assert len(lore) >= 10
     assert all(not item.sellable and item.value == 0 for item in lore)
 

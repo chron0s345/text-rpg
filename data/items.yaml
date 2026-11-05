@@ -3,7 +3,7 @@
   description: "Eine alte, leicht rostige Klinge. Besser als nichts."
   kind: weapon
   slot: weapon
-  icon: "dagger"
+  icon: "rusty_dagger"
   value: 10
   sellable: true
   stackable: false
@@ -17,7 +17,7 @@
   description: "Einfaches gegerbtes Leder, das vor leichten Schlägen schützt."
   kind: armor
   slot: chest
-  icon: "armor"
+  icon: "leather_armor"
   value: 20
   sellable: true
   stackable: false
@@ -31,7 +31,7 @@
   description: "Ein kleiner Beutel aus Leinen, der zusätzlichen Stauraum bietet."
   kind: bag
   slot: bag
-  icon: "bag"
+  icon: "small_bag"
   bag_slots: 2
   value: 25
   sellable: true
@@ -41,7 +41,7 @@
   name: "Heiltrank"
   description: "Ein Glasfläschchen mit roter Flüssigkeit. Stellt sofort 15 Lebenspunkte wieder her."
   kind: consumable
-  icon: "potion"
+  icon: "healing_potion"
   value: 15
   sellable: true
   stackable: true
@@ -54,7 +54,7 @@
   name: "Goblinohr"
   description: "Ein Trophäen-Ohr eines Goblins. Händler zahlen ein paar Münzen dafür."
   kind: misc
-  icon: "trophy"
+  icon: "goblin_ear"
   value: 4
   sellable: true
   stackable: true
@@ -78,7 +78,7 @@
   description: "Eine solide geschmiedete Klinge, kurz genug für enge Waldwege."
   kind: weapon
   slot: weapon
-  icon: "sword"
+  icon: "short_sword"
   value: 40
   sellable: true
   stackable: false
@@ -92,7 +92,7 @@
   description: "Eine alte, erstaunlich scharfe Klinge aus den Ruinen. Kein Schmied der Stadt fertigt so etwas."
   kind: weapon
   slot: weapon
-  icon: "sword"
+  icon: "long_sword"
   value: 100
   sellable: true
   stackable: false
@@ -106,7 +106,7 @@
   description: "Eine gepolsterte Kappe aus gehärtetem Leder."
   kind: armor
   slot: head
-  icon: "helmet"
+  icon: "leather_cap"
   value: 12
   sellable: true
   stackable: false
@@ -120,7 +120,7 @@
   description: "Feste Stiefel, die auch im Moor trocken halten – meistens."
   kind: armor
   slot: feet
-  icon: "boots"
+  icon: "leather_boots"
   value: 12
   sellable: true
   stackable: false
@@ -134,7 +134,7 @@
   description: "Tausende kleine Ringe, schwer, aber zuverlässig."
   kind: armor
   slot: chest
-  icon: "armor"
+  icon: "chain_mail"
   value: 90
   sellable: true
   stackable: false
@@ -148,7 +148,7 @@
   description: "Ein geräumiger Lederranzen mit vielen Fächern."
   kind: bag
   slot: bag
-  icon: "bag"
+  icon: "large_bag"
   bag_slots: 4
   value: 70
   sellable: true
@@ -158,7 +158,7 @@
   name: "Großer Heiltrank"
   description: "Ein bauchiges Fläschchen mit tiefroter Essenz. Stellt sofort 35 Lebenspunkte wieder her."
   kind: consumable
-  icon: "potion"
+  icon: "greater_potion"
   value: 40
   sellable: true
   stackable: true
@@ -173,7 +173,7 @@
   name: "Trank der Stärke"
   description: "Schmeckt nach Eisen und Pfeffer. Für die nächsten drei Siege schlägst du härter zu."
   kind: consumable
-  icon: "potion"
+  icon: "strength_potion"
   value: 30
   sellable: true
   stackable: true
@@ -185,7 +185,7 @@
   name: "Steinhauttrank"
   description: "Grau und körnig. Die Haut wird zäh wie Leder – für die nächsten drei Siege."
   kind: consumable
-  icon: "potion"
+  icon: "stoneskin_potion"
   value: 30
   sellable: true
   stackable: true
@@ -197,7 +197,7 @@
   name: "Trank der Lebenskraft"
   description: "Ein warmer, süßer Schluck. Heilt ein wenig und gibt dir für drei Siege mehr Ausdauer."
   kind: consumable
-  icon: "potion"
+  icon: "vigor_potion"
   value: 35
   sellable: true
   stackable: true
@@ -210,7 +210,7 @@
   name: "Drachenblut"
   description: "Aus Drachenschuppen und Lebenselixier gebraut. Es brennt im Hals und dann in den Adern – vier Siege lang."
   kind: consumable
-  icon: "potion"
+  icon: "dragon_blood"
   value: 220
   sellable: true
   stackable: true
@@ -223,7 +223,7 @@
   name: "Moorkraut"
   description: "Ein bitter riechendes Kraut. Gekaut stellt es 4 Lebenspunkte wieder her."
   kind: consumable
-  icon: "herb"
+  icon: "bog_herb"
   value: 2
   sellable: true
   stackable: true
@@ -236,7 +236,7 @@
   name: "Knochenstaub"
   description: "Fein gemahlene Knochen. Alchemisten zahlen ein paar Münzen dafür."
   kind: misc
-  icon: "trophy"
+  icon: "bone_dust"
   value: 6
   sellable: true
   stackable: true
@@ -246,7 +246,7 @@
   name: "Trollhauer"
   description: "Ein gewaltiger, gelblicher Hauer. Beweis für einen Sieg, von dem man erzählen wird."
   kind: misc
-  icon: "trophy"
+  icon: "troll_tusk"
   value: 30
   sellable: true
   stackable: true
@@ -259,7 +259,7 @@
   description: "Weiche Lederhosen mit eingenähten Polstern."
   kind: armor
   slot: legs
-  icon: "legs"
+  icon: "leather_leggings"
   value: 15
   sellable: true
   stackable: false
@@ -273,7 +273,7 @@
   description: "Zwergische Schienen, die Knie und Schienbeine schützen."
   kind: armor
   slot: legs
-  icon: "legs"
+  icon: "iron_greaves"
   value: 50
   sellable: true
   stackable: false
@@ -287,7 +287,7 @@
   description: "Ein schwerer Helm mit Nasenschutz, geschmiedet in Khazdur."
   kind: armor
   slot: head
-  icon: "helmet"
+  icon: "iron_helm"
   value: 45
   sellable: true
   stackable: false
@@ -301,7 +301,7 @@
   description: "Stiefel mit Stahlkappen. Schwer, aber nichts dringt durch."
   kind: armor
   slot: feet
-  icon: "boots"
+  icon: "iron_boots"
   value: 45
   sellable: true
   stackable: false
@@ -315,7 +315,7 @@
   description: "Ineinandergreifende Stahlplatten, so fein gearbeitet, dass sie kaum klirren."
   kind: armor
   slot: chest
-  icon: "armor"
+  icon: "dwarven_plate"
   value: 260
   sellable: true
   stackable: false
@@ -329,7 +329,7 @@
   description: "Eine zweischneidige Axt mit Eichenstiel. Die Klinge trägt zwergische Runen."
   kind: weapon
   slot: weapon
-  icon: "axe"
+  icon: "war_axe"
   value: 180
   sellable: true
   stackable: false
@@ -343,7 +343,7 @@
   description: "Ein Hammer, dessen Runen bei jedem Schlag kurz aufglühen."
   kind: weapon
   slot: weapon
-  icon: "axe"
+  icon: "runed_hammer"
   value: 320
   sellable: true
   stackable: false
@@ -357,7 +357,7 @@
   description: "Aus einer Kralle des Eisdrachen geschmiedet. Die Klinge ist immer kalt wie der Gletscher."
   kind: weapon
   slot: weapon
-  icon: "sword"
+  icon: "frost_blade"
   value: 500
   sellable: true
   stackable: false
@@ -370,7 +370,7 @@
   name: "Elixier des Lebens"
   description: "Golden schimmernd und schwer wie Honig. Stellt sofort 60 Lebenspunkte wieder her."
   kind: consumable
-  icon: "potion"
+  icon: "elixir"
   value: 90
   sellable: true
   stackable: true
@@ -383,7 +383,7 @@
   name: "Frostbeeren"
   description: "Leuchtend rote Beeren, die im Eis reifen. Stellen 8 Lebenspunkte wieder her."
   kind: consumable
-  icon: "herb"
+  icon: "frost_berries"
   value: 3
   sellable: true
   stackable: true
@@ -396,7 +396,7 @@
   name: "Harpyienfeder"
   description: "Eine lange, stahlgraue Schwungfeder. Pfeilmacher zahlen gut dafür."
   kind: misc
-  icon: "trophy"
+  icon: "harpy_feather"
   value: 8
   sellable: true
   stackable: true
@@ -406,7 +406,7 @@
   name: "Frostwolfpelz"
   description: "Dichtes, silbrig weißes Fell. Wärmt selbst im Gletscherwind."
   kind: misc
-  icon: "trophy"
+  icon: "frost_pelt"
   value: 14
   sellable: true
   stackable: true
@@ -416,7 +416,7 @@
   name: "Ewiges Eis"
   description: "Ein Splitter, der nicht schmilzt, egal wie warm es ist."
   kind: misc
-  icon: "trophy"
+  icon: "ice_shard"
   value: 12
   sellable: true
   stackable: true
@@ -426,7 +426,7 @@
   name: "Drachenschuppe"
   description: "Eine handtellergroße Schuppe, hart wie Stahl und blau wie Gletschereis."
   kind: misc
-  icon: "trophy"
+  icon: "drake_scale"
   value: 60
   sellable: true
   stackable: true
@@ -436,7 +436,7 @@
   name: "Ghulkralle"
   description: "Schwarz, gekrümmt und unangenehm scharf."
   kind: misc
-  icon: "trophy"
+  icon: "ghoul_claw"
   value: 10
   sellable: true
   stackable: true
@@ -446,7 +446,7 @@
   name: "Spinnenseide"
   description: "Ein Strang reißfester Seide. Schneider in Oakhaven reißen sich darum."
   kind: misc
-  icon: "trophy"
+  icon: "spider_silk"
   value: 9
   sellable: true
   stackable: true
@@ -456,7 +456,7 @@
   name: "Giftzahn der Königin"
   description: "Ein Giftzahn so lang wie ein Dolch. Er glänzt noch feucht."
   kind: misc
-  icon: "trophy"
+  icon: "queen_fang"
   value: 45
   sellable: true
   stackable: true
@@ -469,7 +469,7 @@
   description: "Drei rostige Zinken an einem langen Stiel. Für Heu gedacht, nicht für Ratten."
   kind: weapon
   slot: weapon
-  icon: "axe"
+  icon: "pitchfork"
   value: 15
   sellable: true
   stackable: false
@@ -483,7 +483,7 @@
   description: "Ein schwarzes Schwert mit grünlich schimmernder Schneide. Es fühlt sich kälter an, als es sollte."
   kind: weapon
   slot: weapon
-  icon: "sword"
+  icon: "valen_blade"
   value: 150
   sellable: true
   stackable: false
@@ -496,7 +496,7 @@
   name: "Wilder Apfel"
   description: "Klein, sauer und voller Würmer – aber nahrhaft. Stellt 3 Lebenspunkte wieder her."
   kind: consumable
-  icon: "herb"
+  icon: "wild_apple"
   value: 1
   sellable: true
   stackable: true
@@ -509,7 +509,7 @@
   name: "Apfelkuchen"
   description: "Noch warm aus Gretes Ofen. Stellt 12 Lebenspunkte wieder her."
   kind: consumable
-  icon: "bread"
+  icon: "apple_pie"
   value: 8
   sellable: true
   stackable: true
@@ -522,7 +522,7 @@
   name: "Bauernkäse"
   description: "Ein würziger Laib aus der Mühle. Stellt 8 Lebenspunkte wieder her."
   kind: consumable
-  icon: "bread"
+  icon: "cheese"
   value: 5
   sellable: true
   stackable: true
@@ -535,7 +535,7 @@
   name: "Wildschweinkeule"
   description: "Ein ordentliches Stück Fleisch, über dem Feuer gebraten. Stellt 10 Lebenspunkte wieder her."
   kind: consumable
-  icon: "bread"
+  icon: "boar_ham"
   value: 5
   sellable: true
   stackable: true
@@ -548,7 +548,7 @@
   name: "Rattenschwanz"
   description: "Lang, kahl und eklig. Der Rattenfänger in Oakhaven zahlt pro Stück."
   kind: misc
-  icon: "trophy"
+  icon: "rat_tail"
   value: 1
   sellable: true
   stackable: true
@@ -558,7 +558,7 @@
   name: "Krähenfeder"
   description: "Eine glänzend schwarze Feder. Schreiber nehmen sie gern als Kiel."
   kind: misc
-  icon: "trophy"
+  icon: "crow_feather"
   value: 2
   sellable: true
   stackable: true
@@ -568,7 +568,7 @@
   name: "Wildschweinfell"
   description: "Borstig und zäh. Gerber verarbeiten es zu Stiefeln."
   kind: misc
-  icon: "trophy"
+  icon: "boar_hide"
   value: 6
   sellable: true
   stackable: true
@@ -578,7 +578,7 @@
   name: "Siegelring der Valen"
   description: "Ein schwerer Goldring mit dem Wappen einer erloschenen Familie."
   kind: misc
-  icon: "trophy"
+  icon: "valen_signet"
   value: 40
   sellable: true
   stackable: true
@@ -591,7 +591,7 @@
   description: "Aus vulkanischem Glas geschliffen, leicht und härter als Stahl."
   kind: armor
   slot: head
-  icon: "helmet"
+  icon: "obsidian_helm"
   value: 120
   sellable: true
   stackable: false
@@ -605,7 +605,7 @@
   description: "Schwarze Platten, die bei jedem Schritt leise klirren."
   kind: armor
   slot: legs
-  icon: "legs"
+  icon: "obsidian_greaves"
   value: 130
   sellable: true
   stackable: false
@@ -619,7 +619,7 @@
   description: "Ihre Sohlen halten selbst glühender Asche stand."
   kind: armor
   slot: feet
-  icon: "boots"
+  icon: "obsidian_boots"
   value: 120
   sellable: true
   stackable: false
@@ -633,7 +633,7 @@
   description: "Eine Klinge aus Vulkanglas, scharf genug, um Licht zu schneiden."
   kind: weapon
   slot: weapon
-  icon: "sword"
+  icon: "obsidian_blade"
   value: 280
   sellable: true
   stackable: false
@@ -647,7 +647,7 @@
   description: "Der Kopf ist ein Klumpen erstarrter Lava, in dessen Rissen es noch glüht."
   kind: weapon
   slot: weapon
-  icon: "axe"
+  icon: "magma_hammer"
   value: 450
   sellable: true
   stackable: false
@@ -661,7 +661,7 @@
   description: "Die Klinge brennt, ohne zu verbrennen. Ignaros trug es tausend Jahre."
   kind: weapon
   slot: weapon
-  icon: "sword"
+  icon: "flame_sword"
   value: 600
   sellable: true
   stackable: false
@@ -675,7 +675,7 @@
   description: "Ein Brustpanzer aus der Schmiede der Riesen, innen warm wie ein Ofen."
   kind: armor
   slot: chest
-  icon: "armor"
+  icon: "ember_plate"
   value: 480
   sellable: true
   stackable: false
@@ -688,7 +688,7 @@
   name: "Feuerblüte"
   description: "Eine glühende Blume aus den Aschefeldern. Gegessen stellt sie 20 Lebenspunkte wieder her."
   kind: consumable
-  icon: "flame"
+  icon: "fire_blossom"
   value: 6
   sellable: true
   stackable: true
@@ -701,7 +701,7 @@
   name: "Phönixtrank"
   description: "Ein Trank, der im Glas leise knistert. Stellt sofort 100 Lebenspunkte wieder her."
   kind: consumable
-  icon: "potion"
+  icon: "phoenix_draught"
   value: 160
   sellable: true
   stackable: true
@@ -714,7 +714,7 @@
   name: "Salamanderschuppe"
   description: "Eine Schuppe, die noch Stunden nach dem Kampf warm bleibt."
   kind: misc
-  icon: "trophy"
+  icon: "salamander_scale"
   value: 18
   sellable: true
   stackable: true
@@ -724,7 +724,7 @@
   name: "Geisterasche"
   description: "Asche, die sich in der Hand bewegt, als wollte sie fliehen."
   kind: misc
-  icon: "trophy"
+  icon: "wraith_ash"
   value: 15
   sellable: true
   stackable: true
@@ -734,7 +734,7 @@
   name: "Glutkern"
   description: "Das Herz eines Magmagolems. Zwergenschmiede zahlen ein Vermögen dafür."
   kind: misc
-  icon: "flame"
+  icon: "ember_core"
   value: 25
   sellable: true
   stackable: true
@@ -744,7 +744,7 @@
   name: "Riesenzahn"
   description: "Ein Backenzahn so groß wie eine Faust."
   kind: misc
-  icon: "trophy"
+  icon: "giant_tooth"
   value: 35
   sellable: true
   stackable: true
@@ -754,7 +754,7 @@
   name: "Krone des Glutfürsten"
   description: "Ein Reif aus erstarrter Lava, in dem noch ein Funke glimmt."
   kind: misc
-  icon: "trophy"
+  icon: "ignaros_crown"
   value: 120
   sellable: true
   stackable: true
@@ -767,7 +767,7 @@
   description: "Geschmiedet aus Metall, das vom Himmel fiel. Er schimmert wie eine klare Nacht."
   kind: armor
   slot: head
-  icon: "helmet"
+  icon: "starsteel_helm"
   value: 400
   sellable: true
   stackable: false
@@ -781,7 +781,7 @@
   description: "Leicht wie Leder, hart wie der Fels, aus dem sie geschlagen wurden."
   kind: armor
   slot: legs
-  icon: "legs"
+  icon: "starsteel_greaves"
   value: 420
   sellable: true
   stackable: false
@@ -795,7 +795,7 @@
   description: "Wer sie trägt, hinterlässt Spuren aus schwachem Licht."
   kind: armor
   slot: feet
-  icon: "boots"
+  icon: "starsteel_boots"
   value: 400
   sellable: true
   stackable: false
@@ -809,7 +809,7 @@
   description: "Die beste Rüstung, die man für Gold kaufen kann – und sehr viel Gold."
   kind: armor
   slot: chest
-  icon: "armor"
+  icon: "starsteel_plate"
   value: 900
   sellable: true
   stackable: false
@@ -823,7 +823,7 @@
   description: "Eine Axt, deren Klinge aus nichts zu bestehen scheint. Wo sie trifft, bleibt eine Kerbe in der Welt."
   kind: weapon
   slot: weapon
-  icon: "axe"
+  icon: "voidbreaker"
   value: 750
   sellable: true
   stackable: false
@@ -837,7 +837,7 @@
   description: "Morvaths eigenes Schwert. Es wirft kein Spiegelbild und keinen Schatten."
   kind: weapon
   slot: weapon
-  icon: "sword"
+  icon: "shadow_blade"
   value: 900
   sellable: true
   stackable: false
@@ -850,7 +850,7 @@
   name: "Mondlilie"
   description: "Eine silbern leuchtende Blüte aus dem Verdorrten Garten. Stellt 40 Lebenspunkte wieder her."
   kind: consumable
-  icon: "herb"
+  icon: "moon_lily"
   value: 12
   sellable: true
   stackable: true
@@ -863,7 +863,7 @@
   name: "Sternenlichttonikum"
   description: "In der Flasche funkelt ein Stück Nachthimmel. Stellt sofort 160 Lebenspunkte wieder her."
   kind: consumable
-  icon: "potion"
+  icon: "starlight_tonic"
   value: 260
   sellable: true
   stackable: true
@@ -876,7 +876,7 @@
   name: "Schattenfell"
   description: "Ein Fell, das sich anfühlt wie kalter Rauch."
   kind: misc
-  icon: "trophy"
+  icon: "shadow_pelt"
   value: 28
   sellable: true
   stackable: true
@@ -886,7 +886,7 @@
   name: "Leerensplitter"
   description: "Ein Splitter aus schwarzem Glas, in dem sich nichts spiegelt."
   kind: misc
-  icon: "trophy"
+  icon: "void_shard"
   value: 30
   sellable: true
   stackable: true
@@ -896,7 +896,7 @@
   name: "Albtraumessenz"
   description: "Eine Phiole mit wirbelndem Dunst. Wer zu lange hineinsieht, träumt schlecht."
   kind: misc
-  icon: "trophy"
+  icon: "nightmare_essence"
   value: 35
   sellable: true
   stackable: true
@@ -906,7 +906,7 @@
   name: "Siegel der Wächter"
   description: "Ein steinernes Abzeichen mit einem geschlossenen Auge."
   kind: misc
-  icon: "trophy"
+  icon: "warden_sigil"
   value: 45
   sellable: true
   stackable: true
@@ -916,7 +916,7 @@
   name: "Krone der Schatten"
   description: "Morvaths Krone. Sie ist schwer, kalt und frisst das Licht um sich herum."
   kind: misc
-  icon: "trophy"
+  icon: "shadow_crown"
   value: 250
   sellable: true
   stackable: true
@@ -929,7 +929,7 @@
   description: "Ein runder Schild aus Eichenbrettern mit Eisenrand."
   kind: armor
   slot: offhand
-  icon: "shield"
+  icon: "wooden_shield"
   value: 15
   sellable: true
   stackable: false
@@ -943,7 +943,7 @@
   description: "Ein schwerer Schild mit Zwergenrunen am Buckel."
   kind: armor
   slot: offhand
-  icon: "shield"
+  icon: "iron_shield"
   value: 60
   sellable: true
   stackable: false
@@ -957,7 +957,7 @@
   description: "Fast so groß wie ein Zwerg. Dahinter ist man sicher – und langsam."
   kind: armor
   slot: offhand
-  icon: "shield"
+  icon: "tower_shield"
   value: 150
   sellable: true
   stackable: false
@@ -971,7 +971,7 @@
   description: "Schwarzes Glas in einem Rahmen aus Basalt. Klingen gleiten daran ab."
   kind: armor
   slot: offhand
-  icon: "shield"
+  icon: "obsidian_shield"
   value: 260
   sellable: true
   stackable: false
@@ -985,7 +985,7 @@
   description: "Seine Oberfläche spiegelt einen Himmel, der nicht über dir ist."
   kind: armor
   slot: offhand
-  icon: "shield"
+  icon: "starsteel_shield"
   value: 450
   sellable: true
   stackable: false
@@ -999,7 +999,7 @@
   description: "Aus den Schuppen Hrimfangs gefertigt. Er bleibt immer eiskalt."
   kind: armor
   slot: offhand
-  icon: "shield"
+  icon: "drake_shield"
   value: 520
   sellable: true
   stackable: false
@@ -1016,7 +1016,7 @@
   description: "Ein Fingerknochen an einer Lederschnur. Abergläubisch, aber es hilft."
   kind: armor
   slot: neck
-  icon: "amulet"
+  icon: "bone_amulet"
   value: 25
   sellable: true
   stackable: false
@@ -1030,7 +1030,7 @@
   description: "Im Bernstein ist eine kleine Spinne eingeschlossen. Er fühlt sich warm an."
   kind: armor
   slot: neck
-  icon: "amulet"
+  icon: "amber_amulet"
   value: 90
   sellable: true
   stackable: false
@@ -1044,7 +1044,7 @@
   description: "Ein Stein aus dem Vulkan, der im Dunkeln schwach glimmt."
   kind: armor
   slot: neck
-  icon: "amulet"
+  icon: "ember_amulet"
   value: 250
   sellable: true
   stackable: false
@@ -1058,7 +1058,7 @@
   description: "Ein milchig blauer Stein, der das Licht der Zuflucht speichert."
   kind: armor
   slot: neck
-  icon: "amulet"
+  icon: "moonstone_amulet"
   value: 500
   sellable: true
   stackable: false
@@ -1075,7 +1075,7 @@
   description: "Ein Splitter aus dem Herzen des Eisdrachen. Er schlägt noch, ganz langsam."
   kind: armor
   slot: neck
-  icon: "amulet"
+  icon: "winter_heart"
   value: 480
   sellable: true
   stackable: false
@@ -1092,7 +1092,7 @@
   description: "Morvaths Anhänger. Darin wispern Stimmen, die nicht deine sind."
   kind: armor
   slot: neck
-  icon: "amulet"
+  icon: "soul_pendant"
   value: 900
   sellable: true
   stackable: false
@@ -1109,7 +1109,7 @@
   description: "Ein schlichter Ring, der beim Zuschlagen kribbelt."
   kind: armor
   slot: ring
-  icon: "ring"
+  icon: "copper_ring"
   value: 20
   sellable: true
   stackable: false
@@ -1123,7 +1123,7 @@
   description: "Fein graviert mit zwergischen Glückszeichen."
   kind: armor
   slot: ring
-  icon: "ring"
+  icon: "silver_ring"
   value: 80
   sellable: true
   stackable: false
@@ -1137,7 +1137,7 @@
   description: "Der Stein glüht, sobald du eine Waffe ziehst."
   kind: armor
   slot: ring
-  icon: "ring"
+  icon: "ruby_ring"
   value: 220
   sellable: true
   stackable: false
@@ -1151,7 +1151,7 @@
   description: "Ein Ring aus Sternenstahl, kühl wie eine Winternacht."
   kind: armor
   slot: ring
-  icon: "ring"
+  icon: "star_ring"
   value: 480
   sellable: true
   stackable: false
@@ -1168,7 +1168,7 @@
   description: "Valens eigener Ring. Wer ihn trägt, fühlt eine fremde Kälte im Arm."
   kind: armor
   slot: ring
-  icon: "ring"
+  icon: "valen_ring"
   value: 120
   sellable: true
   stackable: false
@@ -1185,7 +1185,7 @@
   description: "Acht winzige Rubine, wie Augen angeordnet."
   kind: armor
   slot: ring
-  icon: "ring"
+  icon: "spider_ring"
   value: 300
   sellable: true
   stackable: false
@@ -1202,7 +1202,7 @@
   description: "Ein Ring aus erstarrter Lava, in dessen Mitte ein Funke tanzt."
   kind: armor
   slot: ring
-  icon: "ring"
+  icon: "ignaros_ring"
   value: 560
   sellable: true
   stackable: false
@@ -1219,7 +1219,7 @@
   description: "Ein Ring aus Dunkelheit. Er hat kein Gewicht und keinen Glanz."
   kind: armor
   slot: ring
-  icon: "ring"
+  icon: "shadow_ring"
   value: 850
   sellable: true
   stackable: false
@@ -1238,7 +1238,7 @@
   description: "Eine Walfängerharpune mit Widerhaken. Unhandlich, aber sie trifft hart."
   kind: weapon
   slot: weapon
-  icon: "axe"
+  icon: "harpoon"
   value: 60
   sellable: true
   stackable: false
@@ -1252,7 +1252,7 @@
   description: "Ein gewachster Mantel der Fischer. Hält Regen, Gischt und so manchen Hieb ab."
   kind: armor
   slot: chest
-  icon: "armor"
+  icon: "oilskin_coat"
   value: 45
   sellable: true
   stackable: false
@@ -1266,7 +1266,7 @@
   description: "Korallenbewachsen und immer feucht. Wer ihn hält, hört das Meer rauschen."
   kind: weapon
   slot: weapon
-  icon: "sword"
+  icon: "witch_trident"
   value: 160
   sellable: true
   stackable: false
@@ -1283,7 +1283,7 @@
   description: "Ein Zweig roter Koralle an einer Silberkette. Er riecht nach Salz."
   kind: armor
   slot: neck
-  icon: "amulet"
+  icon: "coral_amulet"
   value: 70
   sellable: true
   stackable: false
@@ -1296,7 +1296,7 @@
   name: "Räucherfisch"
   description: "Goldbraun und salzig, eingewickelt in Zeitungspapier. Stellt 14 Lebenspunkte wieder her."
   kind: consumable
-  icon: "bread"
+  icon: "smoked_fish"
   value: 9
   sellable: true
   stackable: true
@@ -1309,7 +1309,7 @@
   name: "Miesmuscheln"
   description: "Frisch von den Felsen gebrochen. Stellen 5 Lebenspunkte wieder her."
   kind: consumable
-  icon: "herb"
+  icon: "mussels"
   value: 2
   sellable: true
   stackable: true
@@ -1322,7 +1322,7 @@
   name: "Krabbenfleisch"
   description: "Zart und süßlich, wenn man es aus dem Panzer bekommt. Stellt 9 Lebenspunkte wieder her."
   kind: consumable
-  icon: "bread"
+  icon: "crab_meat"
   value: 4
   sellable: true
   stackable: true
@@ -1335,7 +1335,7 @@
   name: "Krabbenpanzer"
   description: "Hart wie Horn. Die Fischer machen Schalen und Knöpfe daraus."
   kind: misc
-  icon: "trophy"
+  icon: "crab_shell"
   value: 5
   sellable: true
   stackable: true
@@ -1345,7 +1345,7 @@
   name: "Rostiger Kompass"
   description: "Die Nadel zeigt nicht nach Norden, sondern zum Leuchtturm."
   kind: misc
-  icon: "trophy"
+  icon: "old_compass"
   value: 15
   sellable: true
   stackable: true
@@ -1355,7 +1355,7 @@
   name: "Schmuggelware"
   description: "Ein versiegeltes Päckchen. Besser nicht fragen, was drin ist."
   kind: misc
-  icon: "trophy"
+  icon: "contraband"
   value: 20
   sellable: true
   stackable: true
@@ -1365,7 +1365,7 @@
   name: "Sturmessenz"
   description: "Ein Fläschchen, in dem ein winziger Wirbelsturm tobt."
   kind: misc
-  icon: "trophy"
+  icon: "storm_essence"
   value: 18
   sellable: true
   stackable: true
@@ -1375,7 +1375,7 @@
   name: "Schwarze Perle"
   description: "Größer als ein Daumennagel und schwarz wie die Nacht. Morwennas Schatz."
   kind: misc
-  icon: "trophy"
+  icon: "black_pearl"
   value: 80
   sellable: true
   stackable: true
@@ -1387,7 +1387,7 @@
   name: "Goldzahn"
   description: "Ein Goblinzahn aus purem Gold. Wie er da hineingekommen ist, bleibt ein Rätsel."
   kind: misc
-  icon: "trophy"
+  icon: "gold_tooth"
   value: 25
   sellable: true
   stackable: true
@@ -1397,7 +1397,7 @@
   name: "Weißes Wolfsfell"
   description: "Schneeweiß und makellos. Kürschner in Oakhaven zahlen gut dafür."
   kind: misc
-  icon: "trophy"
+  icon: "white_pelt"
   value: 30
   sellable: true
   stackable: true
@@ -1407,7 +1407,7 @@
   name: "Rattenkrone"
   description: "Ein Knäuel ineinander verknoteter Rattenschwänze. Widerlich – und ein Sammlerstück."
   kind: misc
-  icon: "trophy"
+  icon: "rat_crown"
   value: 15
   sellable: true
   stackable: true
@@ -1419,7 +1419,7 @@
   name: "Steckbrief vom Brunnen"
   description: "GESUCHT – wer die Gruft unter dem Alten Friedhof betritt und den Siegelring der Valen zurückbringt. Der Stadtrat zahlt gut. Darunter, mit Kohle gekritzelt: »Der Ring ist nicht das Problem. Das Grüne Licht ist es.«"
   kind: misc
-  icon: "scroll"
+  icon: "wanted_poster"
   value: 0
   sellable: false
   stackable: false
@@ -1428,7 +1428,7 @@
   name: "Zerknitterter Goblinbrief"
   description: "In krakeliger Schrift: »Groß-Boss sagt, Wald nicht mehr gut. Tote laufen im Moor. Grünes Licht auf dem Turm am Meer, und wer hinschaut, geht ins Wasser. Wir gehen nach Osten in die Felder. Ratten essen ist besser als tot sein.«"
   kind: misc
-  icon: "scroll"
+  icon: "goblin_letter"
   value: 0
   sellable: false
   stackable: false
@@ -1437,7 +1437,7 @@
   name: "Kinderzeichnung"
   description: "Mit Kreide gemalt: ein Turm am Meer, oben eine Frau mit grünen Haaren, die singt. Darunter in Kinderschrift: »Mama sagt, wer das Lied hört, kommt nicht zurück. Papa ist zum Fischen gefahren.«"
   kind: misc
-  icon: "scroll"
+  icon: "child_drawing"
   value: 0
   sellable: false
   stackable: false
@@ -1446,7 +1446,7 @@
   name: "Valens Testament"
   description: "»Ich, Aldric Valen, habe die Tür geöffnet, die mein Großvater versiegelte. Die Stimme unter der Mine versprach mir ewiges Leben. Wer dies liest: Sie hat ihr Versprechen gehalten. Auf ihre Weise. Grabt nicht tiefer.«"
   kind: misc
-  icon: "scroll"
+  icon: "valen_testament"
   value: 0
   sellable: false
   stackable: false
@@ -1455,7 +1455,7 @@
   name: "Tagebuchseite eines Bergmanns"
   description: "»Tag 41. Wir haben zu tief gegraben. Unter dem dritten Stollen ist ein Riss, kalt wie der Winter und still wie ein Grab. Seitdem kommen die Spinnen. Seitdem flüstert es nachts. Morgen verbarrikadieren wir die Wache.«"
   kind: misc
-  icon: "scroll"
+  icon: "miner_diary"
   value: 0
   sellable: false
   stackable: false
@@ -1464,7 +1464,7 @@
   name: "Logbuch der »Möwe«"
   description: "Die letzten Einträge, verwischt vom Salzwasser: »Grünes Licht am Leuchtturm, wo seit Jahren kein Wärter mehr lebt. Der Kapitän hält Kurs darauf. Wir alle hören den Gesang. Niemand dreht das Ruder.«"
   kind: misc
-  icon: "scroll"
+  icon: "ship_log"
   value: 0
   sellable: false
   stackable: false
@@ -1473,7 +1473,7 @@
   name: "Notiz eines Schmugglers"
   description: "»Lieferung für den Kunden ohne Gesicht: drei Kisten Sternenstahl, bezahlt mit Gold, das kalt ist. Treffpunkt wie immer unter der Mine. Frag nicht, wie er da unten lebt. Frag nicht, was er mit dem Stahl macht.«"
   kind: misc
-  icon: "scroll"
+  icon: "smuggler_note"
   value: 0
   sellable: false
   stackable: false
@@ -1482,7 +1482,7 @@
   name: "Chronik von Khazdur"
   description: "»Im Jahr des Langen Winters verschlossen die Alten den Riss mit Feuer und Eis. Hrimfang wacht im Norden, Ignaros im Herzen des Bergs. Solange ihre Kräfte im Gleichgewicht sind, bleibt die Tür zu. Möge niemand je beide erschlagen.«"
   kind: misc
-  icon: "scroll"
+  icon: "dwarf_chronicle"
   value: 0
   sellable: false
   stackable: false
@@ -1491,7 +1491,7 @@
   name: "Ilvas Kartenskizze"
   description: "Eine hastig gezeichnete Karte des Kraters, Lavaströme rot schraffiert. Am Rand steht: »Der Glutfürst schläft nicht. Er wacht. Und was er bewacht, liegt nicht hier, sondern unter uns allen.«"
   kind: misc
-  icon: "scroll"
+  icon: "ilva_map"
   value: 0
   sellable: false
   stackable: false
@@ -1500,7 +1500,7 @@
   name: "Gebet an die Laternen"
   description: "»Licht, das nicht wankt. Licht, das nicht frisst. Halte die Nacht vor diesem Kreis. – Wer dies liest, ist weiter gekommen als wir. Lass eine Laterne brennen, wenn du gehst.«"
   kind: misc
-  icon: "scroll"
+  icon: "lantern_prayer"
   value: 0
   sellable: false
   stackable: false
@@ -1509,7 +1509,7 @@
   name: "Schwarze Tafel"
   description: "Eine Steintafel, deren Schrift sich beim Lesen bewegt: »Ich war ein König, bevor es Sterne gab. Sie haben mich unter die Welt gesperrt, mit Feuer und mit Eis. Doch Türen öffnen sich immer von innen. Ihr habt mich nur besiegt. Nicht verschlossen.«"
   kind: misc
-  icon: "scroll"
+  icon: "black_tablet"
   value: 0
   sellable: false
   stackable: false
@@ -1521,7 +1521,7 @@
   description: "Ein Langbogen aus Silberholz, dessen Sehne nie reißt. Der Hüter trug ihn, bevor er verdarb."
   kind: weapon
   slot: weapon
-  icon: "sword"
+  icon: "elven_bow"
   value: 340
   sellable: true
   stackable: false
@@ -1538,7 +1538,7 @@
   description: "Schmal, leicht und so scharf, dass sie im Wind singt."
   kind: weapon
   slot: weapon
-  icon: "sword"
+  icon: "elven_blade"
   value: 190
   sellable: true
   stackable: false
@@ -1552,7 +1552,7 @@
   description: "Ein Umhang aus gewebtem Blattwerk. Pfeile und Klingen gleiten an ihm ab."
   kind: armor
   slot: chest
-  icon: "armor"
+  icon: "elven_cloak"
   value: 210
   sellable: true
   stackable: false
@@ -1569,7 +1569,7 @@
   description: "Ein Ring aus einem einzigen, versteinerten Silberblatt."
   kind: armor
   slot: ring
-  icon: "ring"
+  icon: "leaf_ring"
   value: 130
   sellable: true
   stackable: false
@@ -1585,7 +1585,7 @@
   name: "Silberblatt"
   description: "Ein Blatt des Silberhains. Gekaut stellt es 15 Lebenspunkte wieder her."
   kind: consumable
-  icon: "herb"
+  icon: "silverleaf"
   value: 4
   sellable: true
   stackable: true
@@ -1598,7 +1598,7 @@
   name: "Elfenbrot"
   description: "Ein flaches, honigsüßes Brot, eingewickelt in Blätter. Stellt 30 Lebenspunkte wieder her."
   kind: consumable
-  icon: "bread"
+  icon: "elven_bread"
   value: 22
   sellable: true
   stackable: true
@@ -1611,7 +1611,7 @@
   name: "Gefangenes Irrlicht"
   description: "Ein Glasfläschchen, in dem ein bleiches Licht flackert und gegen die Wände stößt."
   kind: misc
-  icon: "trophy"
+  icon: "wisp_light"
   value: 20
   sellable: true
   stackable: true
@@ -1621,7 +1621,7 @@
   name: "Dryadenrinde"
   description: "Ein Stück schwarz verfärbter Rinde, das noch leise atmet."
   kind: misc
-  icon: "trophy"
+  icon: "dryad_bark"
   value: 24
   sellable: true
   stackable: true
@@ -1631,7 +1631,7 @@
   name: "Dornenstachel"
   description: "Ein Stachel, lang wie ein Unterarm. Die Spitze glänzt feucht."
   kind: misc
-  icon: "trophy"
+  icon: "thorn_spike"
   value: 28
   sellable: true
   stackable: true
@@ -1641,7 +1641,7 @@
   name: "Herzholz des Hüters"
   description: "Das Herz des Uralten Baums, schwarz bis auf einen silbernen Kern."
   kind: misc
-  icon: "trophy"
+  icon: "warden_heartwood"
   value: 90
   sellable: true
   stackable: true
@@ -1651,7 +1651,7 @@
   name: "Elfische Inschrift"
   description: "Eine Abreibung von einem der Grenzsteine, mit einer Übersetzung am Rand: »Wir hüteten den Hain, bis der Schatten aus der Tiefe in die Wurzeln kroch. Der Hüter trank davon. Nun hütet er nichts mehr. Wer ihn erlöst, gebe sein Herz der Erde zurück.«"
   kind: misc
-  icon: "scroll"
+  icon: "elven_inscription"
   value: 0
   sellable: false
   stackable: false
@@ -1663,7 +1663,7 @@
   description: "Ein Messinghelm mit runden Bullaugen. Schwer, aber er hält mehr ab als Wasser."
   kind: armor
   slot: head
-  icon: "helmet"
+  icon: "diver_helm"
   value: 160
   sellable: true
   stackable: false
@@ -1680,7 +1680,7 @@
   description: "Drei Reihen schwarzer Perlen aus Aelmars Schatzkammern."
   kind: armor
   slot: neck
-  icon: "amulet"
+  icon: "pearl_necklace"
   value: 230
   sellable: true
   stackable: false
@@ -1697,7 +1697,7 @@
   description: "Ein Schild aus schimmerndem Perlmutt, leichter als Holz und härter als Stahl."
   kind: armor
   slot: offhand
-  icon: "shield"
+  icon: "nacre_shield"
   value: 480
   sellable: true
   stackable: false
@@ -1714,7 +1714,7 @@
   description: "Die Waffe der Könige von Aelmar. Wo er trifft, schäumt das Wasser."
   kind: weapon
   slot: weapon
-  icon: "sword"
+  icon: "aelmar_trident"
   value: 560
   sellable: true
   stackable: false
@@ -1730,7 +1730,7 @@
   name: "Seetang"
   description: "Salzig, zäh und erstaunlich sättigend. Stellt 18 Lebenspunkte wieder her."
   kind: consumable
-  icon: "herb"
+  icon: "sea_kelp"
   value: 4
   sellable: true
   stackable: true
@@ -1743,7 +1743,7 @@
   name: "Seetangsalbe"
   description: "Eine grüne Paste, die Wunden in Sekunden schließt. Stellt 45 Lebenspunkte wieder her."
   kind: consumable
-  icon: "potion"
+  icon: "kelp_salve"
   value: 30
   sellable: true
   stackable: true
@@ -1756,7 +1756,7 @@
   name: "Enterhaken"
   description: "Rostig, aber noch immer scharf. Ein Andenken an jemanden, der weniger Glück hatte."
   kind: misc
-  icon: "trophy"
+  icon: "raider_hook"
   value: 20
   sellable: true
   stackable: true
@@ -1766,7 +1766,7 @@
   name: "Wappen von Aelmar"
   description: "Ein emailliertes Wappen mit einer Welle und einer Krone."
   kind: misc
-  icon: "trophy"
+  icon: "knight_crest"
   value: 30
   sellable: true
   stackable: true
@@ -1776,7 +1776,7 @@
   name: "Lebende Koralle"
   description: "Ein Korallenstück, das in der Hand langsam weiterwächst."
   kind: misc
-  icon: "trophy"
+  icon: "coral_shard"
   value: 32
   sellable: true
   stackable: true
@@ -1786,7 +1786,7 @@
   name: "Auge des Kraken"
   description: "Groß wie ein Kopf und noch immer feucht. Es scheint dir zu folgen."
   kind: misc
-  icon: "trophy"
+  icon: "kraken_eye"
   value: 130
   sellable: true
   stackable: true
@@ -1796,7 +1796,7 @@
   name: "Letzter Eintrag der Chronik von Aelmar"
   description: "»Die Seherin vom Leuchtturm warnte uns: Der Schatten unter der Mine sucht einen Weg ans Meer. Wir lachten. Dann kam das grüne Licht, dann das Lied, dann der Kraken. Aelmar geht nicht unter, sagten wir. Ich schreibe dies, während das Wasser steigt.«"
   kind: misc
-  icon: "scroll"
+  icon: "aelmar_chronicle"
   value: 0
   sellable: false
   stackable: false
@@ -1807,7 +1807,7 @@
   name: "Eintopf vom Goldenen Krug"
   description: "Ein Holzschälchen voll mit Rüben, Speck und etwas, das Hanne »Geheimzutat« nennt. Stellt 20 Lebenspunkte wieder her."
   kind: consumable
-  icon: "bread"
+  icon: "stew"
   value: 10
   sellable: true
   stackable: true
@@ -1820,7 +1820,7 @@
   name: "Honigmet"
   description: "Golden, süß und stärker, als er schmeckt. Stellt 8 Lebenspunkte wieder her."
   kind: consumable
-  icon: "potion"
+  icon: "honey_mead"
   value: 4
   sellable: true
   stackable: true
@@ -1833,7 +1833,7 @@
   name: "Geweihtes Wasser"
   description: "Ein Fläschchen aus dem Tempelbrunnen, gesegnet von Schwester Liora. Stellt 25 Lebenspunkte wieder her."
   kind: consumable
-  icon: "potion"
+  icon: "holy_water"
   value: 18
   sellable: true
   stackable: true
@@ -1847,7 +1847,7 @@
   description: "Ein kleines Sonnensymbol aus Messing, im Tempel geweiht. Es wärmt, wenn es dunkel wird."
   kind: armor
   slot: neck
-  icon: "amulet"
+  icon: "light_charm"
   value: 40
   sellable: true
   stackable: false
@@ -1860,7 +1860,7 @@
   name: "Gerüchte aus dem Goldenen Krug"
   description: "Auf einen Bierdeckel gekritzelt: »Im Wald überfallen Goblins nur noch selten – sie sind in die Felder gezogen. Im Moor gibt es ein Lagerfeuer, das nie ausgeht. Die Zwerge im Gebirge verkaufen den besten Stahl, aber nur gegen Gold. Und wer den Leuchtturm sieht, soll sich die Ohren zuhalten.«"
   kind: misc
-  icon: "scroll"
+  icon: "tavern_rumors"
   value: 0
   sellable: false
   stackable: false
@@ -1869,7 +1869,7 @@
   name: "Gebet für die Fortgegangenen"
   description: "»Licht, geleite die, die hinausgehen. Gib ihnen ein Feuer am Moor, eine Laterne in der Tiefe und einen Weg zurück. Und wenn sie nicht zurückkehren, so trage ihre Namen, bis wir sie holen.«"
   kind: misc
-  icon: "scroll"
+  icon: "temple_prayer"
   value: 0
   sellable: false
   stackable: false
@@ -1881,7 +1881,7 @@
   description: "Aus vier Schwarten gegerbt und doppelt vernäht. Riecht noch ein bisschen nach Wald."
   kind: armor
   slot: chest
-  icon: "armor"
+  icon: "boar_leather_vest"
   value: 60
   sellable: true
   stackable: false
@@ -1895,7 +1895,7 @@
   description: "Eine Eichenkeule, in die Brandt zwei Trollhauer getrieben hat. Wer davon getroffen wird, steht so schnell nicht auf."
   kind: weapon
   slot: weapon
-  icon: "axe"
+  icon: "tusk_club"
   value: 120
   sellable: true
   stackable: false
@@ -1912,7 +1912,7 @@
   description: "Ein Holzschild, mit gesegnetem Knochenstaub gehärtet. Die Toten, sagt Brandt, schützen gern die Lebenden."
   kind: armor
   slot: offhand
-  icon: "shield"
+  icon: "bone_shield"
   value: 110
   sellable: true
   stackable: false
@@ -1929,7 +1929,7 @@
   description: "Vier Ghulkrallen um ein Knochenamulett gebunden. Hässlich, aber es hält dich am Leben."
   kind: armor
   slot: neck
-  icon: "amulet"
+  icon: "claw_amulet"
   value: 130
   sellable: true
   stackable: false
@@ -1943,7 +1943,7 @@
   description: "Eine schwarze Perle in Silber gefasst. Aurel sagt, sie habe in der Hand der Hexe gelegen."
   kind: armor
   slot: ring
-  icon: "ring"
+  icon: "pearl_ring"
   value: 330
   sellable: true
   stackable: false
@@ -1960,7 +1960,7 @@
   description: "Ein schwerer Mantel aus Frostwolfpelz, gesäumt mit weißem Fell. Kein Wind kommt hindurch, kaum eine Klinge."
   kind: armor
   slot: chest
-  icon: "armor"
+  icon: "frost_cloak"
   value: 220
   sellable: true
   stackable: false
@@ -1977,7 +1977,7 @@
   description: "Brunhild hat die Schuppen von Hrimfang auf einen Eisenhelm genietet. Er ist immer ein bisschen kalt."
   kind: armor
   slot: head
-  icon: "helmet"
+  icon: "drake_helm"
   value: 380
   sellable: true
   stackable: false
@@ -1994,7 +1994,7 @@
   description: "Lebende Dryadenrinde, um einen Holzschild gewachsen. Nimriel sagt, er heilt seine Kratzer selbst."
   kind: armor
   slot: offhand
-  icon: "shield"
+  icon: "bark_shield"
   value: 200
   sellable: true
   stackable: false
@@ -2011,7 +2011,7 @@
   description: "Ein Blattring, durch den sich ein Dorn der Bestie windet. Er sticht – auch den, der dich angreift."
   kind: armor
   slot: ring
-  icon: "ring"
+  icon: "thorn_ring"
   value: 280
   sellable: true
   stackable: false
@@ -2028,7 +2028,7 @@
   description: "Ein Korallenamulett, in dem drei Sturmessenzen kreisen. Bei Gewitter summt es leise."
   kind: armor
   slot: neck
-  icon: "amulet"
+  icon: "storm_amulet"
   value: 160
   sellable: true
   stackable: false
@@ -2045,7 +2045,7 @@
   description: "Obsidianstiefel, mit Salamanderschuppen gefüttert. Damit läufst du über glühende Asche."
   kind: armor
   slot: feet
-  icon: "boots"
+  icon: "salamander_boots"
   value: 220
   sellable: true
   stackable: false
@@ -2062,7 +2062,7 @@
   description: "Ein Turmschild mit den Wappen der ertrunkenen Ritter und einem Korallensplitter im Buckel. Er trägt ihren Eid weiter."
   kind: armor
   slot: offhand
-  icon: "shield"
+  icon: "crest_shield"
   value: 460
   sellable: true
   stackable: false
@@ -2079,7 +2079,7 @@
   description: "Der Händler ohne Gesicht hat einen Leerenbrecher mit Splittern und Albtraum neu geschmiedet. Die Klinge wirft keinen Schatten."
   kind: weapon
   slot: weapon
-  icon: "sword"
+  icon: "void_edge"
   value: 980
   sellable: true
   stackable: false
@@ -2097,7 +2097,7 @@
   name: "Grabstaub"
   description: "Grauer Staub aus den Hügelgräbern. Er ist kalt, auch in der Hand."
   kind: misc
-  icon: "trophy"
+  icon: "wight_dust"
   value: 12
   sellable: true
   stackable: true
@@ -2107,7 +2107,7 @@
   name: "Grabfang"
   description: "Ein vergilbter Reißzahn eines Knochenhunds, länger als ein Finger."
   kind: misc
-  icon: "trophy"
+  icon: "grave_fang"
   value: 14
   sellable: true
   stackable: true
@@ -2117,7 +2117,7 @@
   name: "Gerulfs Fang"
   description: "Der Reißzahn des Wolfskönigs, gelb und gewaltig. Die Zwerge sagen, man könne eine Klinge daraus schleifen."
   kind: misc
-  icon: "trophy"
+  icon: "gerulf_fang"
   value: 60
   sellable: true
   stackable: true
@@ -2128,7 +2128,7 @@
   description: "Ein Reif aus angelaufenem Silber, besetzt mit Wolfszähnen."
   kind: armor
   slot: head
-  icon: "helmet"
+  icon: "wolfking_crown"
   value: 340
   effects:
     - {type: stat, stat: defense, amount: 4}
@@ -2139,7 +2139,7 @@
   description: "Ein schwerer Mantel aus grauem Wolfspelz über rostigen Kettengliedern. Er riecht nach Erde und Jahrhunderten."
   kind: armor
   slot: chest
-  icon: "armor"
+  icon: "wolfking_pelt"
   value: 360
   effects:
     - {type: stat, stat: defense, amount: 6}
@@ -2150,7 +2150,7 @@
   description: "Die Waffenmeisterin hat Gerulfs Fang auf eine Axtklinge geschmiedet. Sie heult leise, wenn man sie schwingt."
   kind: weapon
   slot: weapon
-  icon: "axe"
+  icon: "wolfking_fang"
   value: 420
   effects:
     - {type: stat, stat: attack, amount: 11}
@@ -2160,7 +2160,7 @@
   description: "Ein Knochenamulett, von Schwester Liora mit Grabstaub gesegnet. Die Toten erkennen es und zögern."
   kind: armor
   slot: neck
-  icon: "amulet"
+  icon: "rest_amulet"
   value: 320
   effects:
     - {type: stat, stat: max_hp, amount: 30}
@@ -2173,7 +2173,7 @@
   description: "Die Goldschmiedin hat die verknotete Rattenkrone in Silber gefasst. Er riecht noch ein wenig nach Keller."
   kind: armor
   slot: ring
-  icon: "ring"
+  icon: "rat_king_ring"
   value: 60
   effects:
     - {type: stat, stat: attack, amount: 1}
@@ -2184,7 +2184,7 @@
   description: "Ein Kriegsbeil, an dessen Rücken der Taucher drei Enterhaken der Plünderer geschweißt hat. Es reißt, wo andere schneiden."
   kind: weapon
   slot: weapon
-  icon: "axe"
+  icon: "boarding_axe"
   value: 500
   effects:
     - {type: stat, stat: attack, amount: 12}
@@ -2195,7 +2195,7 @@
   description: "Das Auge Ul'thars, geschrumpft und in Sturmsilber gefasst. Es blinzelt, wenn Gefahr naht."
   kind: armor
   slot: neck
-  icon: "amulet"
+  icon: "kraken_amulet"
   value: 520
   effects:
     - {type: stat, stat: max_hp, amount: 45}
@@ -2206,7 +2206,7 @@
   description: "Der Reif des Glutfürsten, mit Glutkernen neu entfacht. Er wärmt, aber er verbrennt nicht – nicht seinen Träger."
   kind: armor
   slot: head
-  icon: "helmet"
+  icon: "ember_crown"
   value: 520
   effects:
     - {type: stat, stat: defense, amount: 5}
@@ -2217,7 +2217,7 @@
   description: "Morvaths Krone, mit Leerensplittern gebrochen und neu gebunden. Wer sie trägt, hütet nun, was der König beherrschen wollte."
   kind: armor
   slot: head
-  icon: "helmet"
+  icon: "warden_crown"
   value: 900
   effects:
     - {type: stat, stat: defense, amount: 6}
@@ -2229,7 +2229,7 @@
   name: "Sturmfeder"
   description: "Eine graue Feder, die knistert, wenn man darüberstreicht."
   kind: misc
-  icon: "trophy"
+  icon: "storm_feather"
   value: 20
   sellable: true
   stackable: true
@@ -2239,7 +2239,7 @@
   name: "Himmelseisen"
   description: "Ein Klumpen Metall, das in Gewittern vom Himmel fällt. Leicht wie Holz, hart wie Stein."
   kind: misc
-  icon: "trophy"
+  icon: "sky_iron"
   value: 30
   sellable: true
   stackable: true
@@ -2249,7 +2249,7 @@
   name: "Horn des Sturmkönigs"
   description: "Ein gewundenes Horn aus dem Helm des Tharos. Wer hineinbläst, hört Donner."
   kind: misc
-  icon: "trophy"
+  icon: "tharos_horn"
   value: 140
   sellable: true
   stackable: true
@@ -2260,7 +2260,7 @@
   description: "Der Hammer eines Sturmriesen, auf Menschenmaß geschmiedet. Jeder Schlag grollt nach."
   kind: weapon
   slot: weapon
-  icon: "axe"
+  icon: "storm_maul"
   value: 920
   effects:
     - {type: stat, stat: attack, amount: 15}
@@ -2271,7 +2271,7 @@
   description: "Ein hoher Helm mit Flügeln aus Himmelseisen. Er pfeift leise im Wind."
   kind: armor
   slot: head
-  icon: "helmet"
+  icon: "skyguard_helm"
   value: 560
   effects:
     - {type: stat, stat: defense, amount: 5}
@@ -2282,7 +2282,7 @@
   description: "Blau schimmernde Platten, über denen kleine Blitze tanzen, wenn es donnert."
   kind: armor
   slot: chest
-  icon: "armor"
+  icon: "skyguard_plate"
   value: 950
   effects:
     - {type: stat, stat: defense, amount: 10}
@@ -2293,7 +2293,7 @@
   description: "Von Kundschafterin Ilva aus Himmelseisen gefertigt, nach Zeichnungen von der Feste."
   kind: armor
   slot: legs
-  icon: "legs"
+  icon: "skyguard_greaves"
   value: 520
   effects:
     - {type: stat, stat: defense, amount: 5}
@@ -2304,7 +2304,7 @@
   description: "Ein Splitter vom Horn des Sturmkönigs, in Sturmsilber gefasst. Wer es trägt, steht fest wie ein Berg."
   kind: armor
   slot: neck
-  icon: "amulet"
+  icon: "thunder_amulet"
   value: 900
   effects:
     - {type: stat, stat: max_hp, amount: 55}

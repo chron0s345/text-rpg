@@ -667,6 +667,601 @@ shapes:
     - "...oooo...oooo.."
     - "................"
     - "................"
+  hammer:
+    - "................"
+    - "..oooooooooooo.."
+    - ".obllllbbbbbbdo."
+    - ".oblbbbbbbbbbdo."
+    - ".obbbbbbbbbbbdo."
+    - ".oddddaaaaddddo."
+    - "..ooooocCooooo.."
+    - "......ocCo......"
+    - "......ocCo......"
+    - "......ocCo......"
+    - "......ocCo......"
+    - "......ocCo......"
+    - "......ocCo......"
+    - "......ocCo......"
+    - "......oaao......"
+    - "......oooo......"
+  trident:
+    - ".o.....o.....o.."
+    - "obo...obo...obo."
+    - "obo...obo...obo."
+    - "obo...obo...obo."
+    - "obo...obo...obo."
+    - "obbbbbbbbbbbbbo."
+    - ".oooooocCooooo.."
+    - "......ocCo......"
+    - "......ocCo......"
+    - "......ocCo......"
+    - "......ocCo......"
+    - "......ocCo......"
+    - "......ocCo......"
+    - "......ocCo......"
+    - "......ocCo......"
+    - "......oooo......"
+  bow:
+    - "................"
+    - "......ooo......."
+    - ".....obbow......"
+    - "....obbo.w......"
+    - "....obo..w......"
+    - "...obo...w......"
+    - "...obo...w......"
+    - "...oao...w......"
+    - "...oao...w......"
+    - "...obo...w......"
+    - "...obo...w......"
+    - "....obo..w......"
+    - "....obbo.w......"
+    - ".....obbow......"
+    - "......ooo......."
+    - "................"
+  club:
+    - "................"
+    - "..........ooo..."
+    - ".........obbbo.."
+    - "........obblbbo."
+    - ".......obblbbbo."
+    - "......obblbbbdo."
+    - ".....obbbbbbdo.."
+    - "....obbbbbbdo..."
+    - "...obbbbbddo...."
+    - "..ocobbbddo....."
+    - ".occooddoo......"
+    - "occCo.oo........"
+    - "occCo..........."
+    - "ocCo............"
+    - ".oo............."
+    - "................"
+  crown:
+    - "................"
+    - "................"
+    - "................"
+    - "................"
+    - ".o.....oo.....o."
+    - "oeo...oeeo...oeo"
+    - "obo...obbo...obo"
+    - "oblo.oblbbo.obbo"
+    - "oblbobbbbbbobbbo"
+    - "obbbbbbbbbbbbbbo"
+    - "obbebbbeebbbebbo"
+    - "obbbbbbbbbbbbbdo"
+    - "oddddddddddddddo"
+    - "oooooooooooooooo"
+    - "................"
+    - "................"
+  pelt:
+    - "................"
+    - "..oo........oo.."
+    - ".obbo......obbo."
+    - ".obbboooooobbbo."
+    - "..obbbbbbbbbbo.."
+    - "..oblllbbbbbbo.."
+    - ".obllbbbbbbbbbo."
+    - "obbbbbbbbbbbbbbo"
+    - "obbbbbbbbbbbbbdo"
+    - ".obbbbbbbbbbbdo."
+    - "..obbbbbbbbbdo.."
+    - "..obbbbbbbbbdo.."
+    - ".obbdo....obbdo."
+    - ".obo........obo."
+    - "..o..........o.."
+    - "................"
+  fang:
+    - "................"
+    - "................"
+    - "...oooooooo....."
+    - "..obbbbbbbbo...."
+    - "..oblllllbbdo..."
+    - "...obblbbbbdo..."
+    - "....obbbbbbdo..."
+    - "....oblbbbbdo..."
+    - ".....obbbbdo...."
+    - ".....oblbbdo...."
+    - "......obbdo....."
+    - "......oblbdo...."
+    - ".......obdo....."
+    - ".......obo......"
+    - "........o......."
+    - "................"
+  feather:
+    - "................"
+    - "............oo.."
+    - "...........oblo."
+    - "..........oblbo."
+    - ".........oblbdo."
+    - "........oblbbdo."
+    - ".......oblbbdo.."
+    - "......oblbbbdo.."
+    - ".....oblbbbdo..."
+    - "....oblbbbdo...."
+    - "...oblbbbdo....."
+    - "...oblbbdo......"
+    - "..oaoddoo......."
+    - ".oao.oo........."
+    - "oao............."
+    - "oo.............."
+  scale:
+    - "................"
+    - "................"
+    - "......oooo......"
+    - "....oobbbboo...."
+    - "...obllbbbbdo..."
+    - "..obllbbbbbbdo.."
+    - "..oblbbbbbbbdo.."
+    - "..obbbbbbbbbdo.."
+    - "..obbbbbbbbbdo.."
+    - "...obbbbbbbdo..."
+    - "...obbbbbbbdo..."
+    - "....obbbbbdo...."
+    - ".....obbbdo....."
+    - "......obdo......"
+    - ".......oo......."
+    - "................"
+  crystal:
+    - "................"
+    - ".......oo......."
+    - "......obbo......"
+    - ".....obllbo....."
+    - ".....obllbo..o.."
+    - "....oblbbbdo.obo"
+    - "....oblbbbdooblo"
+    - "...oblbbbbbdoblo"
+    - "...oblbbbbbdoblo"
+    - "...obbbbbbbdobdo"
+    - "...obbbbbbbdobdo"
+    - "....obbbbbdo.oo."
+    - "....obbbbbdo...."
+    - ".....obbbdo....."
+    - "......oooo......"
+    - "................"
+  dust:
+    - "................"
+    - "................"
+    - "................"
+    - "................"
+    - "................"
+    - ".......o........"
+    - "......obo......."
+    - ".....obllo......"
+    - "....obllbbo....."
+    - "...obllbbbbo...."
+    - "..obbbbbbbbdo..."
+    - ".obbbbbbbbbbdo.."
+    - ".obbbbbbbbbbddo."
+    - "..oddddddddddo.."
+    - "...oooooooooo..."
+    - "................"
+  spool:
+    - "................"
+    - "..oooooooooooo.."
+    - "..ocCCCCCCCCCo.."
+    - "...oooooooooo..."
+    - "...owwwwwwwwo..."
+    - "...owlwwwwwwo..."
+    - "...owwwwwwwwo..."
+    - "...owlwwwwwwo..."
+    - "...owwwwwwwwo..."
+    - "...owlwwwwwwo..."
+    - "...owwwwwwwwo..."
+    - "...oooooooooo..."
+    - "..ocCCCCCCCCCo.."
+    - "..oooooooooooo.."
+    - "................"
+    - "................"
+  orb:
+    - "................"
+    - "................"
+    - ".....oooooo....."
+    - "....obbbbbbo...."
+    - "...obwlbbbbbo..."
+    - "..obwlbbbbbbdo.."
+    - "..oblbbbbbbbdo.."
+    - "..obbbbeebbbdo.."
+    - "..obbbbeebbbdo.."
+    - "..obbbbbbbbbdo.."
+    - "..obbbbbbbbddo.."
+    - "...obbbbbbddo..."
+    - "....obddddo....."
+    - ".....oooooo....."
+    - "................"
+    - "................"
+  seal:
+    - "................"
+    - ".....oooooo....."
+    - "....oaaaaaao...."
+    - "...oaccccccao..."
+    - "..oaccbbbbccao.."
+    - "..oacbbbbbbcao.."
+    - "..oacbbebbbcao.."
+    - "..oacbbbbbbcao.."
+    - "..oaccbbbbccao.."
+    - "...oaccccccao..."
+    - "....oaaaaaao...."
+    - ".....oooooo....."
+    - ".....oc..co....."
+    - "....oCc..cCo...."
+    - "....ooo..ooo...."
+    - "................"
+  ear:
+    - "................"
+    - "................"
+    - ".....ooo........"
+    - "....obbbo......."
+    - "...obbllbo......"
+    - "...obldbbo......"
+    - "..obldbbbo......"
+    - "..obldbbbo......"
+    - "..obbdbbbbo....."
+    - "...obbbbbbo....."
+    - "...obbbbbbbo...."
+    - "....obbbbbbo...."
+    - ".....obbbbbo...."
+    - "......ooobbo...."
+    - ".........oo....."
+    - "................"
+  tail:
+    - "................"
+    - "................"
+    - "................"
+    - ".ooo............"
+    - "obbbo..........."
+    - ".ooobo.........."
+    - "....obo........."
+    - "....obo........."
+    - ".....obo........"
+    - ".....obo....ooo."
+    - "......obo..obbo."
+    - "......obboobbo.."
+    - ".......obbbbo..."
+    - "........oooo...."
+    - "................"
+    - "................"
+  compass:
+    - "................"
+    - ".....oooooo....."
+    - "....oaaaaaao...."
+    - "...oaowwwwoao..."
+    - "..oaowwwewwoao.."
+    - "..oawwwwewwwao.."
+    - "..oawwwwewwwao.."
+    - "..oawwwobwwwao.."
+    - "..oawwwbwwwwao.."
+    - "..oawwbwwwwwao.."
+    - "..oaowwwwwwoao.."
+    - "...oaowwwwoao..."
+    - "....oaaaaaao...."
+    - ".....oooooo....."
+    - "................"
+    - "................"
+  crate:
+    - "................"
+    - "................"
+    - "..oooooooooooo.."
+    - "..obbbbbbbbbbo.."
+    - "..oooooooooooo.."
+    - "..obddobbbbdbo.."
+    - "..obbdobbbdbbo.."
+    - "..obbbodbdbbbo.."
+    - "..obbbbodbbbbo.."
+    - "..obbbdbdobbbo.."
+    - "..obbdbbbdobbo.."
+    - "..obdbbbbbdobo.."
+    - "..oooooooooooo.."
+    - "..obbbbbbbbbbo.."
+    - "..oooooooooooo.."
+    - "................"
+  wood:
+    - "................"
+    - "................"
+    - "................"
+    - "..oooooooooo...."
+    - ".obbbbbbbbbbo..."
+    - "oaoooaoooaoobo.."
+    - "oaAaaaAaaaaobdo."
+    - "oaaAaaaaAaaobdo."
+    - "oaAaaAaaaAaobdo."
+    - ".oaaaaaaaaaobdo."
+    - "..oooooooooobdo."
+    - ".........obbbo.."
+    - "..........ooo..."
+    - "................"
+    - "................"
+    - "................"
+  hook:
+    - "................"
+    - "....oooo........"
+    - "...obbbbo......."
+    - "..obbooobo......"
+    - "..obo..obo......"
+    - "..obo...oo......"
+    - "..obo..........."
+    - "..obo.....o....."
+    - "..obbo...obo...."
+    - "...obbooobbo...."
+    - "....obbbbbo....."
+    - ".....ooobo......"
+    - ".......ocCo....."
+    - ".......ocCo....."
+    - ".......ocCo....."
+    - ".......oooo....."
+  letter:
+    - "................"
+    - "................"
+    - "................"
+    - ".oooooooooooooo."
+    - ".owwwwwwwwwwwwo."
+    - ".oowwwwwwwwwwoo."
+    - ".owowwwwwwwwowo."
+    - ".owwowwwwwwowwo."
+    - ".owwwowwwwowwwo."
+    - ".owwwwoaaowwwwo."
+    - ".owwwwwaawwwwwo."
+    - ".owwwwwwwwwwwwo."
+    - ".oooooooooooooo."
+    - "................"
+    - "................"
+    - "................"
+  book:
+    - "................"
+    - "..oooooooooooo.."
+    - "..occccccccccCo."
+    - "..ocaaaaaaaacCo."
+    - "..ocabbbbbbacCo."
+    - "..ocabbbbbbacCo."
+    - "..ocaaaaaaaacCo."
+    - "..occccccccccCo."
+    - "..occccccccccCo."
+    - "..occccccccccCo."
+    - "..occccccccccCo."
+    - "..occccccccccCo."
+    - "..oCCCCCCCCCCCo."
+    - "..owwwwwwwwwwwo."
+    - "..oooooooooooooo"
+    - "................"
+  tablet:
+    - "................"
+    - "...oooooooooo..."
+    - "..obbbbbbbbbbo.."
+    - "..oboooobbbbdo.."
+    - "..obbbbbbbbbdo.."
+    - "..obooooooobdo.."
+    - "..obbbbbbbbbdo.."
+    - "..obooobooobdo.."
+    - "..obbbbbbbbbdo.."
+    - "..oboooooobbdo.."
+    - "..obbbbbbbbbdo.."
+    - "..obooooobbbdo.."
+    - "..obbbbbbbbbdo.."
+    - "..oddddddddddo.."
+    - "...oooooooooo..."
+    - "................"
+  map:
+    - "................"
+    - "................"
+    - ".oooooooooooooo."
+    - ".obbbbbbbbbbbbo."
+    - ".oblldbbbbbbbbo."
+    - ".obllobbbdbbbbo."
+    - ".obbbbobbbbobbo."
+    - ".obbbbbaobbbbbo."
+    - ".obbdbbbobbbbbo."
+    - ".obbbbbbbobbbbo."
+    - ".obbbbbbbbaebbo."
+    - ".obbbbbbbbbbbbo."
+    - ".oddddddddddddo."
+    - ".oooooooooooooo."
+    - "................"
+    - "................"
+  apple:
+    - "................"
+    - "........o......."
+    - ".......oao.oo..."
+    - ".......oaoobbo.."
+    - "....ooooaobbo..."
+    - "...obblbobooo..."
+    - "..obllbbbbbbbo.."
+    - "..oblbbbbbbbbo.."
+    - "..obbbbbbbbbdo.."
+    - "..obbbbbbbbbdo.."
+    - "..obbbbbbbbddo.."
+    - "...obbbbbbddo..."
+    - "....obbobbdo...."
+    - ".....oo.oo......"
+    - "................"
+    - "................"
+  cheese:
+    - "................"
+    - "................"
+    - "................"
+    - "................"
+    - ".......ooo......"
+    - ".....oollbo....."
+    - "...oollllbbo...."
+    - ".oolllllbbbdo..."
+    - "obbbbbbbbbbbdo.."
+    - "obbdbbbbbdbbbdo."
+    - "obbbbbbbbbbbbdo."
+    - "obbbbbdbbbbbbdo."
+    - "obdbbbbbbbbdbdo."
+    - "odddddddddddddo."
+    - "ooooooooooooooo."
+    - "................"
+  meat:
+    - "................"
+    - "................"
+    - ".....oooooo....."
+    - "...oobbbbbboo..."
+    - "..obblllbbbbbo.."
+    - ".obblbbbbbbbbdo."
+    - ".oblbbbbbbbbbdo."
+    - ".obbbbbbbbbbbdo."
+    - ".obbbbbbbbbbddo."
+    - "..obbbbbbbbddo.."
+    - "...oobbbbbddo..."
+    - ".....oooobwo...."
+    - "........owwo...."
+    - ".......owwwwo..."
+    - ".......owoowo..."
+    - "........o..o...."
+  fish:
+    - "................"
+    - "................"
+    - "................"
+    - "................"
+    - "..oooooooo...oo."
+    - ".obbbbbbbboooblo"
+    - "obwlbbbbbbbbbbbo"
+    - "obeobbbbbbbbbbbo"
+    - "obbbbbdbdbdbdbbo"
+    - ".odbbbbbbbbboodo"
+    - "..ooddddddddo.oo"
+    - "....oooooooo...."
+    - "................"
+    - "................"
+    - "................"
+    - "................"
+  pie:
+    - "................"
+    - "................"
+    - "................"
+    - "................"
+    - "....oooooooo...."
+    - "..oollllllllloo."
+    - ".olllAlllAlllllo"
+    - ".olllAllllAllllo"
+    - "oaaaaaaaaaaaaaao"
+    - "obbbbbbbbbbbbbbo"
+    - "obbbbbbbbbbbbbdo"
+    - ".obbbbbbbbbbbdo."
+    - "..oooooooooooo.."
+    - "................"
+    - "................"
+    - "................"
+  bowl:
+    - "................"
+    - "................"
+    - ".......o..o....."
+    - "......o..o......"
+    - ".......o..o....."
+    - "................"
+    - ".oooooooooooooo."
+    - "oaaaaaAAAaaaaaao"
+    - "obbbbbbbbbbbbbdo"
+    - ".obllbbbbbbbbdo."
+    - "..obbbbbbbbbdo.."
+    - "...obbbbbbbdo..."
+    - "....oooooooo...."
+    - ".....obbbbo....."
+    - ".....oooooo....."
+    - "................"
+  berries:
+    - "................"
+    - "..........oo...."
+    - ".........oao...."
+    - "......oooao....."
+    - ".....oaaaoo....."
+    - "..oooo.oo.ooo..."
+    - ".obbbo.oobbbo..."
+    - "oblbbbooblbbbo.."
+    - "obbbbdoobbbbdo.."
+    - "obbbbdooobbbdo.."
+    - ".obddoobboddo..."
+    - "..ooooblbbo....."
+    - ".....obbbbdo...."
+    - ".....obbbdo....."
+    - "......oooo......"
+    - "................"
+  flower:
+    - "................"
+    - ".....oo..oo....."
+    - "....obbooobbo..."
+    - "....obbbbbbbo..."
+    - "..ooobblbbbbooo."
+    - ".obbbbllebbbbbo."
+    - ".obbbbleeebbbbo."
+    - "..oobbbeebbboo.."
+    - "....obbbbbbbo..."
+    - "....obboooobbo.."
+    - ".....oo.oa.oo..."
+    - "........oa......"
+    - "......ooao......"
+    - ".....oaAoa......"
+    - "......oooa......"
+    - ".........o......"
+  shell:
+    - "................"
+    - "................"
+    - ".......oo......."
+    - "......oaao......"
+    - "....oobbbboo...."
+    - "...oblbbbbbbo..."
+    - "..oblbdbbdbbdo.."
+    - "..oblbdbbdbbdo.."
+    - ".oblbbdbbdbbbdo."
+    - ".oblbbdbbdbbbdo."
+    - ".obbbbdbbdbbbdo."
+    - ".obbbbdbbdbbbdo."
+    - "..obbbdbbdbbdo.."
+    - "...oooooooooo..."
+    - "................"
+    - "................"
+  leaf:
+    - "................"
+    - ".............oo."
+    - "...........ooblo"
+    - ".........oobblbo"
+    - ".......oobbblbdo"
+    - ".....oobbbblbbdo"
+    - "....obbbbblbbbdo"
+    - "...obbbbblbbbdo."
+    - "...obbbblbbbbdo."
+    - "..obbbblbbbbdo.."
+    - "..obbblbbbbddo.."
+    - "..obblbbbbddo..."
+    - "..oalddddoo....."
+    - ".oao.oooo......."
+    - "oao............."
+    - "oo.............."
+  cloak:
+    - "................"
+    - ".....oooooo....."
+    - "....obbbbbbo...."
+    - "...obbaaaabbo..."
+    - "...obbbaabbbo..."
+    - "..obbbbbbbbbbo.."
+    - "..oblbbbbbbbdo.."
+    - ".obllbbbbbbbbdo."
+    - ".oblbbbbbbbbbdo."
+    - ".oblbbbbbbbbbdo."
+    - ".obbbbbbbbbbbdo."
+    - "obbbbbbbbbbbbbdo"
+    - "obbbbbbbbbbbbbdo"
+    - "obbdbbbdbbbdbbdo"
+    - "oooooooooooooooo"
+    - "................"
 
 monsters:
   goblin: {shape: goblin, body: "#6aa84f", cloth: "#7a4b2a"}
@@ -732,21 +1327,187 @@ monsters:
   corrupted_warden: {shape: treant, body: "#5a4a3a", eye: "#c792ff", accent: "#4a6a2a"}
   kraken: {shape: kraken, body: "#6a3a6a"}
 
+# Item icons: one per ItemTemplate.icon (dagger is also the favicon).
 icons:
-  sword: {shape: sword, body: "#b8c0cc", light: "#eef2f8", accent: "#e0b040", cloth: "#7a4b2a"}
-  dagger: {shape: dagger, body: "#a8aab4", light: "#e6e8ee", accent: "#a07a3a", cloth: "#5a3a22"}
-  axe: {shape: axe, body: "#9aa0aa", light: "#e6e8ee", cloth: "#8a5a32"}
-  shield: {shape: shield, body: "#8a5a32", light: "#b07a48", accent: "#e0b040"}
-  armor: {shape: armor, body: "#8a8f9c", light: "#c4c8d2", accent: "#e0b040"}
-  amulet: {shape: amulet, body: "#e0b040", eye: "#5ab8ff", accent: "#e0b040", light: "#ffffff"}
-  ring: {shape: ring, body: "#e0b040", eye: "#e0405a", accent: "#e0b040", light: "#ffd0d8"}
-  bag: {shape: bag, body: "#9a6a3a", cloth: "#9a6a3a", accent: "#e0b040"}
+  dagger: {shape: dagger, body: "#b8c0cc", accent: "#e0b040", cloth: "#5a3a22"}
+  short_sword: {shape: sword, body: "#b8c0cc", accent: "#a07a3a", cloth: "#5a3a22"}
+  long_sword: {shape: sword, body: "#c8ccd8", accent: "#e0b040", cloth: "#5a3a22"}
+  frost_blade: {shape: sword, body: "#9fd0f0", light: "#ffffff", accent: "#c8e8ff", cloth: "#4a6a8a"}
+  valen_blade: {shape: sword, body: "#d8dce4", accent: "#e0b040", cloth: "#3a5a3a"}
+  obsidian_blade: {shape: sword, body: "#3a3048", light: "#8a7aaa", accent: "#c792ff", cloth: "#2a2238"}
+  flame_sword: {shape: sword, body: "#e0502e", light: "#ffd23f", accent: "#ffb03a", cloth: "#5a2a1a"}
+  shadow_blade: {shape: sword, body: "#4a3a6a", light: "#8a7aaa", accent: "#6a5a8a", cloth: "#1e1830"}
+  witch_trident: {shape: trident, body: "#7ab8a0", cloth: "#2e4a6a"}
+  elven_bow: {shape: bow, body: "#8ab870", accent: "#e0b040"}
+  elven_blade: {shape: sword, body: "#c8e8c0", light: "#ffffff", accent: "#7ac070", cloth: "#4a6a2a"}
+  aelmar_trident: {shape: trident, body: "#a0c0c0", light: "#e8faff", cloth: "#3a6a6a"}
+  void_edge: {shape: sword, body: "#6a3aa8", light: "#c792ff", accent: "#9a7aff", cloth: "#241c38"}
+  rusty_dagger: {shape: dagger, body: "#a08a70", light: "#c8b090", accent: "#7a5a32", cloth: "#5a3a22"}
+  war_axe: {shape: axe, body: "#9aa0aa", cloth: "#8a5a32"}
+  runed_hammer: {shape: hammer, body: "#8a8f9c", light: "#c4c8d2", accent: "#5ab8ff", cloth: "#7a4b2a"}
+  pitchfork: {shape: trident, body: "#9aa0aa", cloth: "#9a6a3a"}
+  magma_hammer: {shape: hammer, body: "#7a2a1a", light: "#e0502e", accent: "#ffb03a", cloth: "#3a2a2a"}
+  voidbreaker: {shape: hammer, body: "#3a2e5a", light: "#6a5a8a", accent: "#c792ff", cloth: "#241c38"}
+  harpoon: {shape: trident, body: "#a0a8b0", cloth: "#7a5a32"}
+  tusk_club: {shape: club, body: "#d8cfb8", cloth: "#7a4b2a"}
+  wolfking_fang: {shape: sword, body: "#e0d8c0", light: "#ffffff", accent: "#4a4058", cloth: "#3a3048"}
+  boarding_axe: {shape: axe, body: "#a0a8b0", cloth: "#5a3a22"}
+  storm_maul: {shape: hammer, body: "#7a8fb8", light: "#e8faff", accent: "#f2c14e", cloth: "#3a4a8a"}
+  wooden_shield: {shape: shield, body: "#9a6a3a", accent: "#c8b090"}
+  iron_shield: {shape: shield, body: "#8a8f9c", accent: "#5a5f6a"}
+  tower_shield: {shape: shield, body: "#6d6f78", accent: "#e0b040"}
+  obsidian_shield: {shape: shield, body: "#3a3048", light: "#6a5a8a", accent: "#c792ff"}
+  starsteel_shield: {shape: shield, body: "#a8c8ff", light: "#ffffff", accent: "#e0b040"}
+  drake_shield: {shape: shield, body: "#3a8a5a", accent: "#e0b040"}
+  nacre_shield: {shape: shield, body: "#e8e0f0", light: "#ffffff", accent: "#7ad8e8"}
+  bone_shield: {shape: shield, body: "#e0d8c0", accent: "#8a7a6a"}
+  bark_shield: {shape: shield, body: "#6a5a3a", accent: "#7ac070"}
+  crest_shield: {shape: shield, body: "#3a6a6a", accent: "#e0b040"}
+  leather_armor: {shape: armor, body: "#8a5a32", accent: "#c8b090"}
+  chain_mail: {shape: armor, body: "#9aa0aa", accent: "#5a5f6a"}
+  dwarven_plate: {shape: armor, body: "#8a8f9c", accent: "#e0b040"}
+  ember_plate: {shape: armor, body: "#a03a20", light: "#e0502e", accent: "#ffb03a"}
+  starsteel_plate: {shape: armor, body: "#a8c8ff", light: "#ffffff", accent: "#e0b040"}
+  oilskin_coat: {shape: cloak, body: "#c8a83a", accent: "#7a5a32"}
+  elven_cloak: {shape: cloak, body: "#4a7a3a", accent: "#e0b040"}
+  boar_leather_vest: {shape: armor, body: "#6a4a3a", accent: "#d8c070"}
+  frost_cloak: {shape: cloak, body: "#9fd0f0", accent: "#ffffff"}
+  wolfking_pelt: {shape: cloak, body: "#4a4058", accent: "#e0b040"}
+  skyguard_plate: {shape: armor, body: "#c8d0e0", light: "#ffffff", accent: "#5ab8ff"}
+  leather_cap: {shape: helmet, body: "#8a5a32", light: "#b07a48", accent: "#5a3a22"}
+  leather_boots: {shape: boots, body: "#8a5a32", accent: "#5a3a22"}
+  leather_leggings: {shape: legs, body: "#8a5a32", light: "#b07a48", accent: "#5a3a22"}
+  iron_greaves: {shape: legs, body: "#8a8f9c", light: "#c4c8d2", accent: "#5a3a22"}
+  iron_helm: {shape: helmet, body: "#8a8f9c", light: "#c4c8d2", accent: "#5a5f6a"}
+  iron_boots: {shape: boots, body: "#6d6f78", accent: "#5a3a22"}
+  obsidian_helm: {shape: helmet, body: "#3a3048", light: "#6a5a8a", accent: "#c792ff"}
+  obsidian_greaves: {shape: legs, body: "#3a3048", light: "#6a5a8a", accent: "#c792ff"}
+  obsidian_boots: {shape: boots, body: "#3a3048", light: "#6a5a8a", accent: "#c792ff"}
+  starsteel_helm: {shape: helmet, body: "#a8c8ff", light: "#ffffff", accent: "#e0b040"}
+  starsteel_greaves: {shape: legs, body: "#a8c8ff", light: "#ffffff", accent: "#e0b040"}
+  starsteel_boots: {shape: boots, body: "#a8c8ff", light: "#ffffff", accent: "#e0b040"}
+  diver_helm: {shape: helmet, body: "#c87a3a", light: "#f0b070", accent: "#7ad8e8"}
+  drake_helm: {shape: helmet, body: "#3a8a5a", accent: "#e0b040"}
+  salamander_boots: {shape: boots, body: "#e0632e", accent: "#ffb03a"}
+  wolfking_crown: {shape: crown, body: "#b8c0cc", eye: "#ff3b3b"}
+  ember_crown: {shape: crown, body: "#e0502e", light: "#ffd23f", eye: "#ffd23f"}
+  warden_crown: {shape: crown, body: "#c8c0a8", eye: "#7cff9a"}
+  skyguard_helm: {shape: helmet, body: "#c8d0e0", light: "#ffffff", accent: "#5ab8ff"}
+  skyguard_greaves: {shape: legs, body: "#c8d0e0", light: "#ffffff", accent: "#5ab8ff"}
+  bone_amulet: {shape: amulet, body: "#e0d8c0", eye: "#e0d8c0", accent: "#8a7a6a"}
+  amber_amulet: {shape: amulet, body: "#e8a030", eye: "#e8a030", accent: "#c87a3a"}
+  ember_amulet: {shape: amulet, body: "#e0502e", eye: "#e0502e", accent: "#e0b040"}
+  moonstone_amulet: {shape: amulet, body: "#d0d8ff", eye: "#d0d8ff", accent: "#d8dce4"}
+  winter_heart: {shape: amulet, body: "#9fd0f0", eye: "#9fd0f0", accent: "#d8dce4"}
+  soul_pendant: {shape: amulet, body: "#c792ff", eye: "#c792ff", accent: "#8a8f9c"}
+  coral_amulet: {shape: amulet, body: "#e07a7a", eye: "#e07a7a", accent: "#e0b040"}
+  pearl_necklace: {shape: amulet, body: "#f0eef8", eye: "#f0eef8", accent: "#f0eef8"}
+  light_charm: {shape: amulet, body: "#fff4b0", eye: "#fff4b0", accent: "#e0b040"}
+  claw_amulet: {shape: amulet, body: "#d8cfb8", eye: "#d8cfb8", accent: "#7a5a32"}
+  storm_amulet: {shape: amulet, body: "#5ab8ff", eye: "#5ab8ff", accent: "#d8dce4"}
+  rest_amulet: {shape: amulet, body: "#7cff9a", eye: "#7cff9a", accent: "#8a8f9c"}
+  kraken_amulet: {shape: amulet, body: "#ffd23f", eye: "#ffd23f", accent: "#6a3a6a"}
+  thunder_amulet: {shape: amulet, body: "#f2c14e", eye: "#f2c14e", accent: "#7a8fb8"}
+  copper_ring: {shape: ring, body: "#c87a3a", eye: "#c87a3a", accent: "#c87a3a"}
+  silver_ring: {shape: ring, body: "#d8dce4", eye: "#d8dce4", accent: "#d8dce4"}
+  ruby_ring: {shape: ring, body: "#e0405a", eye: "#e0405a", accent: "#e0b040"}
+  star_ring: {shape: ring, body: "#5ab8ff", eye: "#5ab8ff", accent: "#d8dce4"}
+  valen_ring: {shape: ring, body: "#7cff9a", eye: "#7cff9a", accent: "#e0b040"}
+  spider_ring: {shape: ring, body: "#c792ff", eye: "#c792ff", accent: "#3a3048"}
+  ignaros_ring: {shape: ring, body: "#e0502e", eye: "#e0502e", accent: "#e0b040"}
+  shadow_ring: {shape: ring, body: "#ff3b3b", eye: "#ff3b3b", accent: "#3a3048"}
+  leaf_ring: {shape: ring, body: "#7ac070", eye: "#7ac070", accent: "#7a5a32"}
+  pearl_ring: {shape: ring, body: "#f0eef8", eye: "#f0eef8", accent: "#d8dce4"}
+  thorn_ring: {shape: ring, body: "#c87ab0", eye: "#c87ab0", accent: "#4a6a2a"}
+  rat_king_ring: {shape: ring, body: "#ffd23f", eye: "#ffd23f", accent: "#8a7060"}
+  small_bag: {shape: bag, body: "#9a6a3a", cloth: "#9a6a3a", accent: "#c8b090"}
+  large_bag: {shape: bag, body: "#6a4a2a", cloth: "#6a4a2a", accent: "#e0b040"}
+  healing_potion: {shape: potion, body: "#d83a4a", cloth: "#8a5a32"}
+  greater_potion: {shape: potion, body: "#a01e3a", light: "#ff6a7a", cloth: "#8a5a32"}
+  strength_potion: {shape: potion, body: "#e0632e", cloth: "#8a5a32"}
+  stoneskin_potion: {shape: potion, body: "#8a8f9c", cloth: "#8a5a32"}
+  vigor_potion: {shape: potion, body: "#4caf50", cloth: "#8a5a32"}
+  dragon_blood: {shape: potion, body: "#6a0a1a", light: "#c03030", cloth: "#3a2a2a"}
+  elixir: {shape: potion, body: "#e0b040", light: "#fff4b0", cloth: "#e0b040"}
+  phoenix_draught: {shape: potion, body: "#ff8a2a", light: "#ffe07a", cloth: "#a03a20"}
+  starlight_tonic: {shape: potion, body: "#5a7aff", light: "#d0e0ff", cloth: "#d8dce4"}
+  kelp_salve: {shape: potion, body: "#3a8a5a", cloth: "#8a5a32"}
+  honey_mead: {shape: potion, body: "#e8a030", light: "#ffe07a", cloth: "#8a5a32"}
+  holy_water: {shape: potion, body: "#9fd0f0", light: "#ffffff", cloth: "#e0b040"}
   bread: {shape: bread, body: "#c8873e", light: "#f0c27a"}
-  flame: {shape: flame, body: "#e0502e", light: "#ffb03a", eye: "#fff4b0"}
-  herb: {shape: herb, body: "#4caf50", light: "#9be07a", accent: "#7a5a32"}
-  potion: {shape: potion, body: "#d83a4a", light: "#ff8a8a", cloth: "#8a5a32"}
-  scroll: {shape: scroll, body: "#e8d9a8", light: "#fff4d6"}
-  trophy: {shape: trophy, body: "#e0b040", light: "#fff0a0", cloth: "#5a3a22"}
-  helmet: {shape: helmet, body: "#8a8f9c", light: "#c4c8d2", accent: "#e0b040"}
-  legs: {shape: legs, body: "#8a8f9c", light: "#c4c8d2", accent: "#7a4b2a"}
-  boots: {shape: boots, body: "#8a5a32", light: "#b07a48", accent: "#5a3a22"}
+  apple_pie: {shape: pie, body: "#c8873e", light: "#f0c27a", accent: "#8a2a2a"}
+  cheese: {shape: cheese, body: "#f0c84a", light: "#fff0a0"}
+  boar_ham: {shape: meat, body: "#b05a4a"}
+  smoked_fish: {shape: fish, body: "#a07a4a", eye: "#3a2a2a"}
+  crab_meat: {shape: meat, body: "#e07a5a"}
+  elven_bread: {shape: bread, body: "#e8d9a8", light: "#fffbe8"}
+  stew: {shape: bowl, body: "#a0603a", light: "#d8904a", accent: "#8a5a32"}
+  bog_herb: {shape: herb, body: "#5d7a3a", light: "#8ab870", accent: "#5a3a22"}
+  frost_berries: {shape: berries, body: "#6fb3ff", accent: "#4a6a2a"}
+  wild_apple: {shape: apple, body: "#d83a3a", accent: "#7a5a32"}
+  moon_lily: {shape: flower, body: "#e8e0ff", eye: "#ffd23f", accent: "#4a8a3a"}
+  mussels: {shape: shell, body: "#3a3a5a", light: "#6a6a9a", accent: "#e8d9a8"}
+  silverleaf: {shape: leaf, body: "#c8d8d0", light: "#ffffff", accent: "#7a5a32"}
+  sea_kelp: {shape: leaf, body: "#3a8a5a", accent: "#2e5a3a"}
+  fire_blossom: {shape: flower, body: "#e0502e", eye: "#ffd23f", accent: "#4a6a2a"}
+  ember_core: {shape: orb, body: "#e0502e", light: "#ffb03a", eye: "#ffd23f"}
+  wanted_poster: {shape: letter, accent: "#c03030", body: "#e8d9a8"}
+  goblin_letter: {shape: letter, accent: "#4caf50", body: "#e8d9a8"}
+  child_drawing: {shape: map, body: "#f0e8d0", accent: "#e0405a", eye: "#5ab8ff"}
+  valen_testament: {shape: book, cloth: "#3a5a3a", accent: "#e0b040", body: "#e8d9a8"}
+  miner_diary: {shape: book, cloth: "#6a4a2a", accent: "#c8b090", body: "#e8d9a8"}
+  ship_log: {shape: book, cloth: "#2e4a6a", accent: "#c8b090", body: "#e8d9a8"}
+  smuggler_note: {shape: letter, accent: "#3a3a4a", body: "#e8d9a8"}
+  dwarf_chronicle: {shape: book, cloth: "#7a2a1a", accent: "#e0b040", body: "#e8d9a8"}
+  ilva_map: {shape: map, body: "#e8d9a8", accent: "#c03030", eye: "#c03030"}
+  lantern_prayer: {shape: scroll, body: "#fff4d6", light: "#ffffff"}
+  black_tablet: {shape: tablet, body: "#2e2a3a", light: "#5a4a7a"}
+  elven_inscription: {shape: tablet, body: "#c8d8d0", light: "#ffffff"}
+  aelmar_chronicle: {shape: book, cloth: "#3a6a6a", accent: "#a0c0c0", body: "#e8d9a8"}
+  tavern_rumors: {shape: letter, accent: "#e0b040", body: "#e8d9a8"}
+  temple_prayer: {shape: scroll, body: "#f0eef8", light: "#ffffff"}
+  goblin_ear: {shape: ear, body: "#6aa84f"}
+  bone_dust: {shape: dust, body: "#e0d8c0"}
+  troll_tusk: {shape: fang, body: "#e0d8c0"}
+  harpy_feather: {shape: feather, body: "#9a7a5a", accent: "#d8c070"}
+  frost_pelt: {shape: pelt, body: "#9fc6e6"}
+  ice_shard: {shape: crystal, body: "#9fd0f0", light: "#ffffff"}
+  drake_scale: {shape: scale, body: "#8fc7e8"}
+  ghoul_claw: {shape: fang, body: "#8a9a7a"}
+  spider_silk: {shape: spool, cloth: "#5a2a6a", body: "#e8d9a8"}
+  queen_fang: {shape: fang, body: "#c792ff"}
+  rat_tail: {shape: tail, body: "#c8a090"}
+  crow_feather: {shape: feather, body: "#3a3448", light: "#6a6488", accent: "#d8c070"}
+  boar_hide: {shape: pelt, body: "#6a4a3a"}
+  valen_signet: {shape: ring, body: "#3a8a5a", eye: "#3a8a5a", accent: "#e0b040"}
+  salamander_scale: {shape: scale, body: "#e0632e"}
+  wraith_ash: {shape: dust, body: "#6a6060"}
+  giant_tooth: {shape: fang, body: "#f2ecdc"}
+  ignaros_crown: {shape: crown, body: "#e0b040", eye: "#e0502e"}
+  shadow_pelt: {shape: pelt, body: "#2e2640", light: "#4a3e66"}
+  void_shard: {shape: crystal, body: "#6a3aa8", light: "#c792ff"}
+  nightmare_essence: {shape: orb, body: "#6a3a8a", eye: "#ff3b3b"}
+  warden_sigil: {shape: seal, body: "#3a3048", accent: "#8a8f9c", eye: "#c792ff", cloth: "#5a5a50"}
+  shadow_crown: {shape: crown, body: "#3a3048", light: "#6a5a8a", eye: "#c792ff"}
+  crab_shell: {shape: shell, body: "#c8603a", accent: "#e8d9a8"}
+  old_compass: {shape: compass, accent: "#a07a3a", eye: "#c03030", body: "#e8d9a8"}
+  contraband: {shape: crate, body: "#8a5a32"}
+  storm_essence: {shape: orb, body: "#5a7aff", eye: "#e8faff"}
+  black_pearl: {shape: orb, body: "#2e2a3a", light: "#8a7aaa", eye: "#2e2a3a"}
+  gold_tooth: {shape: fang, body: "#e0b040"}
+  white_pelt: {shape: pelt, body: "#e8e8f0"}
+  rat_crown: {shape: crown, body: "#8a7060", eye: "#ffd23f"}
+  wisp_light: {shape: orb, body: "#7ad8e8", light: "#e8faff", eye: "#ffffff"}
+  dryad_bark: {shape: wood, body: "#8ab870", accent: "#6a5a3a"}
+  thorn_spike: {shape: fang, body: "#4a6a2a"}
+  warden_heartwood: {shape: wood, body: "#5a4a3a", accent: "#c792ff"}
+  raider_hook: {shape: hook, body: "#a0a8b0", cloth: "#5a3a22"}
+  knight_crest: {shape: seal, body: "#3a6a6a", accent: "#e0b040", cloth: "#a0c0c0", eye: "#7ad8e8"}
+  coral_shard: {shape: crystal, body: "#e07a7a"}
+  kraken_eye: {shape: orb, body: "#6a3a6a", eye: "#ffd23f"}
+  wight_dust: {shape: dust, body: "#8a9a8a"}
+  grave_fang: {shape: fang, body: "#d8cfb8"}
+  gerulf_fang: {shape: fang, body: "#b8c0cc"}
+  storm_feather: {shape: feather, body: "#c8d8ff", accent: "#f2c14e"}
+  sky_iron: {shape: crystal, body: "#c8d0e0", light: "#ffffff"}
+  tharos_horn: {shape: fang, body: "#f2c14e"}

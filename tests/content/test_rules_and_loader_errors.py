@@ -194,8 +194,8 @@ def test_intro_quest_must_exist(data_dir: Path) -> None:
 def test_missing_icon_rejected(data_dir: Path, tmp_path: Path) -> None:
     icons = tmp_path / "icons"
     shutil.copytree(ICONS_DIR, icons)
-    (icons / "potion.svg").unlink()
-    with pytest.raises(ContentValidationError, match="missing icon 'potion.svg'"):
+    (icons / "healing_potion.svg").unlink()
+    with pytest.raises(ContentValidationError, match="missing icon 'healing_potion.svg'"):
         load_content(data_dir, icons_dir=icons)
 
 

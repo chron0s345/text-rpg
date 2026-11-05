@@ -22,8 +22,8 @@ def test_load_real_content_data() -> None:
     assert registry.rooms["town_bank"].bank is True
     assert "goblin" in registry.monsters
     assert "healing_potion" in registry.items
-    assert registry.items["healing_potion"].icon == "potion"
-    assert registry.items["rusty_dagger"].icon == "dagger"
+    assert registry.items["healing_potion"].icon == "healing_potion"
+    assert registry.items["rusty_dagger"].icon == "rusty_dagger"
     assert "alchemist" in registry.merchants
     assert registry.rules.start_room_id == "town_square"
 
