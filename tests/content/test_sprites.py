@@ -1,4 +1,5 @@
-"""Monster portraits: every monster has one, the committed SVGs match data/sprites.yaml."""
+"""Pixel art: every monster has a portrait and every item icon exists, the committed SVGs
+match data/sprites.yaml."""
 
 from pathlib import Path
 
@@ -13,6 +14,7 @@ from app.content.sprites import (
     load_sprites,
     palette,
     render_all,
+    render_icons,
     render_svg,
 )
 from app.web.render import STATIC_DIR
@@ -21,6 +23,7 @@ from tests.conftest import DATA_DIR
 CONTENT = load_content(DATA_DIR)
 SHEET = load_sprites(DATA_DIR / "sprites.yaml")
 SPRITES_DIR = STATIC_DIR / "sprites"
+ICONS_DIR = STATIC_DIR / "icons"
 
 
 def test_every_monster_has_a_portrait() -> None:
@@ -35,6 +38,14 @@ def test_committed_svgs_match_the_yaml() -> None:
     assert on_disk.keys() == expected.keys()
     stale = [name for name, svg in expected.items() if on_disk[name] != svg]
     assert stale == []
+
+
+def test_every_item_icon_is_pixel_art() -> None:
+    used = {i.icon for i in CONTENT.items.values() if i.icon is not None}
+    assert used <= set(SHEET.icons)
+    expected = render_icons(SHEET)
+    on_disk = {p.name: p.read_text(encoding="utf-8") for p in Path(ICONS_DIR).glob("*.svg")}
+    assert on_disk == expected
 
 
 def test_an_svg_is_one_rect_per_run_of_a_color() -> None:
