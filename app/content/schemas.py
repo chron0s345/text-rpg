@@ -419,10 +419,29 @@ class LevelRule(BaseModel):
     defense: NonNegativeInt
 
 
+class ClassBonus(BaseModel):
+    """Percent added to (or, negative, taken from) the level table's base stats."""
+
+    max_hp: int = Field(default=0, ge=-50, le=100)
+    attack: int = Field(default=0, ge=-50, le=100)
+    defense: int = Field(default=0, ge=-50, le=100)
+
+
+class ClassTemplate(BaseModel):
+    """A character class (data/classes.yaml): the same levels, other base stats."""
+
+    id: str
+    name: str
+    description: str
+    bonus: ClassBonus = Field(default_factory=ClassBonus)
+
+
 class Rules(BaseModel):
     start_room_id: str
     town_room_id: str
     intro_quest_id: str | None  # first quest for newcomers: pointed out on login at level 1
+    # class of new characters without a choice; characters of it may pick a class once
+    start_class_id: str = "adventurer"
     max_characters_per_account: PositiveInt
     max_group_size: PositiveInt
     inventory: InventoryRules

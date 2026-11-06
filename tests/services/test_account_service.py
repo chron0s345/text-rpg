@@ -11,12 +11,14 @@ from sqlalchemy import update
 from sqlmodel import col
 
 from app.db.models import Account, Player
+from app.engine.classes import base_stats
 from app.services.account_service import (
     AccountService,
     CharacterLimitError,
     CharacterNameTakenError,
     CharacterNotFoundError,
     CharacterOnlineError,
+    ClassLockedError,
     InvalidInputError,
     UsernameTakenError,
     WrongPasswordError,
@@ -203,3 +205,57 @@ async def test_avatars_are_chosen_changed_and_checked(
     stranger = await new_account(harness, accounts)
     with pytest.raises(CharacterNotFoundError):
         await accounts.set_avatar(stranger.id, knight.id, "mage")
+
+
+async def test_classes_scale_the_stats_and_adventurers_choose_once(
+    harness: ServiceHarness, accounts: AccountService
+) -> None:
+    content = harness.content
+    account = await new_account(harness, accounts)
+    level_1 = content.rules.level_rule(1)
+    mage = await accounts.create_character(account.id, unique_name(), class_id="mage")
+    assert (mage.class_id, mage.class_name, mage.can_choose_class) == ("mage", "Magier", False)
+    async with harness.committed.session() as db:
+        row = await db.get(Player, mage.id)
+    assert row is not None
+    expected = base_stats(level_1, content.classes["mage"])
+    assert (row.hp, row.base_max_hp, row.base_attack, row.base_defense) == (
+        expected.max_hp,
+        expected.max_hp,
+        expected.attack,
+        expected.defense,
+    )
+    with pytest.raises(InvalidInputError):
+        await accounts.create_character(account.id, unique_name(), class_id="bard")
+
+    hero = await accounts.create_character(account.id, unique_name())  # an adventurer
+    assert (hero.class_id, hero.can_choose_class) == (content.rules.start_class_id, True)
+    async with harness.committed.session() as db, db.begin():
+        await db.execute(update(Player).where(col(Player.id) == hero.id).values(hp=10))
+    chosen = await accounts.choose_class(account.id, hero.id, "warrior")
+    assert (chosen.class_id, chosen.can_choose_class) == ("warrior", False)
+    async with harness.committed.session() as db:
+        row = await db.get(Player, hero.id)
+    assert row is not None
+    warrior = base_stats(level_1, content.classes["warrior"])
+    assert (row.base_max_hp, row.base_attack, row.base_defense) == (
+        warrior.max_hp,
+        warrior.attack,
+        warrior.defense,
+    )
+    assert row.hp == 10 * warrior.max_hp // level_1.max_hp  # keeps its share of the maximum
+    with pytest.raises(ClassLockedError):
+        await accounts.choose_class(account.id, hero.id, "mage")  # once only
+    with pytest.raises(InvalidInputError):
+        await accounts.choose_class(account.id, mage.id, content.rules.start_class_id)
+
+
+async def test_no_class_change_in_a_fight(
+    harness: ServiceHarness, accounts: AccountService
+) -> None:
+    account = await new_account(harness, accounts)
+    hero = await accounts.create_character(account.id, unique_name())
+    async with harness.committed.session() as db, db.begin():
+        await db.execute(update(Player).where(col(Player.id) == hero.id).values(state="in_combat"))
+    with pytest.raises(ClassLockedError):
+        await accounts.choose_class(account.id, hero.id, "ranger")

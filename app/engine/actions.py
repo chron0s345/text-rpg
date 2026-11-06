@@ -212,8 +212,11 @@ def resolve_inspect_player(
         if slot in worn and slot != "bag"
     ]
     earned = sum(1 for a in target.achievements if a in content.achievements)
+    player_class = content.classes.get(target.class_id)
     lines = [
-        f"{target.name}{f' {title}' if title else ''} – Stufe {target.level}.",
+        f"{target.name}{f' {title}' if title else ''} – Stufe {target.level}"
+        + (f" {player_class.name}" if player_class else "")
+        + ".",
         f"Angriff {stats.attack} · Verteidigung {stats.defense} · max. HP {stats.max_hp}.",
         "Trägt: " + ("; ".join(gear) if gear else "nichts Nennenswertes") + ".",
         f"Erfolge: {earned}/{len(content.achievements)} · "

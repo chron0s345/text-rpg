@@ -118,3 +118,30 @@ def test_travel_table_lists_every_route() -> None:
     assert {(a, b) for a, b, _, _ in routes} <= {
         pair for a, b, _, _ in documented for pair in ((a, b), (b, a))
     }
+
+
+def test_class_table_matches_classes_yaml() -> None:
+    lines = DOC.read_text().splitlines()
+    start = lines.index("| Klasse | Leben | Angriff | Verteidigung | Spielweise |") + 2
+
+    def percent(cell: str) -> int:
+        cell = cell.strip().removesuffix(" %").replace("±", "").replace("−", "-")
+        return int(cell)
+
+    documented = []
+    for line in lines[start:]:
+        if not line.startswith("|"):
+            break
+        name, hp, attack, defense = (c.strip() for c in line.split("|")[1:5])
+        documented.append((name, percent(hp), percent(attack), percent(defense)))
+    classes = yaml.safe_load((DOC.parents[1] / "data" / "classes.yaml").read_text())
+    expected = [
+        (
+            c["name"],
+            c.get("bonus", {}).get("max_hp", 0),
+            c.get("bonus", {}).get("attack", 0),
+            c.get("bonus", {}).get("defense", 0),
+        )
+        for c in classes
+    ]
+    assert documented == expected

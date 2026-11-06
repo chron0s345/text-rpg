@@ -23,6 +23,7 @@ from sqlmodel import col
 
 from app.content.registry import ContentRegistry
 from app.db.models import Account, Player
+from app.engine.classes import base_stats
 from app.services.action_service import utc_now
 from app.services.login_guard import LoginGuard
 
@@ -39,6 +40,10 @@ class AccountError(Exception):
 
 class UsernameTakenError(AccountError):
     pass
+
+
+class ClassLockedError(AccountError):
+    """The class was chosen already, or the character is in a fight."""
 
 
 class InvalidInputError(AccountError):
@@ -74,6 +79,9 @@ class CharacterInfo:
     room_id: str
     online: bool
     avatar: str = ""  # the portrait shown (ContentRegistry.avatar_for)
+    class_id: str = ""
+    class_name: str = ""
+    can_choose_class: bool = False  # still in the start class: may pick one once
 
 
 def _info(row: Player, content: ContentRegistry) -> CharacterInfo:
@@ -85,6 +93,9 @@ def _info(row: Player, content: ContentRegistry) -> CharacterInfo:
         room_id=row.current_room_id,
         online=row.online,
         avatar=content.avatar_for(row.id, row.avatar),
+        class_id=row.class_id,
+        class_name=content.classes[row.class_id].name if row.class_id in content.classes else "",
+        can_choose_class=row.class_id == content.rules.start_class_id and len(content.classes) > 1,
     )
 
 
@@ -230,15 +241,19 @@ class AccountService:
             return [_info(row, self.content) for row in rows.all()]
 
     async def create_character(
-        self, account_id: UUID, name: str, avatar: str | None = None
+        self, account_id: UUID, name: str, avatar: str | None = None, class_id: str | None = None
     ) -> CharacterInfo:
-        """New character with level-1 stats in ``start_room_id`` (also its first checkpoint);
-        without an ``avatar`` it shows one picked by its id."""
+        """New character with level-1 stats of its class in ``start_room_id`` (also its first
+        checkpoint); without an ``avatar`` it shows one picked by its id, without a
+        ``class_id`` it starts in ``rules.start_class_id``."""
         if not CHARACTER_NAME.fullmatch(name):
             raise InvalidInputError("Name: 3–20 Buchstaben.")
         self._check_avatar(avatar)
         rules = self.content.rules
-        start = rules.level_rule(1)
+        class_id = class_id or rules.start_class_id
+        if self.content.classes and class_id not in self.content.classes:
+            raise InvalidInputError("Diese Klasse gibt es nicht.")
+        start = base_stats(rules.level_rule(1), self.content.classes.get(class_id))
         try:
             async with self.sessions() as session, session.begin():
                 # account row lock: concurrent creates cannot exceed the character limit
@@ -264,11 +279,39 @@ class AccountService:
                     current_room_id=rules.start_room_id,
                     checkpoint_room_id=rules.start_room_id,
                     avatar=avatar,
+                    class_id=class_id,
                 )
                 session.add(player)
         except IntegrityError as exc:  # unique, case-insensitive among non-deleted characters
             raise CharacterNameTakenError("Dieser Name ist vergeben.") from exc
         return _info(player, self.content)
+
+    async def choose_class(
+        self, account_id: UUID, character_id: UUID, class_id: str
+    ) -> CharacterInfo:
+        """A character still in the start class picks its class, once. Its base stats become
+        the class's for its level; current HP keep their share of the maximum. Not in a fight:
+        the stats must not change under a running combat round."""
+        rules = self.content.rules
+        chosen = self.content.classes.get(class_id)
+        if chosen is None or class_id == rules.start_class_id:
+            raise InvalidInputError("Diese Klasse gibt es nicht.")
+        async with self.sessions() as session, session.begin():
+            row = await session.get(Player, character_id, with_for_update=True)
+            if row is None or row.account_id != account_id or row.deleted_at is not None:
+                raise CharacterNotFoundError("Diesen Charakter gibt es nicht.")
+            if row.class_id != rules.start_class_id:
+                raise ClassLockedError("Die Klasse lässt sich nur einmal wählen.")
+            if row.state == "in_combat":
+                raise ClassLockedError("Nicht mitten im Kampf.")
+            stats = base_stats(rules.level_rule(row.level), chosen)
+            if row.state != "dead":
+                row.hp = max(1, row.hp * stats.max_hp // max(1, row.base_max_hp))
+            row.class_id = class_id
+            row.base_max_hp = stats.max_hp
+            row.base_attack = stats.attack
+            row.base_defense = stats.defense
+            return _info(row, self.content)
 
     def _check_avatar(self, avatar: str | None) -> None:
         if avatar is not None and avatar not in self.content.avatars:

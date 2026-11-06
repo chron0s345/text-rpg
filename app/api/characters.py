@@ -7,7 +7,13 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, Request, Response, status
 
 from app.api.deps import AccountId, ServicesDep, session_player_id
-from app.api.schemas import ActionResponse, CharacterCreate, CharacterOut, PlayRequest
+from app.api.schemas import (
+    ActionResponse,
+    CharacterCreate,
+    CharacterOut,
+    ClassChoice,
+    PlayRequest,
+)
 from app.services.account_service import (
     AccountError,
     CharacterInfo,
@@ -15,6 +21,7 @@ from app.services.account_service import (
     CharacterNameTakenError,
     CharacterNotFoundError,
     CharacterOnlineError,
+    ClassLockedError,
 )
 from app.services.session_service import ConfirmDeathRequiredError, SessionConflictError
 
@@ -30,6 +37,8 @@ def _out(info: CharacterInfo) -> CharacterOut:
         room_id=info.room_id,
         online=info.online,
         avatar=info.avatar,
+        class_id=info.class_id,
+        can_choose_class=info.can_choose_class,
     )
 
 
@@ -43,7 +52,11 @@ async def create_character(
     body: CharacterCreate, account_id: AccountId, services: ServicesDep
 ) -> CharacterOut:
     try:
-        return _out(await services.accounts.create_character(account_id, body.name, body.avatar))
+        return _out(
+            await services.accounts.create_character(
+                account_id, body.name, body.avatar, body.class_id
+            )
+        )
     except (CharacterNameTakenError, CharacterLimitError) as exc:
         raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
     except AccountError as exc:
@@ -70,6 +83,21 @@ async def play(
         raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
     request.session["player_id"] = str(character_id)
     return ActionResponse.of(outcome.events)
+
+
+@router.post("/{character_id}/class")
+async def choose_class(
+    character_id: UUID, body: ClassChoice, account_id: AccountId, services: ServicesDep
+) -> CharacterOut:
+    """An adventurer (the start class) picks its class, once; not in a fight."""
+    try:
+        return _out(await services.accounts.choose_class(account_id, character_id, body.class_id))
+    except CharacterNotFoundError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+    except ClassLockedError as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+    except AccountError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
 
 
 @router.delete("/{character_id}", status_code=status.HTTP_204_NO_CONTENT)

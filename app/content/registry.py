@@ -5,6 +5,7 @@ from uuid import UUID
 
 from app.content.schemas import (
     AchievementTemplate,
+    ClassTemplate,
     ItemSet,
     ItemTemplate,
     MerchantTemplate,
@@ -30,6 +31,7 @@ class ContentRegistry:
     item_sets: dict[str, ItemSet] = field(default_factory=dict)  # pieces carry theirs, too
     achievements: dict[str, AchievementTemplate] = field(default_factory=dict)
     avatars: dict[str, str] = field(default_factory=dict)  # avatar id -> label (sprites.yaml)
+    classes: dict[str, ClassTemplate] = field(default_factory=dict)  # optional (classes.yaml)
 
     def avatar_for(self, player_id: UUID, chosen: str | None) -> str:
         """The avatar a character shows: the chosen one, else one picked by its id (so

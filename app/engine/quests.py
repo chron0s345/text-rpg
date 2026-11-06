@@ -280,7 +280,14 @@ def resolve_quest_turn_in(
     if rewards:
         builder.to_actor("quest.reward", "Belohnung: " + ", ".join(rewards) + ".")
     if quest.reward.xp:
-        apply_xp(builder, actor, quest.reward.xp, rules, content.items)
+        apply_xp(
+            builder,
+            actor,
+            quest.reward.xp,
+            rules,
+            content.items,
+            content.classes.get(actor.class_id),
+        )
     grant(builder, actor, content)
     return builder.build()
 

@@ -174,7 +174,9 @@ def _grant_xp(
     for player_id, amount in distribute_xp(template.xp_reward, weights).items():
         player = snapshot.player(player_id)
         if player is not None:
-            apply_xp(builder, player, amount, rules, content.items)
+            apply_xp(
+                builder, player, amount, rules, content.items, content.classes.get(player.class_id)
+            )
 
 
 def _grant_gold(

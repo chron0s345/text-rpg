@@ -19,7 +19,8 @@ from pathlib import Path
 import pytest
 
 from app.content.loader import load_content
-from app.content.schemas import MonsterTemplate
+from app.content.schemas import ClassTemplate, MonsterTemplate
+from app.engine.classes import base_stats
 from app.engine.encounter import estimate_fight
 from app.engine.gear import needed_item_ids
 from app.engine.stats import active_set_effects
@@ -68,10 +69,13 @@ def gear_bonus(stat: str, budget: int) -> int:
     return sum(best.values()) + set_bonus
 
 
-def damage_taken(monster: MonsterTemplate, geared: bool = True) -> tuple[int, int]:
-    """(damage the player takes until the monster dies, the player's max HP)."""
+def damage_taken(
+    monster: MonsterTemplate, geared: bool = True, player_class: ClassTemplate | None = None
+) -> tuple[int, int]:
+    """(damage the player takes until the monster dies, the player's max HP); the player has
+    the base stats of its class (without one, the plain level table)."""
     rules = CONTENT.rules
-    level = rules.level_rule(monster.level)
+    level = base_stats(rules.level_rule(monster.level), player_class)
     budget = gear_budget(monster.level) if geared else 0
     attack = level.attack + gear_bonus("attack", budget)
     defense = level.defense + gear_bonus("defense", budget)
@@ -103,6 +107,21 @@ def test_monsters_can_be_beaten_and_bosses_need_help(monster: MonsterTemplate) -
         if not rare and monster.level <= 5:
             bare, bare_max = damage_taken(monster, geared=False)
             assert bare < bare_max, "early monsters stay beatable without gear"
+
+
+@pytest.mark.parametrize("player_class", CONTENT.classes.values(), ids=lambda c: c.id)
+def test_every_class_holds_its_own_and_still_needs_a_group_for_bosses(
+    player_class: ClassTemplate,
+) -> None:
+    """Classes trade stats: none may die to a normal monster of its level, none may make them
+    trivial, and every boss still takes a group or potions. Bands are wider than for the plain
+    level table above: a warrior is meant to take less, a mage to hit harder."""
+    for monster in MONSTERS:
+        taken, max_hp = damage_taken(monster, player_class=player_class)
+        if monster.id in BOSSES:
+            assert max_hp < taken < CONTENT.rules.max_group_size * max_hp, monster.id
+        else:
+            assert 0.05 <= taken / max_hp <= 0.65, f"{monster.id}: {taken}/{max_hp} HP"
 
 
 def test_rare_variants_are_worth_the_luck() -> None:

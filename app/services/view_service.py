@@ -89,6 +89,7 @@ class PlayerView:
     state: str
     combat_target_id: UUID | None
     avatar: str = ""  # portrait, static/avatars/<avatar>.svg ("" without avatars)
+    class_name: str = ""  # "Krieger"; "" without classes
     title: str = ""  # chosen achievement title, shown after the name
     buffs: list[str] = field(default_factory=list)  # "Trank der Stärke: +3 Angriff (noch 2 Siege)"
 
@@ -385,6 +386,7 @@ class BestiaryView:
 class OnlineView:
     name: str
     avatar: str
+    class_name: str
     level: int
     title: str
     room_name: str
@@ -525,6 +527,7 @@ class ViewService:
             state=row.state,
             combat_target_id=row.combat_target_id,
             avatar=self.content.avatar_for(row.id, row.avatar),
+            class_name=self._class_name(row.class_id),
             title=self._title(row.title),
             buffs=self._buffs(snapshot),
         )
@@ -871,6 +874,10 @@ class ViewService:
         slot = slots.index(template.slot) if template.slot in slots else len(slots)
         return kinds.index(template.kind), slot, item.name
 
+    def _class_name(self, class_id: str) -> str:
+        player_class = self.content.classes.get(class_id)
+        return player_class.name if player_class is not None else ""
+
     def _title(self, achievement_id: str | None) -> str:
         achievement = self.content.achievements.get(achievement_id or "")
         return achievement.title or "" if achievement is not None else ""
@@ -1013,6 +1020,7 @@ class ViewService:
                         col(Player.current_room_id),
                         col(Player.state),
                         col(Player.avatar),
+                        col(Player.class_id),
                     )
                     .where(*online)
                     .order_by(col(Player.level).desc(), col(Player.name))
@@ -1026,13 +1034,14 @@ class ViewService:
                 OnlineView(
                     name=name,
                     avatar=self.content.avatar_for(pid, avatar),
+                    class_name=self._class_name(class_id),
                     level=level,
                     title=self._title(title),
                     room_name=rooms[room].name if room in rooms else "",
                     state=state,
                     me=pid == player_id,
                 )
-                for pid, name, level, title, room, state, avatar in rows
+                for pid, name, level, title, room, state, avatar, class_id in rows
             ],
         )
 

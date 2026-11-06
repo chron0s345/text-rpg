@@ -134,6 +134,20 @@ Jeder Charakter hat **Lebenspunkte (HP)**, **Angriff** und **Verteidigung**. Die
 | 14 | 37500 | 192 | 47 | 22 |
 | 15 | 45000 | 215 | 52 | 25 |
 
+### Klassen
+
+Beim Erschaffen wählst du eine **Klasse**. Alle steigen gleich auf, aber die Klasse verschiebt die Grundwerte der Tabelle oben um einen festen Anteil – auf jeder Stufe. Ein Magier der Stufe 10 hat also 100 statt 118 HP, aber 40 statt 31 Angriff.
+
+| Klasse | Leben | Angriff | Verteidigung | Spielweise |
+|---|---|---|---|---|
+| Abenteurer | ±0 % | ±0 % | ±0 % | von allem ein bisschen |
+| Krieger | +10 % | −10 % | +15 % | steht vorne und hält aus |
+| Waldläufer | −5 % | +15 % | −5 % | schnell und treffsicher |
+| Magier | −15 % | +30 % | −15 % | zerstörerisch, aber dünnhäutig |
+| Priester | +10 % | −5 % | +5 % | ausdauernd und zäh |
+
+Wer keine Klasse wählt – und jeder Charakter von vor der Einführung der Klassen –, ist **Abenteurer** und darf auf der Charakterauswahl **einmal** eine andere Klasse annehmen (nicht mitten im Kampf). Die Werte richten sich sofort nach ihr, deine HP behalten ihren Anteil am Maximum. Die Wahl ist endgültig. Deine Klasse steht in der Statusleiste und bei „Ansehen“; auch ohne Klasse braucht jeder Boss eine Gruppe oder Tränke.
+
 Ein **Stufenaufstieg** heilt vollständig (inklusive der HP aus Ausrüstung). Reicht die Erfahrung für mehrere Stufen auf einmal, steigst du direkt bis zur höchsten erreichten auf.
 
 **Heilen:** Deine HP kommen nicht von selbst zurück. An einem **sicheren Ort** (Oakhaven, Lager, Zuflucht – auf der Karte grün umrandet) kannst du **rasten** und bist sofort wieder bei vollen Kräften, kostenlos. Unterwegs helfen nur Essen und Tränke. Stufenaufstieg und Erwachen nach dem Tod heilen ebenfalls vollständig.

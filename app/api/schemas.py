@@ -319,6 +319,7 @@ class AccountOut(BaseModel):
 class CharacterCreate(BaseModel):
     name: str = Field(max_length=20)
     avatar: str | None = Field(default=None, max_length=32)  # None: picked by the id
+    class_id: str | None = Field(default=None, max_length=32)  # None: rules.start_class_id
 
 
 class CharacterOut(BaseModel):
@@ -329,6 +330,12 @@ class CharacterOut(BaseModel):
     room_id: str
     online: bool
     avatar: str  # portrait shown, static/avatars/<avatar>.svg
+    class_id: str  # data/classes.yaml
+    can_choose_class: bool  # still in the start class: POST /characters/{id}/class once
+
+
+class ClassChoice(BaseModel):
+    class_id: str = Field(max_length=32)
 
 
 class PlayRequest(BaseModel):
