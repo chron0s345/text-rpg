@@ -6,7 +6,7 @@ Wie das Spiel aus Sicht der Spielenden funktioniert. Technische Umsetzung: [`ARC
 
 Alle spielen in **einer gemeinsamen, dauerhaften Welt**. Wer im selben Raum steht, sieht sich gegenseitig, dieselben Monster und dieselben Gegenstände am Boden. Gespeichert wird automatisch nach jeder Aktion.
 
-Über jedem Raum zeigt ein **Pixelbild**, wo du bist – vom Marktplatz in der Abendsonne bis zum Thron der Schatten. Die **Minikarte** im Raumpanel zeigt die Umgebung auf einem Raster von 5 × 5 Feldern um dich herum: wo du stehst, sichere Räume, Händler und – mit Stern – wohin dich deine Aufträge gerade führen (das Ziel eines „Gehe zu“, die Räume mit den gesuchten Monstern oder den Auftraggeber, wenn du abgeben kannst). Kleine Dreiecke zeigen Wege nach oben oder unten.
+Über jedem Raum zeigt ein **Pixelbild**, wo du bist – vom Marktplatz in der Abendsonne bis zum Thron der Schatten. Kämpfe sind animiert: Dein Gegner blitzt bei jedem Treffer auf, Schadens- und Heilzahlen steigen auf, der Bildschirmrand glüht rot, wenn du getroffen wirst, und Stufenaufstiege, Erfolge und erledigte Aufträge erscheinen als Banner. Wer in seinem System „Bewegung reduzieren“ eingestellt hat, sieht das Spiel ohne Animationen. Die **Minikarte** im Raumpanel zeigt die Umgebung auf einem Raster von 5 × 5 Feldern um dich herum: wo du stehst, sichere Räume, Händler und – mit Stern – wohin dich deine Aufträge gerade führen (das Ziel eines „Gehe zu“, die Räume mit den gesuchten Monstern oder den Auftraggeber, wenn du abgeben kannst). Kleine Dreiecke zeigen Wege nach oben oder unten.
 
 Ein Account kann mehrere Charaktere haben (höchstens `max_characters_per_account`), aber immer nur **einer ist gleichzeitig im Spiel**. Wählst du einen anderen, wird der bisherige ausgeloggt.
 

@@ -30,6 +30,7 @@ from app.services.action_service import NotPlayingError, RetryLimitExceededError
 from app.services.login_guard import TooManyAttemptsError
 from app.services.session_service import ConfirmDeathRequiredError, SessionConflictError
 from app.web.chat import chat_action
+from app.web.effects import effect_of
 from app.web.render import log_line, templates
 
 router = APIRouter(include_in_schema=False)
@@ -286,7 +287,7 @@ async def _panels(request: Request, services: Services, player_id: UUID) -> str 
 
 
 def _lines(events: list[GameEvent]) -> str:
-    return "\n".join(log_line(e.kind, e.text) for e in events)
+    return "\n".join(log_line(e.kind, e.text, effect_of(e)) for e in events)
 
 
 @router.post("/ui/actions", response_class=HTMLResponse)

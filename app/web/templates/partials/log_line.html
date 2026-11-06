@@ -1,1 +1,1 @@
-<li class="log-{{ kind | replace('.', '-') }}">{{ text }}</li>
+<li class="log-{{ kind | replace('.', '-') }}"{% if effect %} data-fx="{{ effect.name }}"{% if effect.amount %} data-amount="{{ effect.amount }}"{% endif %}{% endif %}>{{ text }}</li>

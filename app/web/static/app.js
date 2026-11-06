@@ -74,6 +74,73 @@
     if (status && status.dataset.state === "in_combat") { e.preventDefault(); e.returnValue = ""; }
   });
 
+  // Animations for what happens to you: log lines marked data-fx (app/web/effects.py) shake the
+  // foe, flash the status bar, float damage numbers or show a banner. Effects are classes on
+  // the .game container for a moment, so they survive the panels being re-rendered meanwhile.
+  // Nothing moves for players who asked their system for reduced motion.
+  const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const timers = {};
+  const flash = (name, ms) => {
+    const game = document.querySelector(".game");
+    if (!game) return;
+    game.classList.remove("fx-" + name);
+    void game.offsetWidth; // restart the animation when the same effect comes twice in a row
+    game.classList.add("fx-" + name);
+    clearTimeout(timers[name]);
+    timers[name] = setTimeout(() => game.classList.remove("fx-" + name), ms);
+  };
+  const float = (text, kind, selectors) => {
+    const anchor = selectors.map((s) => document.querySelector(s)).find((el) => el);
+    if (!anchor) return;
+    const box = anchor.getBoundingClientRect();
+    const el = document.createElement("div");
+    el.className = "fx-float fx-float-" + kind;
+    el.textContent = text;
+    el.style.left = box.left + box.width / 2 + window.scrollX + "px";
+    el.style.top = box.top + window.scrollY + "px";
+    document.body.appendChild(el);
+    el.addEventListener("animationend", () => el.remove());
+  };
+  const banner = (text, kind) => {
+    document.querySelectorAll(".fx-banner").forEach((old) => old.remove());
+    const el = document.createElement("div");
+    el.className = "fx-banner fx-banner-" + kind;
+    el.textContent = text;
+    document.body.appendChild(el);
+    el.addEventListener("animationend", () => el.remove());
+  };
+  const FOE = [".foe .sprite", ".room li.fighting .sprite", ".room .scene"];
+  const HP = ["#hp-bar", "#status"];
+  const PLAY = {
+    strike: (n) => { flash("strike", 400); if (n) float("-" + n, "damage", FOE); },
+    hurt: (n) => { flash("hurt", 450); if (n) float("-" + n, "hurt", HP); },
+    crushed: (n) => { flash("crushed", 600); if (n) float("-" + n + "!", "crushed", HP); },
+    ambush: () => flash("crushed", 600),
+    drain: (n) => { flash("drain", 500); if (n) float("+" + n, "drain", FOE); },
+    heal: (n) => { flash("heal", 600); if (n) float("+" + n, "heal", HP); },
+    gold: (n) => { if (n) float("+" + n + " Gold", "gold", [".status .gold", "#status"]); },
+    kill: () => flash("kill", 700),
+    death: () => flash("death", 2500),
+    craft: () => flash("craft", 700),
+    level: (n, text) => { flash("level", 1200); banner(text, "level"); },
+    achievement: (n, text) => banner(text.split(" – ")[0], "achievement"),
+    quest: (n, text) => { flash("quest", 900); banner(text.split(/[.!]/)[0], "quest"); },
+  };
+  const play = (li) => {
+    const effect = PLAY[li.dataset.fx];
+    if (!effect || calm.matches) return;
+    effect(parseInt(li.dataset.amount || "0", 10), li.textContent.trim());
+  };
+  document.addEventListener("DOMContentLoaded", () => {
+    const el = log();
+    if (!el) return;
+    new MutationObserver((records) => {
+      records.forEach((r) => r.addedNodes.forEach((node) => {
+        if (node instanceof HTMLLIElement && node.dataset.fx) play(node);
+      }));
+    }).observe(el, { childList: true });
+  });
+
   // Plain forms that need a confirmation (e.g. deleting a character).
   document.addEventListener("submit", (e) => {
     const form = e.target;

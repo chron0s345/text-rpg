@@ -7,6 +7,8 @@ from pathlib import Path
 
 from fastapi.templating import Jinja2Templates
 
+from app.web.effects import Effect
+
 TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
@@ -16,7 +18,7 @@ STATE_LABELS = {"exploring": "unterwegs", "in_combat": "im Kampf", "dead": "tot"
 templates.env.globals["state_label"] = lambda state: STATE_LABELS.get(state, state)
 
 
-def log_line(kind: str, text: str) -> str:
-    """One ``<li>`` of the game log."""
+def log_line(kind: str, text: str, effect: Effect | None = None) -> str:
+    """One ``<li>`` of the game log; ``effect`` makes the page animate it (web/effects.py)."""
     template = templates.get_template("partials/log_line.html")
-    return template.render(kind=kind, text=text).strip()
+    return template.render(kind=kind, text=text, effect=effect).strip()
