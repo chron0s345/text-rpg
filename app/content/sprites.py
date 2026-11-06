@@ -1,5 +1,5 @@
 """Pixel art (``data/sprites.yaml``): monster portraits → ``static/sprites/<monster_id>.svg``,
-item icons → ``static/icons/<icon>.svg``.
+item icons → ``static/icons/<icon>.svg``, player avatars → ``static/avatars/<avatar>.svg``.
 
 A *shape* is a 16×16 grid of characters, one per pixel; a monster picks a shape and the colors
 that fill it, so one goblin shape serves the scout, the warrior and the golden goblin (icons
@@ -54,10 +54,15 @@ class SpriteColors(BaseModel):
     )
 
 
+class AvatarSprite(SpriteColors):
+    label: str = Field(min_length=1, max_length=30)  # shown in the picker
+
+
 class SpriteSheet(BaseModel):
     shapes: dict[str, list[str]]
     monsters: dict[str, SpriteColors] = Field(default_factory=dict)
     icons: dict[str, SpriteColors] = Field(default_factory=dict)
+    avatars: dict[str, AvatarSprite] = Field(default_factory=dict)
 
     @field_validator("shapes")
     @classmethod
@@ -72,7 +77,7 @@ class SpriteSheet(BaseModel):
 
     @model_validator(mode="after")
     def _known_shapes(self) -> SpriteSheet:
-        for name, colors in [*self.monsters.items(), *self.icons.items()]:
+        for name, colors in [*self.monsters.items(), *self.icons.items(), *self.avatars.items()]:
             if colors.shape not in self.shapes:
                 raise ValueError(f"sprite '{name}' uses unknown shape '{colors.shape}'")
         return self
@@ -146,6 +151,14 @@ def render_icons(sheet: SpriteSheet) -> dict[str, str]:
     }
 
 
+def render_avatars(sheet: SpriteSheet) -> dict[str, str]:
+    """File name → SVG for every player avatar."""
+    return {
+        f"{name}.svg": render_svg(sheet.shapes[avatar.shape], avatar, avatar.label)
+        for name, avatar in sheet.avatars.items()
+    }
+
+
 def write_all(files: dict[str, str], out_dir: Path) -> Iterable[str]:
     """Writes the files and removes stale ones; yields what changed."""
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -169,4 +182,6 @@ if __name__ == "__main__":  # pragma: no cover - developer tool
     for line in write_all(render_all(sheet, names), root / "app/web/static/sprites"):
         print(line)
     for line in write_all(render_icons(sheet), root / "app/web/static/icons"):
+        print(line)
+    for line in write_all(render_avatars(sheet), root / "app/web/static/avatars"):
         print(line)

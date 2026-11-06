@@ -178,3 +178,28 @@ async def test_check_password(harness: ServiceHarness, accounts: AccountService)
         await accounts.check_password(account.id, "falsch!!!")
     with pytest.raises(WrongPasswordError):
         await accounts.check_password(uuid4(), "geheim123")
+
+
+async def test_avatars_are_chosen_changed_and_checked(
+    harness: ServiceHarness, accounts: AccountService
+) -> None:
+    account = await new_account(harness, accounts)
+    knight = await accounts.create_character(account.id, unique_name(), "knight")
+    assert knight.avatar == "knight"
+    unchosen = await accounts.create_character(account.id, unique_name())
+    # without a choice: one picked by the id, the same on every look
+    assert unchosen.avatar in harness.content.avatars
+    assert unchosen.avatar == harness.content.avatar_for(unchosen.id, None)
+    with pytest.raises(InvalidInputError):
+        await accounts.create_character(account.id, unique_name(), "dragon")
+
+    changed = await accounts.set_avatar(account.id, knight.id, "witch")
+    assert changed.avatar == "witch"
+    assert {c.id: c.avatar for c in await accounts.list_characters(account.id)}[
+        knight.id
+    ] == "witch"
+    with pytest.raises(InvalidInputError):
+        await accounts.set_avatar(account.id, knight.id, "dragon")
+    stranger = await new_account(harness, accounts)
+    with pytest.raises(CharacterNotFoundError):
+        await accounts.set_avatar(stranger.id, knight.id, "mage")

@@ -667,6 +667,126 @@ shapes:
     - "...oooo...oooo.."
     - "................"
     - "................"
+  # --- player avatars ---
+  av_knight:
+    - "................"
+    - "....oooooooo...."
+    - "...oaaaaaaaao..."
+    - "..oalaaaaaaaAo.."
+    - "..oalaaaaaaaAo.."
+    - "..oaoooooooaAo.."
+    - "..oaoeooooeoAo.."
+    - "..oaaaaaaaaaAo.."
+    - "..oaaoaoaoaaAo.."
+    - "...oaaaaaaaAo..."
+    - "....oooooooo...."
+    - "..ooaccccccaoo.."
+    - ".oaaacccccCaaao."
+    - "oaaaacccccCaaaao"
+    - "oalaacccccCaaAao"
+    - "oooooooooooooooo"
+  av_hood:
+    - "................"
+    - ".....oooooo....."
+    - "....occccccoo..."
+    - "...occcccccCCo.."
+    - "..occcccccccCCo."
+    - "..occoooooocCCo."
+    - "..oco.bbbbo.cCo."
+    - "..ocobbbbbbocCo."
+    - "..ocobebbebocCo."
+    - "..ocobbbbbbocCo."
+    - "..occobbddoccCo."
+    - "..occcoooocccCo."
+    - ".occcccccccccCCo"
+    - "occcccaccccccCCo"
+    - "occccccacccccCCo"
+    - "oooooooooooooooo"
+  av_hat:
+    - ".........oo....."
+    - "........occo...."
+    - ".......occo....."
+    - "......occco....."
+    - ".....occcCo....."
+    - "....occcccCo...."
+    - "...occcaaacCo..."
+    - ".ooccccccccccoo."
+    - "ocCCCCCCCCCCCCCo"
+    - ".oooobbbbbboooo."
+    - "....obebbebo...."
+    - "....obbbbbbo...."
+    - "...owwbbbbwwo..."
+    - "..ocowwwwwwocCo."
+    - ".occcowwwwocccCo"
+    - "oooooooooooooooo"
+  av_warrior:
+    - "................"
+    - "....oooooooo...."
+    - "...occcccccco..."
+    - "..occcccccccco.."
+    - "..occaaaaaaccCo."
+    - "..occbbbbbbbcCo."
+    - "..ocbbebbbebbCo."
+    - "..ocbbbbbbbbbCo."
+    - "..ocbbbbddbbbCo."
+    - "..occbbwwwbbcCo."
+    - "...occbbbbbcCo.."
+    - "..ooocooooocooo."
+    - ".obbbaaaaaaabbbo"
+    - "obbbbaaaaaaabbbo"
+    - "obbdbaAAAAAabdbo"
+    - "oooooooooooooooo"
+  av_dwarf:
+    - "................"
+    - ".w...oooooo...w."
+    - ".ww.oaaaaaao.ww."
+    - "..wwalaaaaaaww.."
+    - "...oaaaaaaaAo..."
+    - "...oaaaaaaaAo..."
+    - "...oooooooooo..."
+    - "...obbebbebbo..."
+    - "...obbbbbbbbo..."
+    - "..occcbbbbcccCo."
+    - "..occcccccccCCo."
+    - "..occcccccccCCo."
+    - ".oaaocccccCCoaao"
+    - "oaaaaocccCCoaaao"
+    - "oaAaaaoccCoaaAao"
+    - "oooooooooooooooo"
+  av_elf:
+    - "................"
+    - ".....oooooo....."
+    - "....occccccoo..."
+    - "...occccccccCo.."
+    - "..occcbbbbbccCo."
+    - "o.occbbbbbbbcCo."
+    - "obobcbebbebbcCob"
+    - ".obbcbbbbbbbcCbo"
+    - "..oocbbbbbbbcCo."
+    - "...ocbbbddbbcCo."
+    - "...occbbbbbccCo."
+    - "...occcoooocccCo"
+    - "..oaaaccccccaaAo"
+    - ".oaaaaacccaaaaAo"
+    - "oaaalaaacaaaaaAo"
+    - "oooooooooooooooo"
+  av_plain:
+    - "................"
+    - ".....oooooo....."
+    - "....occccccoo..."
+    - "...occcccccCCo.."
+    - "...occccccccCo.."
+    - "...ocbbbbbbbco.."
+    - "...obbebbebbbo.."
+    - "...obbbbbbbbbo.."
+    - "...obbbbbddbbo.."
+    - "...obbbowwobbo.."
+    - "....obbbbbbbo..."
+    - "....oooobooo...."
+    - "..oocccccccccoo."
+    - ".occcccaccccccCo"
+    - "occcccccccccccCo"
+    - "oooooooooooooooo"
 
 monsters:
   goblin: {shape: goblin, body: "#6aa84f", cloth: "#7a4b2a"}
@@ -750,3 +870,21 @@ icons:
   helmet: {shape: helmet, body: "#8a8f9c", light: "#c4c8d2", accent: "#e0b040"}
   legs: {shape: legs, body: "#8a8f9c", light: "#c4c8d2", accent: "#7a4b2a"}
   boots: {shape: boots, body: "#8a5a32", light: "#b07a48", accent: "#5a3a22"}
+
+# Player avatars: chosen when creating a character (label shown in the picker).
+avatars:
+  adventurer: {label: "Abenteurer", shape: av_plain, body: "#e8b890", cloth: "#6a4a2a", eye: "#3a2a2a"}
+  wanderer: {label: "Wanderin", shape: av_plain, body: "#8a5a3a", cloth: "#2a2a34", eye: "#2a1a10"}
+  knight: {label: "Ritter", shape: av_knight, body: "#e8b890", accent: "#b8c0cc", cloth: "#7a2a2a", eye: "#5ab8ff"}
+  paladin: {label: "Paladin", shape: av_knight, body: "#e8b890", accent: "#e0b040", cloth: "#f2ecdc", eye: "#ffd23f"}
+  ranger: {label: "Waldläuferin", shape: av_hood, body: "#e8b890", cloth: "#3a6a3a", eye: "#3a8a5a", accent: "#8a5a32"}
+  rogue: {label: "Schurke", shape: av_hood, body: "#c88a6a", cloth: "#3a3a4a", eye: "#e0405a", accent: "#b8c0cc"}
+  priestess: {label: "Priesterin", shape: av_hood, body: "#f0c8a0", cloth: "#e8e0d0", eye: "#5ab8ff", accent: "#e0b040"}
+  mage: {label: "Magier", shape: av_hat, body: "#f0c8a0", cloth: "#3a4a9a", accent: "#ffd23f", eye: "#3a2a2a"}
+  witch: {label: "Hexe", shape: av_hat, body: "#b8d8a8", cloth: "#4a2a5a", accent: "#7cff9a", eye: "#e0405a"}
+  barbarian: {label: "Barbar", shape: av_warrior, body: "#d8a07a", cloth: "#c8602a", accent: "#8a8f9c", eye: "#3a2a2a"}
+  warrior: {label: "Kriegerin", shape: av_warrior, body: "#f0c8a0", cloth: "#f0d070", accent: "#b8c0cc", eye: "#3a6aa8"}
+  dwarf: {label: "Zwerg", shape: av_dwarf, body: "#e0a080", cloth: "#a0603a", accent: "#8a8f9c", eye: "#3a2a2a"}
+  elder_dwarf: {label: "Alter Zwerg", shape: av_dwarf, body: "#e0a080", cloth: "#e8e0d0", accent: "#e0b040", eye: "#3a2a2a"}
+  elf: {label: "Elf", shape: av_elf, body: "#f0d8c0", cloth: "#e8e8f0", accent: "#3a7a5a", eye: "#3a8a5a"}
+  night_elf: {label: "Nachtelfe", shape: av_elf, body: "#8a7ab8", cloth: "#2a2a4a", accent: "#6a3aa8", eye: "#c792ff"}

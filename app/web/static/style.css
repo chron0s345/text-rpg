@@ -207,6 +207,28 @@ button.link.item-name.rarity-set { color: var(--rarity-set); }
 .key-merchant { background: var(--good); border-radius: 50%; }
 .key-quest { background: var(--accent); clip-path: polygon(50% 0, 62% 35%, 100% 38%, 70% 60%, 80% 100%, 50% 78%, 20% 100%, 30% 60%, 0 38%, 38% 35%); }
 
+/* Player avatars (static/avatars, generated from data/sprites.yaml) */
+.avatar { width: 48px; height: 48px; flex-shrink: 0; image-rendering: pixelated; vertical-align: middle;
+  background: var(--panel-deep); border: 2px solid var(--border); }
+.avatar-small { width: 32px; height: 32px; }
+.avatar-status { width: 40px; height: 40px; border-color: var(--accent); }
+.avatar-large { width: 64px; height: 64px; border-color: var(--accent); }
+.room .list li:has(> .avatar), .members li, .online-list li { justify-content: flex-start; }
+.room .list li > .player-name { flex: 1; }
+.members li > .member, .online-list li > .stacked { flex: 1; }
+.ranked { display: inline-flex; align-items: center; gap: .35rem; }
+.characters li { justify-content: flex-start; }
+.characters li > .character-info { flex: 1; display: flex; flex-direction: column; }
+.avatar-change summary { cursor: pointer; color: var(--muted); font-size: .9rem; }
+.avatar-picker { display: flex; flex-wrap: wrap; gap: .4rem; border: 2px solid var(--border); padding: .6rem; margin: 0 0 .8rem; }
+.avatar-picker legend { color: var(--muted); padding: 0 .3rem; }
+.avatar-choice { display: flex; flex-direction: column; align-items: center; gap: .15rem; width: 5.2rem; margin: 0;
+  padding: .3rem; border: 2px solid transparent; cursor: pointer; text-align: center; font-size: .85rem; line-height: 1.1; }
+.avatar-choice input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.avatar-choice:hover { border-color: var(--border); }
+.avatar-choice:has(input:checked) { border: 2px dashed var(--accent); background: var(--panel-deep); color: var(--accent); }
+.avatar-choice:has(input:focus-visible) { outline: 2px dashed var(--accent); outline-offset: 2px; }
+
 /* Monster portraits (static/sprites, generated from data/sprites.yaml): pixels stay pixels */
 .sprite { width: 48px; height: 48px; flex-shrink: 0; image-rendering: pixelated;
   background: var(--panel-deep); border: 2px solid var(--border); }

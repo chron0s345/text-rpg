@@ -3,7 +3,7 @@
 <ol class="list ranking">
   {% for r in rows %}
   <li{% if r.me %} class="me"{% endif %}>
-    <span><span class="rank">{{ r.rank }}.</span> {{ r.name }}{% if r.title %} <span class="title">{{ r.title }}</span>{% endif %}</span>
+    <span class="ranked"><span class="rank">{{ r.rank }}.</span> {% if r.avatar %}<img class="avatar avatar-small" src="/static/avatars/{{ r.avatar }}.svg" alt="" width="32" height="32">{% endif %} {{ r.name }}{% if r.title %} <span class="title">{{ r.title }}</span>{% endif %}</span>
     <span class="muted small">{{ r.value }}</span>
   </li>
   {% endfor %}

@@ -29,6 +29,7 @@ def _out(info: CharacterInfo) -> CharacterOut:
         state=info.state,
         room_id=info.room_id,
         online=info.online,
+        avatar=info.avatar,
     )
 
 
@@ -42,7 +43,7 @@ async def create_character(
     body: CharacterCreate, account_id: AccountId, services: ServicesDep
 ) -> CharacterOut:
     try:
-        return _out(await services.accounts.create_character(account_id, body.name))
+        return _out(await services.accounts.create_character(account_id, body.name, body.avatar))
     except (CharacterNameTakenError, CharacterLimitError) as exc:
         raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
     except AccountError as exc:

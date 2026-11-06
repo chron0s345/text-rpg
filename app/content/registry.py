@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from uuid import UUID
 
 from app.content.schemas import (
     AchievementTemplate,
@@ -28,6 +29,16 @@ class ContentRegistry:
     recipes: dict[str, RecipeTemplate] = field(default_factory=dict)
     item_sets: dict[str, ItemSet] = field(default_factory=dict)  # pieces carry theirs, too
     achievements: dict[str, AchievementTemplate] = field(default_factory=dict)
+    avatars: dict[str, str] = field(default_factory=dict)  # avatar id -> label (sprites.yaml)
+
+    def avatar_for(self, player_id: UUID, chosen: str | None) -> str:
+        """The avatar a character shows: the chosen one, else one picked by its id (so
+        characters from before avatars, or whose avatar left the content, still have one);
+        "" without any avatars."""
+        if chosen in self.avatars:
+            return chosen
+        ids = sorted(self.avatars)
+        return ids[player_id.int % len(ids)] if ids else ""
 
     def get_room(self, room_id: str) -> RoomTemplate:
         if room_id not in self.rooms:

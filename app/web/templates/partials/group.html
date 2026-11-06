@@ -5,6 +5,7 @@
   <ul class="list members">
     {% for m in g.members %}
     <li>
+      {% if m.avatar %}<img class="avatar avatar-small" src="/static/avatars/{{ m.avatar }}.svg" alt="" width="32" height="32">{% endif %}
       <span class="member">
         <span>{{ m.name }}{% if m.leader %} <span class="tag">Leitung</span>{% endif %}{% if not m.online %} <span class="muted">(offline)</span>{% endif %}</span>
         <span class="muted small">{{ m.room_name }}{% if m.state != 'exploring' %} · {{ state_label(m.state) }}{% endif %}</span>

@@ -141,6 +141,7 @@ async def _select_page(
         {
             "characters": characters,
             "can_create": len(characters) < services.content.rules.max_characters_per_account,
+            "avatars": services.content.avatars,
             "error": error,
             "notice": notice,
             "confirm": confirm,
@@ -193,7 +194,9 @@ async def select_new(request: Request, services: ServicesDep) -> Response:
         return _redirect("/welcome")
     form = await _form(request)
     try:
-        await services.accounts.create_character(account_id, form.get("name", "")[:20])
+        await services.accounts.create_character(
+            account_id, form.get("name", "")[:20], form.get("avatar") or None
+        )
     except AccountError as exc:
         return await _select_page(
             request, services, account_id, error=str(exc), status_code=status.HTTP_400_BAD_REQUEST
@@ -224,6 +227,21 @@ async def select_play(character_id: UUID, request: Request, services: ServicesDe
         )
     request.session["player_id"] = str(character_id)
     return _redirect("/")
+
+
+@router.post("/select/{character_id}/avatar")
+async def select_avatar(character_id: UUID, request: Request, services: ServicesDep) -> Response:
+    account_id = _account_id(request)
+    if account_id is None:
+        return _redirect("/welcome")
+    form = await _form(request)
+    try:
+        await services.accounts.set_avatar(account_id, character_id, form.get("avatar", ""))
+    except AccountError as exc:
+        return await _select_page(
+            request, services, account_id, error=str(exc), status_code=status.HTTP_400_BAD_REQUEST
+        )
+    return _redirect("/select")
 
 
 @router.post("/select/{character_id}/delete")

@@ -318,6 +318,7 @@ class AccountOut(BaseModel):
 
 class CharacterCreate(BaseModel):
     name: str = Field(max_length=20)
+    avatar: str | None = Field(default=None, max_length=32)  # None: picked by the id
 
 
 class CharacterOut(BaseModel):
@@ -327,6 +328,7 @@ class CharacterOut(BaseModel):
     state: str
     room_id: str
     online: bool
+    avatar: str  # portrait shown, static/avatars/<avatar>.svg
 
 
 class PlayRequest(BaseModel):

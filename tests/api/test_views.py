@@ -186,3 +186,28 @@ async def test_shop_and_bank_views(api: Api) -> None:
             )
         page = (await client.get("/")).text
         assert "Bankfach" in page and "Einlagern" in page
+
+
+async def test_avatar_is_chosen_on_creation_and_changed_on_the_selection_page(api: Api) -> None:
+    async with api.client() as client:
+        await signed_up(api, client)
+        page = (await client.get("/select")).text
+        assert 'name="avatar" value="knight"' in page and 'src="/static/avatars/witch.svg"' in page
+
+        created = await client.post(
+            "/select/new", data={"name": character_name(), "avatar": "mage"}
+        )
+        assert created.status_code == 303
+        [character] = (await client.get("/characters")).json()
+        assert character["avatar"] == "mage"
+        assert 'src="/static/avatars/mage.svg"' in (await client.get("/select")).text
+
+        changed = await client.post(f"/select/{character['id']}/avatar", data={"avatar": "elf"})
+        assert changed.status_code == 303
+        assert (await client.get("/characters")).json()[0]["avatar"] == "elf"
+        wrong = await client.post(f"/select/{character['id']}/avatar", data={"avatar": "dragon"})
+        assert wrong.status_code == 400 and "Dieses Aussehen gibt es nicht." in wrong.text
+
+        await client.post(f"/select/{character['id']}/play")
+        game = (await client.get("/")).text
+        assert 'class="avatar avatar-status" src="/static/avatars/elf.svg"' in game
