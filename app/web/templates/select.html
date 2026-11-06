@@ -14,6 +14,19 @@
   {% endfor %}
 </fieldset>
 {% endmacro %}
+{% macro class_picker(chosen, skip) %}
+<fieldset class="class-picker">
+  <legend>Klasse</legend>
+  {% for c in classes if c.id != skip %}
+  <label class="class-choice">
+    <input type="radio" name="class_id" value="{{ c.id }}"{% if c.id == chosen %} checked{% endif %} required>
+    <strong>{{ c.name }}</strong>
+    <small class="class-bonus">{{ c.bonus }}</small>
+    <small class="muted">{{ c.description }}</small>
+  </label>
+  {% endfor %}
+</fieldset>
+{% endmacro %}
 <main>
   <header class="row">
     <h1>Deine Charaktere</h1>
@@ -37,7 +50,17 @@
       {% if c.avatar %}<img class="avatar avatar-large" src="/static/avatars/{{ c.avatar }}.svg" alt="" width="64" height="64">{% endif %}
       <div class="character-info">
         <strong>{{ c.name }}</strong>
-        <span class="muted">Level {{ c.level }} · {{ state_label(c.state) }}{% if c.online %} · eingeloggt{% endif %}</span>
+        <span class="muted">Level {{ c.level }}{% if c.class_name %} {{ c.class_name }}{% endif %} · {{ state_label(c.state) }}{% if c.online %} · eingeloggt{% endif %}</span>
+        {% if c.can_choose_class %}
+        <details class="class-change">
+          <summary>Klasse wählen (einmalig)</summary>
+          <form method="post" action="/select/{{ c.id }}/class">
+            {{ class_picker(none, start_class_id) }}
+            <p class="muted small">Deine Werte richten sich danach sofort nach der Klasse. Die Wahl ist endgültig.</p>
+            <button type="submit" class="primary">Klasse annehmen</button>
+          </form>
+        </details>
+        {% endif %}
         {% if avatars %}
         <details class="avatar-change">
           <summary>Aussehen ändern</summary>
@@ -66,6 +89,7 @@
   <form method="post" action="/select/new" class="card">
     <h2>Neuer Charakter</h2>
     <label>Name <input name="name" required minlength="3" maxlength="20" pattern="[A-Za-zÄÖÜäöüß]+" title="3–20 Buchstaben"></label>
+    {% if classes %}{{ class_picker(start_class_id, none) }}{% endif %}
     {% if avatars %}{{ avatar_picker(avatars | first, false) }}{% endif %}
     <button type="submit">Erschaffen</button>
   </form>

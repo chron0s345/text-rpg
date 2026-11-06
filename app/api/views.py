@@ -19,6 +19,7 @@ from app.api.auth import change_password, client_address
 from app.api.deps import Services, ServicesDep, session_player_id
 from app.api.schemas import GameAction, LogoutAction
 from app.api.session_guard import remember_login
+from app.engine.classes import bonus_text
 from app.engine.events import GameEvent
 from app.engine.presence import LOGGED_OUT
 from app.services.account_service import (
@@ -142,6 +143,11 @@ async def _select_page(
             "characters": characters,
             "can_create": len(characters) < services.content.rules.max_characters_per_account,
             "avatars": services.content.avatars,
+            "classes": [
+                {"id": c.id, "name": c.name, "description": c.description, "bonus": bonus_text(c)}
+                for c in services.content.classes.values()
+            ],
+            "start_class_id": services.content.rules.start_class_id,
             "error": error,
             "notice": notice,
             "confirm": confirm,
@@ -195,7 +201,10 @@ async def select_new(request: Request, services: ServicesDep) -> Response:
     form = await _form(request)
     try:
         await services.accounts.create_character(
-            account_id, form.get("name", "")[:20], form.get("avatar") or None
+            account_id,
+            form.get("name", "")[:20],
+            form.get("avatar") or None,
+            form.get("class_id") or None,
         )
     except AccountError as exc:
         return await _select_page(
@@ -237,6 +246,21 @@ async def select_avatar(character_id: UUID, request: Request, services: Services
     form = await _form(request)
     try:
         await services.accounts.set_avatar(account_id, character_id, form.get("avatar", ""))
+    except AccountError as exc:
+        return await _select_page(
+            request, services, account_id, error=str(exc), status_code=status.HTTP_400_BAD_REQUEST
+        )
+    return _redirect("/select")
+
+
+@router.post("/select/{character_id}/class")
+async def select_class(character_id: UUID, request: Request, services: ServicesDep) -> Response:
+    account_id = _account_id(request)
+    if account_id is None:
+        return _redirect("/welcome")
+    form = await _form(request)
+    try:
+        await services.accounts.choose_class(account_id, character_id, form.get("class_id", ""))
     except AccountError as exc:
         return await _select_page(
             request, services, account_id, error=str(exc), status_code=status.HTTP_400_BAD_REQUEST

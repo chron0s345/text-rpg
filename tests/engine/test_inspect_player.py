@@ -29,7 +29,7 @@ def test_inspecting_someone_in_the_room(content: ContentRegistry, rules: Rules) 
 
     [text] = actor_texts(result)
     assert text.splitlines() == [
-        "Bert Feuerbändiger – Stufe 7.",
+        "Bert Feuerbändiger – Stufe 7 Abenteurer.",
         "Angriff 9 · Verteidigung 2 · max. HP 25.",
         "Trägt: Waffe: Kurzschwert; Amulett: Amulett.",
         f"Erfolge: 1/{len(content.achievements)} · Bestiarium: 2 Arten.",
@@ -43,5 +43,5 @@ def test_only_people_in_the_room(content: ContentRegistry, rules: Rules) -> None
     result = resolve_inspect_player(ActionSnapshot(actor=actor), content, rules, NOW, RNG, uuid4())
     assert actor_texts(result) == ["Diese Person ist nicht hier."]
     me = resolve_inspect_player(ActionSnapshot(actor=actor), content, rules, NOW, RNG, actor.id)
-    assert actor_texts(me)[0].startswith("Anna – Stufe 1.")
+    assert actor_texts(me)[0].startswith("Anna – Stufe 1 Abenteurer.")
     assert not [e for e in me.events if e.audience.kind == "players"]

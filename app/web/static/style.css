@@ -217,10 +217,11 @@ button.link.item-name.rarity-set { color: var(--rarity-set); }
 .room .list li > .player-name { flex: 1; }
 .members li > .member, .online-list li > .stacked { flex: 1; }
 .ranked { display: inline-flex; align-items: center; gap: .35rem; }
-.characters li { justify-content: flex-start; }
+.characters li { justify-content: flex-start; flex-wrap: wrap; }
 .characters li > .character-info { flex: 1; display: flex; flex-direction: column; }
 .avatar-change summary { cursor: pointer; color: var(--muted); font-size: .9rem; }
-.avatar-picker { display: flex; flex-wrap: wrap; gap: .4rem; border: 2px solid var(--border); padding: .6rem; margin: 0 0 .8rem; }
+.avatar-picker { display: flex; flex-wrap: wrap; gap: .4rem; border: 2px solid var(--border); padding: .6rem; margin: 0 0 .8rem;
+  min-width: 0; }
 .avatar-picker legend { color: var(--muted); padding: 0 .3rem; }
 .avatar-choice { display: flex; flex-direction: column; align-items: center; gap: .15rem; width: 5.2rem; margin: 0;
   padding: .3rem; border: 2px solid transparent; cursor: pointer; text-align: center; font-size: .85rem; line-height: 1.1; }
@@ -228,6 +229,21 @@ button.link.item-name.rarity-set { color: var(--rarity-set); }
 .avatar-choice:hover { border-color: var(--border); }
 .avatar-choice:has(input:checked) { border: 2px dashed var(--accent); background: var(--panel-deep); color: var(--accent); }
 .avatar-choice:has(input:focus-visible) { outline: 2px dashed var(--accent); outline-offset: 2px; }
+
+/* Classes (data/classes.yaml): picker on the selection page, name in the status bar */
+.class-name { color: var(--accent); }
+.class-change summary { cursor: pointer; color: var(--accent); font-size: .9rem; }
+.class-picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr)); gap: .5rem;
+  border: 2px solid var(--border); padding: .6rem; margin: 0 0 .8rem; min-width: 0; }
+.class-picker legend { color: var(--muted); padding: 0 .3rem; }
+.class-choice { display: flex; flex-direction: column; gap: .2rem; margin: 0; padding: .5rem .6rem; cursor: pointer;
+  border: 2px solid var(--border); background: var(--panel-deep); color: var(--text); }
+.class-choice strong { font-family: var(--pixel); font-size: .55rem; font-weight: 400; line-height: 1.7; color: var(--accent); }
+.class-choice .class-bonus { color: var(--info); }
+.class-choice input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.class-choice:hover { border-color: var(--accent); }
+.class-choice:has(input:checked) { border: 2px dashed var(--accent); }
+.class-choice:has(input:focus-visible) { outline: 2px dashed var(--accent); outline-offset: 2px; }
 
 /* Monster portraits (static/sprites, generated from data/sprites.yaml): pixels stay pixels */
 .sprite { width: 48px; height: 48px; flex-shrink: 0; image-rendering: pixelated;

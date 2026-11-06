@@ -2,7 +2,7 @@
 <section id="status" class="status" data-state="{{ p.state }}" aria-label="Status"{% if oob %} hx-swap-oob="true"{% endif %}>
   {% if p.avatar %}<img class="avatar avatar-status" src="/static/avatars/{{ p.avatar }}.svg" alt="" width="40" height="40">{% endif %}
   <strong class="name">{{ p.name }}{% if p.title %} <span class="title">{{ p.title }}</span>{% endif %}</strong>
-  <span>Level {{ p.level }}</span>
+  <span>Level {{ p.level }}{% if p.class_name %} <span class="class-name">{{ p.class_name }}</span>{% endif %}</span>
   <span class="hp">
     <label for="hp-bar">HP {{ p.hp }}/{{ p.max_hp }}</label>
     <meter id="hp-bar" min="0" max="{{ p.max_hp }}" low="{{ (p.max_hp * 0.3) | round(0, 'ceil') | int }}" high="{{ (p.max_hp * 0.6) | int }}" optimum="{{ p.max_hp }}" value="{{ p.hp }}"></meter>

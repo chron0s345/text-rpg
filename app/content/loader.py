@@ -13,6 +13,7 @@ from app.content.registry import ContentRegistry
 from app.content.schemas import (
     AchievementTemplate,
     Buff,
+    ClassTemplate,
     ItemSet,
     ItemTemplate,
     KillCondition,
@@ -99,6 +100,11 @@ def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegist
         else {}
     )
 
+    classes_path = data_dir / "classes.yaml"  # optional: without it, nobody has a class
+    classes = (
+        _parse_list(classes_path, ClassTemplate, lambda c: c.id) if classes_path.exists() else {}
+    )
+
     sprites_path = data_dir / "sprites.yaml"  # optional: without it, nobody has an avatar
     try:
         avatars = (
@@ -137,11 +143,14 @@ def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegist
         raise ContentValidationError(f"rules.intro_quest_id '{rules.intro_quest_id}' is no quest")
     validate_recipes(recipes, items, merchants)
     validate_achievements(achievements, monsters, quests, item_sets)
+    if classes and rules.start_class_id not in classes:
+        raise ContentValidationError(f"rules.start_class_id '{rules.start_class_id}' is no class")
     if icons_dir is not None:
         validate_icons(items, Path(icons_dir))
 
     return ContentRegistry(
         avatars=avatars,
+        classes=classes,
         rooms=rooms,
         monsters=monsters,
         items=items,

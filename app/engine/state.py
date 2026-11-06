@@ -83,6 +83,7 @@ class PlayerSnapshot(BaseModel):
     title: str | None = None  # achievement id whose title is shown
     kills: dict[str, int] = Field(default_factory=dict)  # kill credits per monster id
     buffs: list[ActiveBuff] = Field(default_factory=list)  # running consumable boosts
+    class_id: str = "adventurer"  # data/classes.yaml; scales the base stats on level-ups
 
     def item(self, inventory_item_id: UUID) -> InventoryItemState | None:
         return next((i for i in self.inventory if i.id == inventory_item_id), None)

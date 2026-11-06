@@ -1,0 +1,28 @@
+# Character classes: the same levels for everyone, other base stats. Each bonus is a percentage
+# of the level table (data/rules.yaml, levels): +10 max_hp gives a level-10 character 130
+# instead of 118 HP. A new character starts in rules.start_class_id unless it picks one;
+# characters of that class may pick another one once (character selection).
+
+- id: adventurer
+  name: Abenteurer
+  description: "Kann von allem ein bisschen und nichts besonders. Wer noch keine Klasse gewählt hat, ist Abenteurer – und darf einmal umsatteln."
+
+- id: warrior
+  name: Krieger
+  description: "Steht vorne und hält aus. Viel Leben, schwere Rüstung, schlägt dafür etwas sanfter zu."
+  bonus: {max_hp: 10, attack: -10, defense: 15}
+
+- id: ranger
+  name: Waldläufer
+  description: "Schnell und treffsicher. Mehr Angriff, etwas weniger Leben und Rüstung."
+  bonus: {max_hp: -5, attack: 15, defense: -5}
+
+- id: mage
+  name: Magier
+  description: "Zerstörerische Kraft, dünne Haut. Viel mehr Angriff, aber wenig Leben und Rüstung – nichts für Leichtsinnige."
+  bonus: {max_hp: -15, attack: 30, defense: -15}
+
+- id: cleric
+  name: Priester
+  description: "Ausdauernd und zäh. Mehr Leben und etwas Rüstung, ein wenig schwächere Schläge."
+  bonus: {max_hp: 10, attack: -5, defense: 5}

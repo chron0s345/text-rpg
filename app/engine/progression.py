@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from app.content.schemas import ItemTemplate, LevelRule, Rules
+from app.content.schemas import ClassTemplate, ItemTemplate, LevelRule, Rules
+from app.engine.classes import base_stats
 from app.engine.events import ResultBuilder
 from app.engine.state import PlayerSnapshot
 from app.engine.stats import stats_of
@@ -24,8 +25,10 @@ def calculate_level_progression(
     base_attack: int,
     base_defense: int,
     rules: Rules,
+    player_class: ClassTemplate | None = None,
 ) -> LevelUpResult:
-    """Checks if player qualifies for level ups and determines new base stats."""
+    """Checks if player qualifies for level ups and determines new base stats (the level
+    table's, scaled by the class)."""
     levels_sorted = sorted(rules.levels, key=lambda rule: rule.level)
     achieved_level_rule: LevelRule | None = None
 
@@ -34,12 +37,13 @@ def calculate_level_progression(
             achieved_level_rule = rule
 
     if achieved_level_rule is not None and achieved_level_rule.level > current_level:
+        stats = base_stats(achieved_level_rule, player_class)
         return LevelUpResult(
             new_level=achieved_level_rule.level,
             leveled_up=True,
-            new_base_max_hp=achieved_level_rule.max_hp,
-            new_base_attack=achieved_level_rule.attack,
-            new_base_defense=achieved_level_rule.defense,
+            new_base_max_hp=stats.max_hp,
+            new_base_attack=stats.attack,
+            new_base_defense=stats.defense,
         )
 
     return LevelUpResult(
@@ -57,10 +61,12 @@ def apply_xp(
     amount: int,
     rules: Rules,
     item_templates: dict[str, ItemTemplate],
+    player_class: ClassTemplate | None = None,
 ) -> None:
     """Grants XP (mutates ``player``), applies level-ups and reports both to the player.
 
-    A level-up fully heals the player to the new effective max HP (incl. equipment).
+    A level-up fully heals the player to the new effective max HP (incl. equipment); the new
+    base stats are the level table's scaled by ``player_class``.
     """
     if amount <= 0:
         return
@@ -72,6 +78,7 @@ def apply_xp(
         player.base_attack,
         player.base_defense,
         rules,
+        player_class,
     )
     builder.to_player(player.id, "xp.gained", f"Du erhältst {amount} Erfahrung.", amount=amount)
     builder.update_player(player.id, xp=player.xp)

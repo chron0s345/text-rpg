@@ -211,3 +211,29 @@ async def test_avatar_is_chosen_on_creation_and_changed_on_the_selection_page(ap
         await client.post(f"/select/{character['id']}/play")
         game = (await client.get("/")).text
         assert 'class="avatar avatar-status" src="/static/avatars/elf.svg"' in game
+
+
+async def test_class_is_chosen_on_creation_or_once_later(api: Api) -> None:
+    async with api.client() as client:
+        await signed_up(api, client)
+        page = (await client.get("/select")).text
+        assert 'name="class_id" value="warrior"' in page and "+30 % Angriff" in page
+
+        await client.post("/select/new", data={"name": character_name(), "class_id": "ranger"})
+        await client.post("/select/new", data={"name": character_name()})
+        characters = {c["class_id"]: c for c in (await client.get("/characters")).json()}
+        assert set(characters) == {"ranger", "adventurer"}
+        assert characters["adventurer"]["can_choose_class"] is True
+        page = (await client.get("/select")).text
+        assert page.count("Klasse wählen (einmalig)") == 1
+
+        hero = characters["adventurer"]["id"]
+        chosen = await client.post(f"/select/{hero}/class", data={"class_id": "cleric"})
+        assert chosen.status_code == 303
+        again = await client.post(f"/select/{hero}/class", data={"class_id": "mage"})
+        assert again.status_code == 400 and "nur einmal" in again.text
+        api_again = await client.post(f"/characters/{hero}/class", json={"class_id": "mage"})
+        assert api_again.status_code == 409
+
+        await client.post(f"/select/{hero}/play")
+        assert '<span class="class-name">Priester</span>' in (await client.get("/")).text
