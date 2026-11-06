@@ -82,6 +82,7 @@ class PlayerUpdate(BaseModel):
     title: str | None = None
     kills: dict[str, int] | None = None  # the full new tally
     buffs: list[ActiveBuff] | None = None  # engine/buffs.py: the full new list
+    skill_cooldowns: dict[str, int] | None = None  # engine/cooldowns.py: the full new map
 
 
 class MonsterUpdate(BaseModel):

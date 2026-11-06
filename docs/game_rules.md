@@ -148,6 +148,25 @@ Beim Erschaffen wählst du eine **Klasse**. Alle steigen gleich auf, aber die Kl
 
 Wer keine Klasse wählt – und jeder Charakter von vor der Einführung der Klassen –, ist **Abenteurer** und darf auf der Charakterauswahl **einmal** eine andere Klasse annehmen (nicht mitten im Kampf). Die Werte richten sich sofort nach ihr, deine HP behalten ihren Anteil am Maximum. Die Wahl ist endgültig. Deine Klasse steht in der Statusleiste und bei „Ansehen“; auch ohne Klasse braucht jeder Boss eine Gruppe oder Tränke.
 
+### Fähigkeiten
+
+Jede Klasse hat **Fähigkeiten** – eine von Anfang an, eine zweite ab Stufe 6. Im Kampf stehen sie neben „Angreifen“; eine Fähigkeit einzusetzen ist eine Kampfrunde wie ein Angriff, danach schlägt das Monster zurück (außer es ist betäubt oder besiegt). Heilende Fähigkeiten gehen auch unterwegs; dort läuft ihre Abklingzeit aber erst mit dem nächsten Kampf ab. Danach braucht die Fähigkeit eine **Abklingzeit** in Kampfrunden: Jeder Angriff, jede Fähigkeit, jeder Trank im Kampf und jeder Fluchtversuch zählt eine Runde. **Jeder neue Kampf beginnt mit allen Fähigkeiten bereit.**
+
+| Fähigkeit | Klasse | ab Stufe | Abklingzeit | Wirkung |
+|---|---|---|---|---|
+| Zweiter Atem | Abenteurer | 1 | 5 | heilt 20 % der HP |
+| Wuchthieb | Abenteurer | 6 | 3 | 1,5-facher Schaden |
+| Schildschlag | Krieger | 1 | 3 | normaler Schaden, der Gegner schlägt nicht zurück |
+| Zähigkeit | Krieger | 6 | 5 | heilt 25 % der HP |
+| Gezielter Schuss | Waldläufer | 1 | 3 | 1,5-facher Schaden, Rüstung zählt nicht |
+| Doppelschuss | Waldläufer | 6 | 4 | zwei Treffer |
+| Feuerball | Magier | 1 | 3 | doppelter Schaden |
+| Frostnova | Magier | 6 | 4 | Schaden ohne Rüstung, der Gegner schlägt nicht zurück |
+| Heilung | Priester | 1 | 4 | heilt 40 % der HP |
+| Heiliges Licht | Priester | 6 | 3 | 1,3-facher Schaden, die Hälfte davon heilt dich |
+
+Das Panel **„Fähigkeiten“** zeigt alle Fähigkeiten deiner Klasse, ab welcher Stufe sie kommen und wann sie wieder bereit sind.
+
 Ein **Stufenaufstieg** heilt vollständig (inklusive der HP aus Ausrüstung). Reicht die Erfahrung für mehrere Stufen auf einmal, steigst du direkt bis zur höchsten erreichten auf.
 
 **Heilen:** Deine HP kommen nicht von selbst zurück. An einem **sicheren Ort** (Oakhaven, Lager, Zuflucht – auf der Karte grün umrandet) kannst du **rasten** und bist sofort wieder bei vollen Kräften, kostenlos. Unterwegs helfen nur Essen und Tränke. Stufenaufstieg und Erwachen nach dem Tod heilen ebenfalls vollständig.

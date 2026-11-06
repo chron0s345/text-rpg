@@ -26,6 +26,7 @@ from app.content.schemas import (
     RoomTemplate,
     Rules,
     SetCondition,
+    SkillTemplate,
     SpeciesCondition,
 )
 from app.content.sprites import load_sprites
@@ -105,6 +106,14 @@ def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegist
         _parse_list(classes_path, ClassTemplate, lambda c: c.id) if classes_path.exists() else {}
     )
 
+    skills_path = data_dir / "skills.yaml"  # optional: without it, nobody has skills
+    skills = _parse_list(skills_path, SkillTemplate, lambda s: s.id) if skills_path.exists() else {}
+    for skill in skills.values():
+        if skill.class_id not in classes:
+            raise ContentValidationError(
+                f"Skill '{skill.id}' needs an unknown class '{skill.class_id}'"
+            )
+
     sprites_path = data_dir / "sprites.yaml"  # optional: without it, nobody has an avatar
     try:
         avatars = (
@@ -151,6 +160,7 @@ def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegist
     return ContentRegistry(
         avatars=avatars,
         classes=classes,
+        skills=skills,
         rooms=rooms,
         monsters=monsters,
         items=items,

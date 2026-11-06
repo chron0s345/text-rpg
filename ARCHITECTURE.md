@@ -54,7 +54,8 @@ app/
 │   ├── state.py         # Snapshots (ActionSnapshot, PlayerSnapshot, ...) als Engine-Eingabe
 │   ├── permissions.py   # Erlaubte Aktionen je Charakterzustand
 │   ├── actions.py       # say, emote, group_say, whisper, look, respawn
-│   ├── combat.py        # attack, flee
+│   ├── combat.py        # attack, flee (engage/hit_monster auch für Skills)
+│   ├── skills.py        # use_skill (Klassen-Fähigkeiten), cooldowns.py: Abklingzeiten
 │   ├── encounter.py     # Gemeinsame Kampfbausteine (Schaden, Kampfkontakt, Monsterschlag, Fähigkeiten, Kampfschätzung)
 │   ├── participation.py # Kampfteilnahme & Aufheben der Markierung
 │   ├── rewards.py       # Kill: XP, Gold, Beute
@@ -577,6 +578,7 @@ Unabhängig davon ist ein Charakter `online` oder offline.
 |---|---|---|---|
 | move / travel | ✓ | ✗ | ✗ |
 | attack | ✓ (startet Kampf, nicht in `safe`-Räumen) | ✓ | ✗ |
+| use_skill | ✓ (Angriffs-Skills starten Kampf; Heilung auch außerhalb) | ✓ | ✗ |
 | flee | ✗ | ✓ | ✗ |
 | use_item | ✓ | ✓ (kostet Runde) | ✗ |
 | equip / equip_best / unequip | ✓ | ✗ | ✗ |
@@ -1055,6 +1057,12 @@ class AttackAction(BaseModel):
     target_id: UUID
 
 
+class UseSkillAction(BaseModel):  # Fähigkeit der eigenen Klasse (data/skills.yaml)
+    type: Literal["use_skill"]
+    skill_id: str
+    target_id: UUID | None = None  # Angriffs-Skills; Standard: der aktuelle Gegner
+
+
 class SayAction(BaseModel):
     type: Literal["say"]
     text: str = Field(min_length=1, max_length=300)
@@ -1165,6 +1173,7 @@ Umsetzung (`app/api/views.py`, `app/web/`, `app/services/view_service.py`):
 - htmx 2.0.4 und htmx-ext-sse 2.2.2 liegen unverändert unter `static/vendor/` (0BSD); kein CDN, kein Build-Schritt.
 - Monster-Porträts: `data/sprites.yaml` beschreibt 16×16-Pixel-Formen (ein Buchstabe pro Pixel: Umriss, Körper, Augen, Akzent, Stoff) und je Monster Form und Farben; Schatten und Glanzlichter werden abgeleitet. `python -m app.content.sprites` (`app/content/sprites.py`) erzeugt daraus `static/sprites/<monster_id>.svg`; die Dateien sind eingecheckt, ein Test prüft, dass sie zur YAML passen und jedes Monster eins hat. Gezeigt werden sie in der Raumliste, im Bestiarium und groß als Gegnerkarte im Aktionspanel während eines Kampfes. Die Gegenstands-Icons (`ItemTemplate.icon`, `static/icons/<icon>.svg`) entstehen auf dieselbe Weise aus dem Abschnitt `icons` derselben Datei; Rüstung hat je Slot ein eigenes Icon (Helm, Brust, Beine, Stiefel).
 - Klassen: `data/classes.yaml` (optional; `ClassTemplate` mit Prozent-Boni auf max. HP, Angriff, Verteidigung) → `ContentRegistry.classes`. `engine/classes.py` `base_stats(level_rule, klasse)` skaliert die Stufentabelle (kaufmännisch gerundet, mindestens 1); das gilt beim Anlegen (`AccountService.create_character`), bei jedem Stufenaufstieg (`apply_xp`/`calculate_level_progression` mit der Klasse des Spielers) und beim einmaligen Wechsel aus `rules.start_class_id` (`AccountService.choose_class`, Zeilensperre, nicht `in_combat`; HP behalten ihren Anteil). `player.class_id` (Migration 0012, Standard `adventurer` = ohne Bonus, bestehende Werte bleiben gleich), `PlayerSnapshot.class_id`. Der Balance-Test prüft jede Klasse: normale Monster kosten 5–65 % der HP, Bosse brauchen weiter eine Gruppe.
+- Skills: `data/skills.yaml` (`SkillTemplate`: Klasse, ab Stufe, Abklingzeit in Kampfrunden, Schadensfaktor, Treffer, Rüstung ignorieren, Betäubung, Heilung in % der max. HP, Lebensraub in % des Schadens) → `ContentRegistry.skills`/`skills_of`. `engine/skills.py` `resolve_use_skill`: Angriffs-Skills gehen durch dieselben Prüfungen und Treffer wie `attack` (`combat.engage`, `combat.hit_monster`, Sieg über `resolve_kill`), danach schlägt das Monster zurück, außer es ist betäubt oder tot; Heil-Skills gehen auch außerhalb eines Kampfes (im Kampf kosten sie die Runde). Abklingzeiten (`engine/cooldowns.py`, `player.skill_cooldowns` JSONB, Migration 0013) zählen Kampfrunden des Charakters: Angriff, Skill, Trank im Kampf, Fluchtversuch; `enter_combat` setzt sie zu Beginn jedes neuen Kampfes zurück. Die Spielseite zeigt freigeschaltete Skills neben „Angreifen“ (abklingend ausgegraut) und das Panel „Fähigkeiten“.
 - Avatare: Der Abschnitt `avatars` in `data/sprites.yaml` (Form, Farben, Name) ergibt `static/avatars/<id>.svg`; der Loader übernimmt die Namen als `ContentRegistry.avatars`. `player.avatar` (Migration 0011) hält die Wahl, gesetzt beim Anlegen (`/select/new`, `POST /characters`) und auf der Charakterauswahl (`POST /select/{id}/avatar`); ungültige Werte lehnt `AccountService` ab. `ContentRegistry.avatar_for` zeigt ohne (gültige) Wahl ein per ID festes Porträt, so haben auch alte Charaktere eins. Gezeigt in Statusleiste, Raumliste, Gruppe, „Im Spiel“, Rangliste und Charakterauswahl.
 - Animationen: `app/web/effects.py` gibt Log-Zeilen, die den Charakter selbst betreffen (Actor- und persönliche Audiences), ein `data-fx` (Treffer, Schaden, Wuchtschlag, Lebensraub, Heilung, Gold, Sieg, Stufe, Erfolg, Auftrag, Handwerk, Tod) und ggf. `data-amount`; Zeilen über andere und aus dem gespeicherten Log tragen keins, ein Reload spielt also nichts ab. `app.js` beobachtet das Log und setzt kurz eine `fx-*`-Klasse auf `.game` (überlebt so das Neu-Rendern der Panels), lässt Zahlen aufsteigen und zeigt Banner; die Keyframes stehen in `style.css`. Dazu laufen kleine Leerlauf-Animationen (Monster wippen, neue Log-Zeilen gleiten herein). Bei `prefers-reduced-motion` bewegt sich nichts.
 - Raumbilder: `data/scenes.yaml` beschreibt Themen als Ebenen auf einer 64×24-Pixel-Leinwand (Himmel, Sterne, Sonne/Mond, Wolken, Bergkamm, Bäume, Häuser, Säulen, Tropfsteine, Boden, Wasser/Lava, Gräber, Feuer, Fackeln, Kristalle, Nebel, Mauer, Banner, Pflanzen und frei gezeichnete Wahrzeichen); jeder Raum wählt ein Thema und kann Ebenen ergänzen. Zufall (wo Bäume stehen, wie zackig Berge sind) kommt aus einem Generator mit der Raum-ID als Seed, ein Raum sieht also immer gleich aus. `python -m app.content.scenes` (`app/content/scenes.py`) erzeugt `static/scenes/<room_id>.svg`; eingecheckt und per Test mit der YAML abgeglichen. Das Bild steht oben im Raum-Panel.

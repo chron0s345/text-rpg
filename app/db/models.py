@@ -128,6 +128,11 @@ class Player(SQLModel, table=True):
     )
     title: str | None = Field(default=None, max_length=64)  # achievement id shown as title
     avatar: str | None = Field(default=None, max_length=32)  # portrait id (sprites.yaml avatars)
+    # skill id -> combat rounds until it is ready again (engine/cooldowns.py)
+    skill_cooldowns: dict[str, int] = Field(
+        default_factory=dict,
+        sa_column=Column(JSONB, nullable=False, server_default=text("'{}'::jsonb")),
+    )
     # character class (data/classes.yaml); scales the level table's base stats
     class_id: str = Field(
         default="adventurer", max_length=32, sa_column_kwargs={"server_default": "adventurer"}

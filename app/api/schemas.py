@@ -71,6 +71,12 @@ class EmoteAction(BaseModel):
     text: str = Field(min_length=1, max_length=300)
 
 
+class UseSkillAction(BaseModel):
+    type: Literal["use_skill"] = "use_skill"
+    skill_id: str = Field(min_length=1, max_length=40)
+    target_id: UUID | None = None  # offensive skills: default the current opponent
+
+
 class GroupSayAction(BaseModel):
     type: Literal["group_say"] = "group_say"
     text: str = Field(min_length=1, max_length=300)
@@ -252,6 +258,7 @@ GameAction = Annotated[
     | TravelAction
     | AttackAction
     | FleeAction
+    | UseSkillAction
     | UseItemAction
     | EquipAction
     | EquipBestAction

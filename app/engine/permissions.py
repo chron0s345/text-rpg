@@ -20,6 +20,7 @@ ALLOWED_STATES: Final[dict[str, frozenset[str]]] = {
     "move": _EXPLORING,
     "travel": _EXPLORING,
     "attack": _ALIVE,
+    "use_skill": _ALIVE,  # healing skills also outside a fight
     "flee": frozenset({"in_combat"}),
     "use_item": _ALIVE,
     "equip": _EXPLORING,
