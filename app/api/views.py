@@ -144,7 +144,15 @@ async def _select_page(
             "can_create": len(characters) < services.content.rules.max_characters_per_account,
             "avatars": services.content.avatars,
             "classes": [
-                {"id": c.id, "name": c.name, "description": c.description, "bonus": bonus_text(c)}
+                {
+                    "id": c.id,
+                    "name": c.name,
+                    "description": c.description,
+                    "bonus": bonus_text(c),
+                    "skills": " · ".join(
+                        f"{s.name} (ab Stufe {s.level})" for s in services.content.skills_of(c.id)
+                    ),
+                }
                 for c in services.content.classes.values()
             ],
             "start_class_id": services.content.rules.start_class_id,

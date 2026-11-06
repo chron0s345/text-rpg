@@ -23,6 +23,7 @@
     <strong>{{ c.name }}</strong>
     <small class="class-bonus">{{ c.bonus }}</small>
     <small class="muted">{{ c.description }}</small>
+    {% if c.skills %}<small class="class-skills">✦ {{ c.skills }}</small>{% endif %}
   </label>
   {% endfor %}
 </fieldset>

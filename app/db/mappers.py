@@ -76,6 +76,7 @@ def player_snapshot(
         kills=dict(row.kills),
         buffs=[ActiveBuff.model_validate(b) for b in row.buffs],
         class_id=row.class_id,
+        skill_cooldowns=dict(row.skill_cooldowns),
     )
 
 

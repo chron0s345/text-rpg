@@ -75,6 +75,7 @@ from app.api.schemas import (
     TravelAction,
     UnequipAction,
     UseItemAction,
+    UseSkillAction,
     WhisperAction,
 )
 from app.content.registry import ContentRegistry
@@ -129,6 +130,7 @@ from app.engine.presence import (
 )
 from app.engine.quests import resolve_quest_abandon, resolve_quest_accept, resolve_quest_turn_in
 from app.engine.respawn import respawn_due_monsters
+from app.engine.skills import resolve_use_skill
 from app.engine.state import ActionSnapshot, GroupActionSnapshot, PlayerRef, TradeActionSnapshot
 from app.engine.trade import (
     resolve_trade_accept,
@@ -670,6 +672,8 @@ class ActionService:
                 return resolve_attack(*args, action.target_id)
             case FleeAction():
                 return resolve_flee(*args)
+            case UseSkillAction():
+                return resolve_use_skill(*args, action.skill_id, action.target_id)
             case SayAction():
                 return resolve_say(*args, action.text)
             case EmoteAction():

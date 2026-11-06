@@ -14,6 +14,7 @@ from app.content.schemas import (
     RecipeTemplate,
     RoomTemplate,
     Rules,
+    SkillTemplate,
 )
 
 
@@ -32,6 +33,13 @@ class ContentRegistry:
     achievements: dict[str, AchievementTemplate] = field(default_factory=dict)
     avatars: dict[str, str] = field(default_factory=dict)  # avatar id -> label (sprites.yaml)
     classes: dict[str, ClassTemplate] = field(default_factory=dict)  # optional (classes.yaml)
+    skills: dict[str, SkillTemplate] = field(default_factory=dict)  # optional (skills.yaml)
+
+    def skills_of(self, class_id: str) -> list[SkillTemplate]:
+        """The class's skills in unlock order."""
+        return sorted(
+            (s for s in self.skills.values() if s.class_id == class_id), key=lambda s: s.level
+        )
 
     def avatar_for(self, player_id: UUID, chosen: str | None) -> str:
         """The avatar a character shows: the chosen one, else one picked by its id (so

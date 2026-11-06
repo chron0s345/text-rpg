@@ -26,6 +26,7 @@ def event(kind: str, audience: Any = None, **data: Any) -> GameEvent:
         (event("combat.drain", healed=2), Effect("drain", 2)),
         (event("inventory.used", healed=12), Effect("heal", 12)),
         (event("inventory.used", healed=0), None),  # a buff potion: nothing healed
+        (event("skill.heal", healed=8), Effect("heal", 8)),
         (event("loot.gold", PlayersAudience(player_ids=[uuid4()]), amount=5), Effect("gold", 5)),
         (event("player.level_up", level=3), Effect("level")),
         (event("achievement.earned"), Effect("achievement")),

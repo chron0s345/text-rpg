@@ -145,3 +145,21 @@ def test_class_table_matches_classes_yaml() -> None:
         for c in classes
     ]
     assert documented == expected
+
+
+def test_skill_table_matches_skills_yaml() -> None:
+    lines = DOC.read_text().splitlines()
+    start = lines.index("| Fähigkeit | Klasse | ab Stufe | Abklingzeit | Wirkung |") + 2
+    documented = []
+    for line in lines[start:]:
+        if not line.startswith("|"):
+            break
+        name, class_name, level, cooldown = (c.strip() for c in line.split("|")[1:5])
+        documented.append((name, class_name, int(level), int(cooldown)))
+    data = DOC.parents[1] / "data"
+    classes = {c["id"]: c["name"] for c in yaml.safe_load((data / "classes.yaml").read_text())}
+    skills = yaml.safe_load((data / "skills.yaml").read_text())
+    expected = [
+        (s["name"], classes[s["class_id"]], s.get("level", 1), s["cooldown"]) for s in skills
+    ]
+    assert documented == expected

@@ -1,0 +1,15 @@
+{% set p = view.player %}
+<section id="skills" class="panel skills" aria-labelledby="skills-title"{% if not p.skills %} hidden{% endif %}{% if oob %} hx-swap-oob="true"{% endif %}>
+  <h2 id="skills-title">Fähigkeiten{% if p.class_name %} <span class="muted">{{ p.class_name }}</span>{% endif %}</h2>
+  <ul class="list skill-list">
+    {% for s in p.skills %}
+    <li class="{% if not s.unlocked %}locked{% endif %}">
+      <span class="stacked">
+        <span>✦ {{ s.name }} <span class="muted small">{% if s.unlocked %}{% if s.ready_in %}bereit in {{ s.ready_in }} {{ "Runde" if s.ready_in == 1 else "Runden" }}{% else %}bereit{% endif %}{% else %}ab Stufe {{ s.level }}{% endif %} · Abklingzeit {{ s.cooldown }}</span></span>
+        <small class="muted">{{ s.description }}</small>
+      </span>
+    </li>
+    {% endfor %}
+  </ul>
+  <p class="muted small">Im Kampf stehen sie neben „Angreifen“. Abklingzeiten zählen Kampfrunden; jeder neue Kampf beginnt mit allen bereit.</p>
+</section>

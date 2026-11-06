@@ -14,12 +14,22 @@
       </div>
     </div>
     <button class="primary" hx-post="/ui/actions" hx-vals='{{ {"type": "attack", "target_id": m.id | string} | tojson }}'>{{ m.name }} angreifen</button>
+    {% for s in p.skills if s.unlocked %}
+    <button class="skill{% if not s.offensive %} heal{% endif %}" hx-post="/ui/actions" hx-vals='{{ {"type": "use_skill", "skill_id": s.id, "target_id": m.id | string} | tojson }}'
+            title="{{ s.description }}"{% if s.ready_in %} disabled{% endif %}>✦ {{ s.name }}{% if s.ready_in %} <span class="cooldown">({{ s.ready_in }})</span>{% endif %}</button>
+    {% endfor %}
     {% endfor %}
     <button hx-post="/ui/actions" hx-vals='{"type": "flee"}'>Fliehen</button>
   {% endif %}
   {% if p.state == 'in_combat' or (p.state == 'exploring' and p.hp < p.max_hp and not view.room.safe) %}
   {% for i in (view.inventory.carried | selectattr("usable") | rejectattr("offered") | list)[:4] %}
   <button class="heal" hx-post="/ui/actions" hx-vals='{{ {"type": "use_item", "inventory_item_id": i.id | string} | tojson }}' title="{{ i.summary }}{% if p.state == 'in_combat' %} – kostet eine Kampfrunde{% endif %}">{% if i.icon %}<img src="/static/icons/{{ i.icon }}.svg" alt="" class="icon">{% endif %}{{ i.name }} <span class="muted">×{{ i.quantity }}</span></button>
+  {% endfor %}
+  {% endif %}
+  {% if p.state == 'exploring' and p.hp < p.max_hp %}
+  {% for s in p.skills if s.unlocked and not s.offensive %}
+  <button class="skill heal" hx-post="/ui/actions" hx-vals='{{ {"type": "use_skill", "skill_id": s.id} | tojson }}'
+          title="{{ s.description }}"{% if s.ready_in %} disabled{% endif %}>✦ {{ s.name }}{% if s.ready_in %} <span class="cooldown">({{ s.ready_in }})</span>{% endif %}</button>
   {% endfor %}
   {% endif %}
   {% if p.state == 'exploring' and view.room.safe and p.hp < p.max_hp %}

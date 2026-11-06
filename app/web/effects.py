@@ -28,6 +28,7 @@ EFFECTS: Final[dict[str, tuple[str, str | None]]] = {
     "craft.done": ("craft", None),
     "player.died": ("death", None),
     "inventory.used": ("heal", "healed"),
+    "skill.heal": ("heal", "healed"),
     "loot.gold": ("gold", "amount"),
 }
 

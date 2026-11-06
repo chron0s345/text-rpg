@@ -10,6 +10,7 @@ from datetime import datetime
 
 from app.content.registry import ContentRegistry
 from app.content.schemas import CombatRules, CrushingBlow, LifeDrain, MonsterTemplate, Rules
+from app.engine.cooldowns import reset_cooldowns
 from app.engine.death import apply_player_death
 from app.engine.events import ResultBuilder, RoomAudience
 from app.engine.group_status import report_hp
@@ -42,6 +43,9 @@ def touch_monster(
 
 
 def enter_combat(builder: ResultBuilder, player: PlayerSnapshot, monster: MonsterSnapshot) -> None:
+    """Fights ``monster`` (again); a fresh fight starts with every skill ready."""
+    if player.state != "in_combat":
+        reset_cooldowns(builder, player)
     player.state = "in_combat"
     player.combat_target_id = monster.id
     builder.update_player(player.id, state="in_combat", combat_target_id=monster.id)

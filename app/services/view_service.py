@@ -90,8 +90,21 @@ class PlayerView:
     combat_target_id: UUID | None
     avatar: str = ""  # portrait, static/avatars/<avatar>.svg ("" without avatars)
     class_name: str = ""  # "Krieger"; "" without classes
+    skills: list[SkillView] = field(default_factory=list)  # the class's, in unlock order
     title: str = ""  # chosen achievement title, shown after the name
     buffs: list[str] = field(default_factory=list)  # "Trank der Stärke: +3 Angriff (noch 2 Siege)"
+
+
+@dataclass(frozen=True)
+class SkillView:
+    id: str
+    name: str
+    description: str
+    level: int  # unlocked from this level on
+    unlocked: bool
+    offensive: bool  # strikes a monster (else it only heals)
+    cooldown: int  # combat rounds
+    ready_in: int  # rounds until ready, 0 = ready
 
 
 @dataclass(frozen=True)
@@ -528,6 +541,21 @@ class ViewService:
             combat_target_id=row.combat_target_id,
             avatar=self.content.avatar_for(row.id, row.avatar),
             class_name=self._class_name(row.class_id),
+            skills=[
+                SkillView(
+                    id=s.id,
+                    name=s.name,
+                    description=s.description,
+                    level=s.level,
+                    unlocked=row.level >= s.level,
+                    offensive=s.offensive,
+                    cooldown=s.cooldown,
+                    ready_in=0
+                    if s.offensive and row.state != "in_combat"
+                    else row.skill_cooldowns.get(s.id, 0),
+                )
+                for s in self.content.skills_of(row.class_id)
+            ],
             title=self._title(row.title),
             buffs=self._buffs(snapshot),
         )

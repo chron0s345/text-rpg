@@ -16,6 +16,7 @@ from app.content.registry import ContentRegistry
 from app.content.schemas import Buff, Heal, ItemTemplate, Rules
 from app.engine.achievements import grant
 from app.engine.buffs import apply_buffs
+from app.engine.cooldowns import tick_cooldowns
 from app.engine.encounter import monster_strikes, touch_monster
 from app.engine.events import (
     ActionResult,
@@ -306,6 +307,7 @@ def resolve_use_item(
     if actor.state == "in_combat" and monster is not None and monster.alive:
         template = content.get_monster(monster.monster_id)
         touch_monster(builder, monster, template, now)
+        tick_cooldowns(builder, actor)
         monster_strikes(builder, snapshot, actor, monster, template, content, rules, rng)
     return builder.build()
 

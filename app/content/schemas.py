@@ -436,6 +436,35 @@ class ClassTemplate(BaseModel):
     bonus: ClassBonus = Field(default_factory=ClassBonus)
 
 
+class SkillTemplate(BaseModel):
+    """An active ability of a class (data/skills.yaml), from ``level`` on."""
+
+    id: str
+    name: str
+    description: str
+    class_id: str
+    level: PositiveInt = 1
+    cooldown: PositiveInt  # combat rounds until it is ready again
+    damage: float = Field(default=0, ge=0, le=5)  # multiple of a normal hit; 0 = no hit
+    hits: PositiveInt = 1
+    pierce: bool = False  # the monster's defense does not count
+    stun: bool = False  # the monster does not strike back this round
+    heal: int = Field(default=0, ge=0, le=100)  # percent of the max HP
+    drain: int = Field(default=0, ge=0, le=100)  # percent of the damage dealt, healed
+
+    @model_validator(mode="after")
+    def _does_something(self) -> SkillTemplate:
+        if not self.damage and not self.heal:
+            raise ValueError(f"skill '{self.id}' neither hits nor heals")
+        if not self.damage and (self.hits > 1 or self.pierce or self.stun or self.drain):
+            raise ValueError(f"skill '{self.id}': hits, pierce, stun and drain need damage")
+        return self
+
+    @property
+    def offensive(self) -> bool:
+        return self.damage > 0
+
+
 class Rules(BaseModel):
     start_room_id: str
     town_room_id: str
