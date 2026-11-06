@@ -88,6 +88,7 @@ class PlayerView:
     gold: int
     state: str
     combat_target_id: UUID | None
+    avatar: str = ""  # portrait, static/avatars/<avatar>.svg ("" without avatars)
     title: str = ""  # chosen achievement title, shown after the name
     buffs: list[str] = field(default_factory=list)  # "Trank der Stärke: +3 Angriff (noch 2 Siege)"
 
@@ -142,7 +143,7 @@ class RoomView:
     bank: bool
     exits: list[ExitView]
     monsters: list[MonsterView]
-    players: list[tuple[UUID, str, str, str]]  # (id, name, state, title or "")
+    players: list[tuple[UUID, str, str, str, str]]  # (id, name, state, title or "", avatar)
     merchants: list[str]
     floor_items: list[FloorItemView]
     map: Minimap
@@ -247,6 +248,7 @@ class InventoryView:
 class MemberView:
     id: UUID
     name: str
+    avatar: str
     hp: int
     max_hp: int
     state: str
@@ -382,6 +384,7 @@ class BestiaryView:
 @dataclass(frozen=True)
 class OnlineView:
     name: str
+    avatar: str
     level: int
     title: str
     room_name: str
@@ -399,6 +402,7 @@ class OnlineListView:
 class RankView:
     rank: int
     name: str
+    avatar: str
     title: str
     value: str  # "Stufe 12", "17 Erfolge"
     me: bool
@@ -468,7 +472,13 @@ class ViewService:
             ).all()
             others = (
                 await session.execute(
-                    select(col(Player.id), col(Player.name), col(Player.state), col(Player.title))
+                    select(
+                        col(Player.id),
+                        col(Player.name),
+                        col(Player.state),
+                        col(Player.title),
+                        col(Player.avatar),
+                    )
                     .where(
                         col(Player.current_room_id) == row.current_room_id,
                         col(Player.online),
@@ -514,6 +524,7 @@ class ViewService:
             gold=row.gold,
             state=row.state,
             combat_target_id=row.combat_target_id,
+            avatar=self.content.avatar_for(row.id, row.avatar),
             title=self._title(row.title),
             buffs=self._buffs(snapshot),
         )
@@ -567,7 +578,10 @@ class ViewService:
                 for direction, target in room.exits.items()
             ],
             monsters=monster_views,
-            players=[(pid, name, state, self._title(title)) for pid, name, state, title in others],
+            players=[
+                (pid, name, state, self._title(title), self.content.avatar_for(pid, avatar))
+                for pid, name, state, title, avatar in others
+            ],
             travel=[
                 TravelView(
                     route.room_id,
@@ -941,7 +955,7 @@ class ViewService:
         go to the name. Read-only."""
         alive = col(Player.deleted_at).is_(None)
         earned = func.cardinality(col(Player.achievements))
-        columns = (col(Player.id), col(Player.name), col(Player.title))
+        columns = (col(Player.id), col(Player.name), col(Player.title), col(Player.avatar))
         async with self.sessions() as session:
             levels = (
                 await session.execute(
@@ -961,18 +975,26 @@ class ViewService:
             ).all()
         return LeaderboardView(
             by_level=[
-                RankView(n, name, self._title(title), f"Stufe {level}", pid == player_id)
-                for n, (pid, name, title, level) in enumerate(levels, start=1)
+                RankView(
+                    n,
+                    name,
+                    self.content.avatar_for(pid, avatar),
+                    self._title(title),
+                    f"Stufe {level}",
+                    pid == player_id,
+                )
+                for n, (pid, name, title, avatar, level) in enumerate(levels, start=1)
             ],
             by_achievements=[
                 RankView(
                     n,
                     name,
+                    self.content.avatar_for(pid, avatar),
                     self._title(title),
                     "1 Erfolg" if count == 1 else f"{count} Erfolge",
                     pid == player_id,
                 )
-                for n, (pid, name, title, count) in enumerate(achievements, start=1)
+                for n, (pid, name, title, avatar, count) in enumerate(achievements, start=1)
             ],
         )
 
@@ -990,6 +1012,7 @@ class ViewService:
                         col(Player.title),
                         col(Player.current_room_id),
                         col(Player.state),
+                        col(Player.avatar),
                     )
                     .where(*online)
                     .order_by(col(Player.level).desc(), col(Player.name))
@@ -1002,13 +1025,14 @@ class ViewService:
             players=[
                 OnlineView(
                     name=name,
+                    avatar=self.content.avatar_for(pid, avatar),
                     level=level,
                     title=self._title(title),
                     room_name=rooms[room].name if room in rooms else "",
                     state=state,
                     me=pid == player_id,
                 )
-                for pid, name, level, title, room, state in rows
+                for pid, name, level, title, room, state, avatar in rows
             ],
         )
 
@@ -1067,6 +1091,7 @@ class ViewService:
                 MemberView(
                     id=member.id,
                     name=member.name,
+                    avatar=self.content.avatar_for(member.id, member.avatar),
                     hp=member.hp,
                     max_hp=stats.max_hp,
                     state=member.state,

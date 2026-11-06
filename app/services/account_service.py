@@ -73,9 +73,10 @@ class CharacterInfo:
     state: str
     room_id: str
     online: bool
+    avatar: str = ""  # the portrait shown (ContentRegistry.avatar_for)
 
 
-def _info(row: Player) -> CharacterInfo:
+def _info(row: Player, content: ContentRegistry) -> CharacterInfo:
     return CharacterInfo(
         id=row.id,
         name=row.name,
@@ -83,6 +84,7 @@ def _info(row: Player) -> CharacterInfo:
         state=row.state,
         room_id=row.current_room_id,
         online=row.online,
+        avatar=content.avatar_for(row.id, row.avatar),
     )
 
 
@@ -225,12 +227,16 @@ class AccountService:
                 .where(col(Player.account_id) == account_id, col(Player.deleted_at).is_(None))
                 .order_by(col(Player.name))
             )
-            return [_info(row) for row in rows.all()]
+            return [_info(row, self.content) for row in rows.all()]
 
-    async def create_character(self, account_id: UUID, name: str) -> CharacterInfo:
-        """New character with level-1 stats in ``start_room_id`` (also its first checkpoint)."""
+    async def create_character(
+        self, account_id: UUID, name: str, avatar: str | None = None
+    ) -> CharacterInfo:
+        """New character with level-1 stats in ``start_room_id`` (also its first checkpoint);
+        without an ``avatar`` it shows one picked by its id."""
         if not CHARACTER_NAME.fullmatch(name):
             raise InvalidInputError("Name: 3–20 Buchstaben.")
+        self._check_avatar(avatar)
         rules = self.content.rules
         start = rules.level_rule(1)
         try:
@@ -257,18 +263,34 @@ class AccountService:
                     base_defense=start.defense,
                     current_room_id=rules.start_room_id,
                     checkpoint_room_id=rules.start_room_id,
+                    avatar=avatar,
                 )
                 session.add(player)
         except IntegrityError as exc:  # unique, case-insensitive among non-deleted characters
             raise CharacterNameTakenError("Dieser Name ist vergeben.") from exc
-        return _info(player)
+        return _info(player, self.content)
+
+    def _check_avatar(self, avatar: str | None) -> None:
+        if avatar is not None and avatar not in self.content.avatars:
+            raise InvalidInputError("Dieses Aussehen gibt es nicht.")
+
+    async def set_avatar(self, account_id: UUID, character_id: UUID, avatar: str) -> CharacterInfo:
+        """A new portrait for one of the account's characters (also while it plays: purely
+        cosmetic, the panels show it with their next refresh)."""
+        self._check_avatar(avatar)
+        async with self.sessions() as session, session.begin():
+            row = await session.get(Player, character_id, with_for_update=True)
+            if row is None or row.account_id != account_id or row.deleted_at is not None:
+                raise CharacterNotFoundError("Diesen Charakter gibt es nicht.")
+            row.avatar = avatar
+            return _info(row, self.content)
 
     async def owned_character(self, account_id: UUID, character_id: UUID) -> CharacterInfo:
         async with self.sessions() as session:
             row = await session.get(Player, character_id)
             if row is None or row.account_id != account_id or row.deleted_at is not None:
                 raise CharacterNotFoundError("Diesen Charakter gibt es nicht.")
-            return _info(row)
+            return _info(row, self.content)
 
     async def delete_character(self, account_id: UUID, character_id: UUID) -> None:
         """Soft delete, only while offline (the name becomes free again)."""

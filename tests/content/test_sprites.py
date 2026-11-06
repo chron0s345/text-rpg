@@ -14,6 +14,7 @@ from app.content.sprites import (
     load_sprites,
     palette,
     render_all,
+    render_avatars,
     render_icons,
     render_svg,
 )
@@ -46,6 +47,26 @@ def test_every_item_icon_is_pixel_art() -> None:
     expected = render_icons(SHEET)
     on_disk = {p.name: p.read_text(encoding="utf-8") for p in Path(ICONS_DIR).glob("*.svg")}
     assert on_disk == expected
+
+
+def test_avatars_are_pixel_art_and_reach_the_content() -> None:
+    assert len(SHEET.avatars) >= 10
+    assert CONTENT.avatars == {k: a.label for k, a in SHEET.avatars.items()}
+    on_disk = {
+        p.name: p.read_text(encoding="utf-8") for p in Path(STATIC_DIR / "avatars").glob("*.svg")
+    }
+    assert on_disk == render_avatars(SHEET)
+
+
+def test_every_character_has_an_avatar_even_without_a_choice() -> None:
+    from uuid import uuid4
+
+    ids = [uuid4() for _ in range(40)]
+    picked = [CONTENT.avatar_for(i, None) for i in ids]
+    assert set(picked) <= set(CONTENT.avatars)
+    assert [CONTENT.avatar_for(i, None) for i in ids] == picked  # stable
+    assert CONTENT.avatar_for(ids[0], "witch") == "witch"
+    assert CONTENT.avatar_for(ids[0], "gone") == picked[0]  # removed from the content
 
 
 def test_an_svg_is_one_rect_per_run_of_a_color() -> None:

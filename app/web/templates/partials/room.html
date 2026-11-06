@@ -28,9 +28,10 @@
   {% if r.players %}
   <h3>Hier sind</h3>
   <ul class="list">
-    {% for pid, name, state, title in r.players %}
+    {% for pid, name, state, title, avatar in r.players %}
     <li>
-      <span>{{ name }}{% if title %} <span class="title">{{ title }}</span>{% endif %}{% if state != 'exploring' %} <span class="muted">({{ state_label(state) }})</span>{% endif %}</span>
+      {% if avatar %}<img class="avatar avatar-small" src="/static/avatars/{{ avatar }}.svg" alt="" width="32" height="32">{% endif %}
+      <span class="player-name">{{ name }}{% if title %} <span class="title">{{ title }}</span>{% endif %}{% if state != 'exploring' %} <span class="muted">({{ state_label(state) }})</span>{% endif %}</span>
       <span class="row-actions">
       <button class="subtle" hx-post="/ui/actions" hx-vals='{{ {"type": "inspect_player", "player_id": pid | string} | tojson }}' title="Stufe, Ausrüstung und Erfolge ansehen">Ansehen</button>
       {% if p.state == 'exploring' and state == 'exploring' and view.trade is none %}

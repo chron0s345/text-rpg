@@ -27,6 +27,7 @@ from app.content.schemas import (
     SetCondition,
     SpeciesCondition,
 )
+from app.content.sprites import load_sprites
 
 logger = logging.getLogger(__name__)
 
@@ -98,6 +99,16 @@ def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegist
         else {}
     )
 
+    sprites_path = data_dir / "sprites.yaml"  # optional: without it, nobody has an avatar
+    try:
+        avatars = (
+            {k: a.label for k, a in load_sprites(sprites_path).avatars.items()}
+            if sprites_path.exists()
+            else {}
+        )
+    except ValidationError as exc:
+        raise ContentValidationError(f"sprites.yaml: {exc}") from exc
+
     rules_raw = load_yaml_file(data_dir / "rules.yaml")
     if not isinstance(rules_raw, dict):
         raise ContentValidationError("rules.yaml must contain a YAML mapping at top level")
@@ -130,6 +141,7 @@ def load_content(data_dir: Path, icons_dir: Path | None = None) -> ContentRegist
         validate_icons(items, Path(icons_dir))
 
     return ContentRegistry(
+        avatars=avatars,
         rooms=rooms,
         monsters=monsters,
         items=items,

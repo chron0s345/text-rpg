@@ -1,5 +1,6 @@
 {% set p = view.player %}
 <section id="status" class="status" data-state="{{ p.state }}" aria-label="Status"{% if oob %} hx-swap-oob="true"{% endif %}>
+  {% if p.avatar %}<img class="avatar avatar-status" src="/static/avatars/{{ p.avatar }}.svg" alt="" width="40" height="40">{% endif %}
   <strong class="name">{{ p.name }}{% if p.title %} <span class="title">{{ p.title }}</span>{% endif %}</strong>
   <span>Level {{ p.level }}</span>
   <span class="hp">

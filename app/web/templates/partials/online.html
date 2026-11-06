@@ -6,6 +6,7 @@
     <ul class="list online-list">
       {% for m in o.players %}
       <li{% if m.me %} class="me"{% endif %}>
+        {% if m.avatar %}<img class="avatar avatar-small" src="/static/avatars/{{ m.avatar }}.svg" alt="" width="32" height="32">{% endif %}
         <span class="stacked">
           <span>{{ m.name }}{% if m.title %} <span class="title">{{ m.title }}</span>{% endif %} <span class="muted small">Stufe {{ m.level }}</span>{% if m.state != 'exploring' %} <span class="muted small">({{ state_label(m.state) }})</span>{% endif %}</span>
           {% if m.room_name %}<small class="muted">{{ m.room_name }}</small>{% endif %}

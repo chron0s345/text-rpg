@@ -2,6 +2,18 @@
 {% block title %}Oakhaven – Charakterauswahl{% endblock %}
 {% block body_class %}page-narrow{% endblock %}
 {% block body %}
+{% macro avatar_picker(chosen, required) %}
+<fieldset class="avatar-picker">
+  <legend>Aussehen</legend>
+  {% for id, label in avatars.items() %}
+  <label class="avatar-choice" title="{{ label }}">
+    <input type="radio" name="avatar" value="{{ id }}"{% if id == chosen %} checked{% endif %}{% if required %} required{% endif %}>
+    <img class="avatar" src="/static/avatars/{{ id }}.svg" alt="" width="48" height="48">
+    <span>{{ label }}</span>
+  </label>
+  {% endfor %}
+</fieldset>
+{% endmacro %}
 <main>
   <header class="row">
     <h1>Deine Charaktere</h1>
@@ -22,9 +34,19 @@
   <ul class="characters">
     {% for c in characters %}
     <li class="card">
-      <div>
+      {% if c.avatar %}<img class="avatar avatar-large" src="/static/avatars/{{ c.avatar }}.svg" alt="" width="64" height="64">{% endif %}
+      <div class="character-info">
         <strong>{{ c.name }}</strong>
         <span class="muted">Level {{ c.level }} · {{ state_label(c.state) }}{% if c.online %} · eingeloggt{% endif %}</span>
+        {% if avatars %}
+        <details class="avatar-change">
+          <summary>Aussehen ändern</summary>
+          <form method="post" action="/select/{{ c.id }}/avatar">
+            {{ avatar_picker(c.avatar, true) }}
+            <button type="submit">Übernehmen</button>
+          </form>
+        </details>
+        {% endif %}
       </div>
       <div class="buttons">
         <form method="post" action="/select/{{ c.id }}/play"><button type="submit" class="primary">Spielen</button></form>
@@ -44,6 +66,7 @@
   <form method="post" action="/select/new" class="card">
     <h2>Neuer Charakter</h2>
     <label>Name <input name="name" required minlength="3" maxlength="20" pattern="[A-Za-zÄÖÜäöüß]+" title="3–20 Buchstaben"></label>
+    {% if avatars %}{{ avatar_picker(avatars | first, false) }}{% endif %}
     <button type="submit">Erschaffen</button>
   </form>
   {% endif %}
