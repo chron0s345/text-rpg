@@ -69,6 +69,7 @@ async def test_room_shows_monsters_and_visible_floor_items(api: Api) -> None:
 
         assert "Goblin-Späher" in page and "7/12 HP" in page
         assert 'src="/static/sprites/goblin.svg"' in page  # its portrait
+        assert f'src="/static/scenes/{room}.svg"' in page  # the room's panorama
         assert "Hungriger Wolf" not in page  # dead monsters are not shown
         assert '"type": "attack"' in page
         assert "Am Boden" in page and "3× <button" in page and ">Goblinohr</button>" in page

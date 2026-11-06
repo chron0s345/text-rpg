@@ -104,7 +104,7 @@ app/
 └── web/
     ├── render.py        # Jinja2-Umgebung (Autoescape), gemeinsam für Seiten und SSE
     ├── templates/       # Seiten + partials/ (status, room, actions, inventory, log_line)
-    └── static/          # style.css, app.js, icons/ + sprites/ (generiert), fonts/, vendor/ (htmx, htmx-ext-sse, unverändert)
+    └── static/          # style.css, app.js, icons/ + sprites/ + scenes/ (generiert), fonts/, vendor/ (htmx, htmx-ext-sse, unverändert)
 data/
 ├── rooms.yaml
 ├── monsters.yaml
@@ -1163,6 +1163,7 @@ Umsetzung (`app/api/views.py`, `app/web/`, `app/services/view_service.py`):
 - Nach einem SSE-Reconnect lädt die Seite Log und Panels neu. Buttons sind während ihres Requests deaktiviert.
 - htmx 2.0.4 und htmx-ext-sse 2.2.2 liegen unverändert unter `static/vendor/` (0BSD); kein CDN, kein Build-Schritt.
 - Monster-Porträts: `data/sprites.yaml` beschreibt 16×16-Pixel-Formen (ein Buchstabe pro Pixel: Umriss, Körper, Augen, Akzent, Stoff) und je Monster Form und Farben; Schatten und Glanzlichter werden abgeleitet. `python -m app.content.sprites` (`app/content/sprites.py`) erzeugt daraus `static/sprites/<monster_id>.svg`; die Dateien sind eingecheckt, ein Test prüft, dass sie zur YAML passen und jedes Monster eins hat. Gezeigt werden sie in der Raumliste, im Bestiarium und groß als Gegnerkarte im Aktionspanel während eines Kampfes. Die Gegenstands-Icons (`ItemTemplate.icon`, `static/icons/<icon>.svg`) entstehen auf dieselbe Weise aus dem Abschnitt `icons` derselben Datei; Rüstung hat je Slot ein eigenes Icon (Helm, Brust, Beine, Stiefel).
+- Raumbilder: `data/scenes.yaml` beschreibt Themen als Ebenen auf einer 64×24-Pixel-Leinwand (Himmel, Sterne, Sonne/Mond, Wolken, Bergkamm, Bäume, Häuser, Säulen, Tropfsteine, Boden, Wasser/Lava, Gräber, Feuer, Fackeln, Kristalle, Nebel, Mauer, Banner, Pflanzen und frei gezeichnete Wahrzeichen); jeder Raum wählt ein Thema und kann Ebenen ergänzen. Zufall (wo Bäume stehen, wie zackig Berge sind) kommt aus einem Generator mit der Raum-ID als Seed, ein Raum sieht also immer gleich aus. `python -m app.content.scenes` (`app/content/scenes.py`) erzeugt `static/scenes/<room_id>.svg`; eingecheckt und per Test mit der YAML abgeglichen. Das Bild steht oben im Raum-Panel.
 - Pixel-Look: Die Schriften Press Start 2P (Überschriften, Beschriftungen, Knöpfe) und VT323 (Fließtext) liegen als `latin`-WOFF2 unter `static/fonts/` (SIL Open Font License, Lizenztexte daneben). `style.css` bindet sie per `@font-face` ein, also ebenfalls ohne CDN; die CSP (`default-src 'self'`) erlaubt sie. Farben und Schriften stehen als Variablen in `:root`.
 - Gruppenpanel: Mitglieder mit HP-Balken, Aufenthaltsort und Leitung, offene Einladungen (Annehmen/Ablehnen), Einladen per Name, Verlassen, Entfernen (nur Leitung, nicht im Kampf).
 - Händleransicht: Sortiment mit Preisen (nicht leistbar = ausgegraut), am Inventar „Verkaufen“ mit Erlös pro Stück und für den ganzen Stapel bzw. „Unverkäuflich“.

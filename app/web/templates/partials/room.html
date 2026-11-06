@@ -1,6 +1,7 @@
 {% from "partials/macros.html" import compare_badge %}
 {% set r = view.room %}{% set p = view.player %}
 <section id="room" class="panel room" aria-labelledby="room-name"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <img class="scene" src="/static/scenes/{{ r.id }}.svg" alt="" width="384" height="144">
   <h2 id="room-name">{{ r.name }}{% if r.safe %} <span class="tag">sicher</span>{% endif %}{% if r.bank %} <span class="tag">Bank</span>{% endif %}</h2>
   <p class="description">{{ r.description }}</p>
   {% include "partials/minimap.html" %}
