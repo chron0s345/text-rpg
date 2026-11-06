@@ -28,6 +28,7 @@ from app.api.schemas import LogEntryOut, LogPage
 from app.db.models import LogEntry
 from app.engine.events import GameEvent
 from app.realtime.connections import Subscription
+from app.web.effects import effect_of
 from app.web.render import log_line
 
 router = APIRouter(tags=["game"])
@@ -42,7 +43,7 @@ def sse_message(event: str, data: str) -> str:
 
 
 def encode_game_event(event: GameEvent) -> str:
-    message = sse_message("log", log_line(event.kind, event.text))
+    message = sse_message("log", log_line(event.kind, event.text, effect_of(event)))
     # chat and announcements change no state: no panel refresh (an announcement reaches every
     # client at once and would make all of them reload their panels at the same moment)
     if not event.kind.startswith(("chat.", "server.")):

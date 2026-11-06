@@ -222,6 +222,73 @@ button.link.item-name.rarity-set { color: var(--rarity-set); }
 .beast-list li { justify-content: flex-start; }
 .beast-list li > .beast { flex: 1; }
 
+/* Animations. The fx-* classes sit on .game for a moment when something happens to you
+   (app.js, from data-fx on log lines); the idle ones run by themselves. Steps instead of smooth
+   easing keep the pixel feel. */
+@keyframes fx-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); } 75% { transform: translateX(-2px); } }
+@keyframes fx-quake { 0%, 100% { transform: translate(0, 0); } 20% { transform: translate(-6px, 2px); }
+  40% { transform: translate(5px, -3px); } 60% { transform: translate(-4px, 3px); }
+  80% { transform: translate(3px, -2px); } }
+@keyframes fx-white { 0%, 40% { filter: brightness(3) saturate(0); } 100% { filter: none; } }
+@keyframes fx-bright { 0% { filter: brightness(2.2); } 100% { filter: none; } }
+@keyframes fx-gray { 0% { filter: none; } 15%, 70% { filter: grayscale(1) brightness(.55); } 100% { filter: none; } }
+@keyframes fx-fade { 0% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes fx-glow { 0% { text-shadow: 0 0 0 transparent; transform: scale(1); }
+  30% { text-shadow: 0 0 12px var(--accent), 2px 2px 0 #000; transform: scale(1.25); }
+  100% { text-shadow: 0 0 0 transparent; transform: scale(1); } }
+@keyframes fx-frame { 0%, 60% { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent), 4px 4px 0 #000; } }
+@keyframes fx-rise { 0% { transform: translate(-50%, 0); opacity: 1; } 70% { opacity: 1; }
+  100% { transform: translate(-50%, -40px); opacity: 0; } }
+@keyframes fx-banner { 0% { transform: translate(-50%, -20px) scale(.6); opacity: 0; }
+  10% { transform: translate(-50%, 0) scale(1.08); opacity: 1; }
+  15%, 85% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -10px); opacity: 0; } }
+@keyframes idle-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes log-in { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
+
+/* a colored glow around the screen edge: red for damage, green for healing, gold for a level */
+.game { position: relative; }
+.game::after { content: ""; position: fixed; inset: 0; z-index: 50; pointer-events: none; opacity: 0;
+  box-shadow: inset 0 0 90px 24px var(--fx, transparent); }
+.game.fx-hurt::after, .game.fx-crushed::after { --fx: var(--danger); animation: fx-fade .5s steps(4); }
+.game.fx-heal::after { --fx: var(--good); animation: fx-fade .6s steps(4); }
+.game.fx-drain::after { --fx: var(--rarity-epic); animation: fx-fade .5s steps(4); }
+.game.fx-level::after { --fx: var(--accent); animation: fx-fade 1.2s steps(6); }
+.fx-strike .foe .sprite, .fx-strike .room li.fighting .sprite { animation: fx-shake .3s steps(4), fx-white .3s steps(2); }
+.fx-drain .foe .sprite { animation: fx-bright .5s steps(3); }
+.fx-hurt .status { animation: fx-shake .35s steps(4); }
+.game.fx-crushed { animation: fx-quake .45s steps(5); }
+.fx-kill .room .scene { animation: fx-bright .7s steps(4); }
+.game.fx-death { animation: fx-gray 2.5s steps(10); }
+.fx-level .status .name { display: inline-block; animation: fx-glow 1.2s steps(6); }
+.fx-heal .status .hp label, .fx-hurt .status .hp label { display: inline-block; animation: fx-glow .6s steps(3); }
+.fx-quest #quests, .fx-craft #crafting { animation: fx-frame .9s steps(3); }
+/* floating numbers over the foe or the HP bar */
+.fx-float { position: absolute; z-index: 60; transform: translate(-50%, 0); pointer-events: none; white-space: nowrap;
+  font-family: var(--pixel); font-size: .7rem; text-shadow: 2px 2px 0 #000; animation: fx-rise 1s steps(8) forwards; }
+.fx-float-damage { color: var(--accent); }
+.fx-float-hurt { color: var(--danger); }
+.fx-float-crushed { color: var(--danger); font-size: 1rem; }
+.fx-float-heal { color: var(--good); }
+.fx-float-drain { color: var(--rarity-epic); }
+.fx-float-gold { color: var(--accent); font-size: .55rem; }
+/* banners for a new level, an achievement or a finished quest */
+.fx-banner { position: fixed; left: 50%; top: 18%; z-index: 70; max-width: min(90vw, 36rem); padding: .8rem 1.2rem;
+  text-align: center; font-family: var(--pixel); font-size: .75rem; line-height: 1.7; pointer-events: none;
+  color: #1b1404; background: var(--accent); border: 3px dashed var(--accent-deep); box-shadow: 6px 6px 0 #000;
+  animation: fx-banner 2.8s steps(14) forwards; }
+.fx-banner-level { font-size: 1rem; }
+.fx-banner-achievement { color: var(--accent); background: var(--panel); border: 3px solid var(--accent); }
+.fx-banner-quest { color: #0d1a0f; background: var(--good); border-color: #2e6a3a; }
+/* idle: monsters breathe, new log lines slide in */
+.room .list .sprite, .foe .sprite { animation: idle-bob 1.6s steps(2) infinite; }
+.room .list li:nth-child(2n) .sprite { animation-delay: -.8s; }
+.log li { animation: log-in .3s steps(3); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::after { animation: none !important; }
+}
+
 /* Bars */
 .monster { display: flex; flex-direction: column; gap: .15rem; min-width: 10rem; }
 .monster meter { width: 100%; height: .5rem; }
