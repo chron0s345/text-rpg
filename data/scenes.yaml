@@ -1,0 +1,603 @@
+# Pixel panoramas of the rooms (app/content/scenes.py explains the layers).
+# After a change: python -m app.content.scenes (writes app/web/static/scenes/).
+# Canvas: 64×24 pixels; rows count from the top (0) to the bottom (23).
+
+themes:
+  # --- Oakhaven ------------------------------------------------------------------------------
+  town:
+    - {type: sky, colors: ["#2a2350", "#4a3a6a", "#a0506a", "#e08a5a"], until: 18}
+    - {type: orb, color: "#ffd23f", glow: "#f2a040", x: 52, y: 13, r: 2}
+    - {type: clouds, color: "#5a4a7a", count: 3, rows: [3, 7]}
+    - {type: houses, wall: "#5a4a5a", roof: "#3a2a3a", window: "#ffd23f", count: 6, base: 18}
+    - {type: houses, wall: "#8a6a4a", roof: "#7a2a2a", window: "#ffd23f", count: 4, base: 21}
+    - {type: ground, color: "#6a6060", top: 21, speckle: "#8a8080", density: 0.25}
+  hall:
+    - {type: wall, color: "#4a3a3a", mortar: "#2a2026", rows: [0, 19]}
+    - {type: banners, colors: ["#7a2a2a", "#e0b040"], count: 3, top: 3, length: 8}
+    - {type: torches, count: 4, row: 8}
+    - {type: ground, color: "#5a3a22", top: 20, speckle: "#4a2e1a", density: 0.3}
+  tavern:
+    - {type: wall, color: "#6a4a2a", mortar: "#3a2414", rows: [0, 19]}
+    - {type: torches, count: 3, row: 7}
+    - {type: fire, x: 32, base: 20}
+    - {type: ground, color: "#4a2e1a", top: 20, speckle: "#5a3a22", density: 0.3}
+    - type: art
+      x: 6
+      y: 13
+      rows: [".bbb..bbb.", "bBbBbbBbBb", "bBbBbbBbBb", "bBbBbbBbBb", ".bbb..bbb.", "..........", "tttttttttt", ".t......t."]
+      palette: {b: "#8a5a32", B: "#5a3a22", t: "#6a4a2a"}
+    - type: art
+      x: 46
+      y: 15
+      rows: ["..m.m..", ".tttttt", "t.t..t.", "t.t..t."]
+      palette: {m: "#e8a030", t: "#7a4b2a"}
+  temple:
+    - {type: wall, color: "#c8c0a8", mortar: "#a09880", rows: [0, 19]}
+    - {type: orb, color: "#fff4b0", glow: "#ffd23f", x: 32, y: 6, r: 3}
+    - {type: columns, color: "#e8e0c8", count: 4, base: 20, height: [16, 16]}
+    - {type: banners, colors: ["#f2ecdc", "#e0b040"], count: 2, top: 3, length: 9}
+    - {type: ground, color: "#8a8270", top: 20, speckle: "#a09880", density: 0.2}
+
+  # --- forest, fields, bog -------------------------------------------------------------------
+  forest:
+    - {type: sky, colors: ["#141a2a", "#1e2a3a", "#2e3e4a"], until: 18}
+    - {type: stars, count: 8, until: 6}
+    - {type: trees, kind: pine, leaf: "#1a3a2a", trunk: "#2a1e18", count: 9, base: 19, height: [8, 13]}
+    - {type: trees, kind: pine, leaf: "#2e5a3a", trunk: "#4a3424", count: 6, base: 21, height: [9, 15]}
+    - {type: ground, color: "#2a3a22", top: 21, speckle: "#3a4a2a", density: 0.3}
+    - {type: plants, color: "#3a5a2a", base: 21, height: [1, 2], density: 0.4}
+  fields:
+    - {type: sky, colors: ["#5a9ae0", "#8ac0f0", "#c8e0f0"], until: 16}
+    - {type: orb, color: "#fff4b0", glow: "#ffd23f", x: 12, y: 5, r: 2}
+    - {type: clouds, color: "#f2ecdc", count: 4, rows: [2, 9]}
+    - {type: ridge, color: "#6a9a4a", base: 17, height: [1, 4], rough: 1}
+    - {type: ground, color: "#c8a040", top: 17, speckle: "#e0c060", density: 0.35}
+    - {type: plants, color: "#d8b048", tip: "#f0d070", base: 23, height: [2, 4], density: 0.7}
+  bog:
+    - {type: sky, colors: ["#2a3a32", "#3a4a3a", "#5a6a4a"], until: 18}
+    - {type: trees, kind: dead, trunk: "#2a2a22", count: 5, base: 19, height: [7, 11]}
+    - {type: water, color: "#2a3a2a", light: "#4a6a3a", top: 19, density: 0.12}
+    - {type: plants, color: "#4a5a2a", tip: "#6a4a2a", base: 21, height: [2, 4], density: 0.3}
+    - {type: fog, color: "#7a8a6a", rows: [14, 19], density: 0.3}
+  cemetery:
+    - {type: sky, colors: ["#141428", "#22223a", "#32324a"], until: 18}
+    - {type: stars, count: 14, until: 9}
+    - {type: orb, color: "#e8e8d0", glow: "#5a5a6a", x: 50, y: 5, r: 3}
+    - {type: trees, kind: dead, trunk: "#1e1e26", count: 3, base: 19, height: [9, 13]}
+    - {type: ground, color: "#2a3a2a", top: 19, speckle: "#3a4a32", density: 0.25}
+    - {type: graves, color: "#8a8f9c", count: 6, base: 21}
+    - {type: fog, color: "#5a6a7a", rows: [17, 21], density: 0.35}
+  ruins:
+    - {type: sky, colors: ["#3a4a6a", "#6a7a9a", "#a0a8b8"], until: 18}
+    - {type: clouds, color: "#8a92a8", count: 3, rows: [2, 8]}
+    - {type: ridge, color: "#4a5a4a", base: 18, height: [1, 4]}
+    - {type: columns, color: "#9a948a", count: 5, base: 20, height: [8, 14], broken: true}
+    - {type: ground, color: "#5a5a4a", top: 20, speckle: "#7a7a6a", density: 0.3}
+
+  # --- caves, mines, crypts ------------------------------------------------------------------
+  cave:
+    - {type: sky, colors: ["#1a1620", "#241e2a"], until: 24}
+    - {type: wall, color: "#2e2832", mortar: "#26202a", rows: [4, 19]}
+    - {type: spikes, color: "#3a3440", count: 14, base: 0, length: [3, 7]}
+    - {type: spikes, color: "#3a3440", count: 6, base: 20, length: [2, 4], direction: up}
+    - {type: torches, count: 2, row: 9}
+    - {type: ground, color: "#3a3028", top: 20, speckle: "#4a4034", density: 0.3}
+  crypt:
+    - {type: wall, color: "#3a3a42", mortar: "#26262e", rows: [0, 19]}
+    - {type: columns, color: "#5a5a64", count: 4, base: 20, height: [18, 18]}
+    - {type: torches, count: 2, row: 8}
+    - {type: ground, color: "#2e2e36", top: 20, speckle: "#3a3a44", density: 0.25}
+    - {type: fog, color: "#4a6a4a", rows: [17, 20], density: 0.25}
+    - type: art
+      x: 26
+      y: 15
+      rows: [".ssssssssss.", "sSSSSSSSSSSs", "sSSSScSSSSSs", "sSSScccSSSSs", "ssssssssssss"]
+      palette: {s: "#6a6a74", S: "#4a4a54", c: "#7cff9a"}
+
+  # --- mountains and ice ---------------------------------------------------------------------
+  mountains:
+    - {type: sky, colors: ["#4a7ac0", "#7aa8e0", "#b8d0f0"], until: 18}
+    - {type: clouds, color: "#e8f0f8", count: 3, rows: [2, 6]}
+    - {type: ridge, color: "#6a7088", base: 18, height: [6, 13], rough: 2, cap: "#f2f4f8"}
+    - {type: ridge, color: "#4a4a5a", base: 21, height: [2, 6], rough: 1}
+    - {type: ground, color: "#5a5048", top: 21, speckle: "#6a6058", density: 0.3}
+  ice:
+    - {type: sky, colors: ["#8ab0d0", "#b8d0e8", "#e0ecf8"], until: 18}
+    - {type: ridge, color: "#a8c8e0", base: 18, height: [5, 12], rough: 2, cap: "#ffffff"}
+    - {type: ridge, color: "#d8e8f4", base: 21, height: [1, 4], rough: 1}
+    - {type: crystals, color: "#6fb3e8", light: "#e8faff", count: 6, base: 22, height: [3, 6]}
+    - {type: ground, color: "#e8f0f8", top: 22, speckle: "#c8dcec", density: 0.3}
+  ice_cave:
+    - {type: sky, colors: ["#1a2a3a", "#243a4e"], until: 24}
+    - {type: spikes, color: "#8ab0d0", count: 16, base: 0, length: [2, 7]}
+    - {type: crystals, color: "#5a9ad0", light: "#e8faff", count: 9, base: 21, height: [3, 8]}
+    - {type: ground, color: "#c8dcec", top: 21, speckle: "#a8c8e0", density: 0.3}
+
+  # --- fire ----------------------------------------------------------------------------------
+  volcano:
+    - {type: sky, colors: ["#2a0e0e", "#5a1a12", "#a0301a"], until: 18}
+    - {type: stars, color: "#ff8a2a", count: 10, until: 12}
+    - {type: ridge, color: "#2a1e1e", base: 18, height: [5, 12], rough: 2, cap: "#e0502e"}
+    - {type: ridge, color: "#1e1616", base: 21, height: [1, 3], rough: 1}
+    - {type: water, color: "#e0502e", light: "#ffb03a", top: 21, density: 0.25}
+  forge:
+    - {type: wall, color: "#3a2220", mortar: "#22140f", rows: [0, 19]}
+    - {type: spikes, color: "#4a2a22", count: 8, base: 0, length: [2, 4]}
+    - {type: torches, count: 4, row: 8}
+    - {type: fire, x: 12, base: 20}
+    - {type: fire, x: 52, base: 20}
+    - {type: water, color: "#e0502e", light: "#ffd23f", top: 20, density: 0.2}
+
+  # --- coast and sea -------------------------------------------------------------------------
+  coast:
+    - {type: sky, colors: ["#5a8ac0", "#8ab4e0", "#c8dcf0"], until: 15}
+    - {type: clouds, color: "#f2ecdc", count: 4, rows: [2, 8]}
+    - {type: water, color: "#2a5a8a", light: "#8ac0e8", top: 15, density: 0.08}
+    - {type: ridge, color: "#6a6058", base: 24, height: [3, 9], rough: 2}
+  sea_cave:
+    - {type: sky, colors: ["#141e2a", "#1e2a3a"], until: 24}
+    - {type: spikes, color: "#2e3a4a", count: 14, base: 0, length: [3, 7]}
+    - {type: water, color: "#1e3a5a", light: "#4a7aa8", top: 18, density: 0.1}
+    - {type: spikes, color: "#2e3a4a", count: 5, base: 19, length: [2, 4], direction: up}
+  underwater:
+    - {type: sky, colors: ["#0e2a4a", "#14385a", "#1a4a6a"], until: 24}
+    - {type: stars, color: "#8ad8f0", count: 16, until: 18}
+    - {type: columns, color: "#3a6a7a", count: 4, base: 21, height: [7, 14], broken: true}
+    - {type: plants, color: "#e07a7a", tip: "#ffb0a0", base: 21, height: [1, 4], density: 0.25}
+    - {type: plants, color: "#3a8a5a", base: 21, height: [2, 6], density: 0.15}
+    - {type: ground, color: "#c8b080", top: 21, speckle: "#a89060", density: 0.3}
+
+  # --- elves ---------------------------------------------------------------------------------
+  elven:
+    - {type: sky, colors: ["#0e1a2a", "#14283a", "#1e3a4a"], until: 18}
+    - {type: stars, count: 16, until: 10}
+    - {type: orb, color: "#e8f0ff", glow: "#5a7a9a", x: 46, y: 5, r: 2}
+    - {type: trees, kind: round, leaf: "#a8c8c0", trunk: "#d8dce4", count: 5, base: 20, height: [9, 14]}
+    - {type: ground, color: "#2a4a3a", top: 20, speckle: "#3a5a4a", density: 0.3}
+    - {type: stars, color: "#d8ff9a", count: 10, until: 20}
+  thorns:
+    - {type: sky, colors: ["#1a0e1e", "#2a1430", "#3a1e3a"], until: 18}
+    - {type: trees, kind: dead, trunk: "#4a2a3a", count: 8, base: 20, height: [8, 14]}
+    - {type: plants, color: "#5a2a4a", tip: "#c87ab0", base: 21, height: [2, 6], density: 0.5}
+    - {type: ground, color: "#2a1a22", top: 21, speckle: "#3a2430", density: 0.3}
+    - {type: fog, color: "#6a3a5a", rows: [15, 20], density: 0.25}
+
+  # --- barrows -------------------------------------------------------------------------------
+  barrows:
+    - {type: sky, colors: ["#2a2a3a", "#4a4058", "#8a6a6a"], until: 18}
+    - {type: orb, color: "#e8c8a0", glow: "#8a6a6a", x: 10, y: 14, r: 3}
+    - {type: ridge, color: "#3a4a32", base: 19, height: [2, 6], rough: 1}
+    - {type: graves, color: "#6a6a64", count: 4, base: 20}
+    - {type: ground, color: "#3a4a2a", top: 20, speckle: "#4a5a32", density: 0.3}
+    - {type: fog, color: "#7a7a8a", rows: [16, 20], density: 0.25}
+
+  # --- sky fortress --------------------------------------------------------------------------
+  sky:
+    - {type: sky, colors: ["#3a6ad0", "#6a9ae8", "#a8c8f8"], until: 24}
+    - {type: orb, color: "#fff4b0", glow: "#ffe07a", x: 54, y: 4, r: 2}
+    - {type: clouds, color: "#f2f4f8", count: 6, rows: [3, 21]}
+    - {type: clouds, color: "#d8e0f0", count: 5, rows: [8, 22]}
+  storm_hall:
+    - {type: sky, colors: ["#1a1e3a", "#2a2e4a", "#3a3e5a"], until: 24}
+    - {type: columns, color: "#8a94b8", count: 5, base: 21, height: [19, 19]}
+    - {type: banners, colors: ["#3a4a8a", "#f2c14e"], count: 4, top: 2, length: 7}
+    - {type: ground, color: "#5a6488", top: 21, speckle: "#7a84a8", density: 0.2}
+
+  # --- shadow realm --------------------------------------------------------------------------
+  shadow:
+    - {type: sky, colors: ["#0a0612", "#160e22", "#241632"], until: 18}
+    - {type: stars, color: "#c792ff", count: 18, until: 14}
+    - {type: ridge, color: "#2e2042", base: 19, height: [3, 9], rough: 2, cap: "#6a3aa8"}
+    - {type: ground, color: "#160e1e", top: 20, speckle: "#2a1a3a", density: 0.3}
+    - {type: fog, color: "#4a2a6a", rows: [16, 20], density: 0.3}
+  shadow_hall:
+    - {type: wall, color: "#1e1830", mortar: "#140f22", rows: [0, 19]}
+    - {type: columns, color: "#3a2e5a", count: 4, base: 20, height: [18, 18]}
+    - {type: banners, colors: ["#4a1e3a"], count: 3, top: 2, length: 9}
+    - {type: torches, count: 2, row: 9}
+    - {type: ground, color: "#140f1e", top: 20, speckle: "#241a36", density: 0.3}
+
+rooms:
+  # Oakhaven
+  town_square:
+    theme: town
+    add:
+      - type: art
+        x: 28
+        y: 15
+        rows: ["..ssss..", ".sbbbbs.", "sbwbbwbs", "ssssssss", ".s....s."]
+        palette: {s: "#8a8f9c", b: "#4a7aa8", w: "#c8e0f0"}
+  town_bank:
+    theme: hall
+    add:
+      - {type: banners, colors: ["#2a4a7a", "#e0b040"], count: 2, top: 3, length: 10}
+      - type: art
+        x: 24
+        y: 14
+        rows: ["..cccccccccccc..", "cccccccccccccccc", "c..g..g...g..g.c", "cccccccccccccccc"]
+        palette: {c: "#6a4a2a", g: "#e0b040"}
+  town_market:
+    theme: town
+    add:
+      - type: art
+        x: 20
+        y: 14
+        rows: ["rwrwrwrwrwrwrwrwrwrwrw", ".t..................t.", ".t..a.p..b.....a.p..t.", ".tttttttttttttttttttt."]
+        palette: {r: "#c03030", w: "#f2ecdc", t: "#7a4b2a", a: "#d83a3a", p: "#4caf50", b: "#c8873e"}
+  town_smithy:
+    theme: hall
+    add:
+      - {type: fire, x: 50, base: 20}
+      - type: art
+        x: 18
+        y: 15
+        rows: ["aaaaaaaaa", ".aaaaaaa.", "...aaa...", "..aaaaa..", ".aaaaaaa."]
+        palette: {a: "#5a5f6a"}
+  goldsmith_shop:
+    theme: hall
+    add:
+      - {type: banners, colors: ["#e0b040", "#7a2a6a"], count: 3, top: 3, length: 8}
+      - type: art
+        x: 22
+        y: 15
+        rows: ["..r....g...e..", "cccccccccccccccccccc", "c..................c", "cccccccccccccccccccc"]
+        palette: {c: "#5a3a22", r: "#e0405a", g: "#e0b040", e: "#5ab8ff"}
+  tavern: {theme: tavern}
+  temple: {theme: temple}
+
+  # around Oakhaven
+  forest_gate:
+    theme: forest
+    add:
+      - type: art
+        x: 24
+        y: 6
+        rows: ["ssssssssssssssss", "s.ssssssssssss.s", "ss.s........s.ss", "ss.s........s.ss", "ss.s........s.ss", "ss.s........s.ss", "ss.s........s.ss", "ss.s........s.ss", "ss.s........s.ss", "ss.s........s.ss", "ss.s........s.ss", "ss.s........s.ss", "ss.s........s.ss", "ss.s........s.ss", "ss..........ss.."]
+        palette: {s: "#5a5a64"}
+  dark_forest: {theme: forest}
+  goblin_camp:
+    theme: forest
+    add:
+      - {type: fire, x: 32, base: 22}
+      - type: art
+        x: 6
+        y: 13
+        rows: ["....b....", "...bBb...", "..bBBBb..", ".bBB.BBb.", "bBBB.BBBb", "bBBB.BBBb", "bbbbbbbbb"]
+        palette: {b: "#8a6a3a", B: "#6a4a2a"}
+      - type: art
+        x: 48
+        y: 14
+        rows: ["...b...", "..bBb..", ".bB.Bb.", "bBB.BBb", "bBB.BBb", "bbbbbbb"]
+        palette: {b: "#6a7a3a", B: "#4a5a2a"}
+  farm_road: {theme: fields}
+  wheat_fields:
+    theme: fields
+    add:
+      - {type: plants, color: "#e0c060", tip: "#f8e090", base: 21, height: [3, 5], density: 0.8}
+  boar_thicket:
+    theme: fields
+    add:
+      - {type: trees, kind: round, leaf: "#4a7a3a", trunk: "#4a3424", count: 6, base: 22, height: [5, 8]}
+  mill:
+    theme: fields
+    add:
+      - type: art
+        x: 36
+        y: 2
+        rows: [".....w.......", "......w....w.", ".......w..w..", "........ww...", "......wwwwww.", ".......ww....", "......wrrww..", ".....rrrrrr..", "....rrrrrrrr.", "....rmmmmmmr.", "....mmmmmmmm.", "....mmmddmmm.", "....mmmddmmm.", "....mmmddmmm.", "....mmmddmmm."]
+        palette: {w: "#d8cfb8", r: "#7a2a2a", m: "#c8b090", d: "#5a3a22"}
+      - {type: water, color: "#3a7ab8", light: "#8ac0e8", top: 22, density: 0.15}
+  border_stones:
+    theme: fields
+    add:
+      - {type: sky, colors: ["#3a2a4a", "#7a4a5a", "#c07a5a"], until: 16}
+      - {type: ridge, color: "#4a5a3a", base: 17, height: [1, 3], rough: 1}
+      - type: art
+        x: 14
+        y: 9
+        rows: [".ss.........ss.........ss.", "ssss.......ssss.......ssss", "ssSs.......ssSs.......sSss", "ssss.......ssss.......ssss", "ssSs.......ssss.......ssss", "ssss.......sSss.......ssSs", "ssss.......ssss.......ssss", "ssss.......ssss.......ssss", "ssss.......ssss.......ssss"]
+        palette: {s: "#7a7a84", S: "#4a8a5a"}
+
+  # bog and ruin
+  bog_path: {theme: bog}
+  bog_camp:
+    theme: bog
+    add:
+      - {type: ground, color: "#3a3a2a", top: 20, speckle: "#4a4a32", density: 0.3}
+      - {type: fire, x: 30, base: 21}
+  ruins_gate:
+    theme: ruins
+    add:
+      - type: art
+        x: 22
+        y: 5
+        rows: ["ssssssssssssssssssss", "ssssss........ssssss", "ssss............ssss", "sss..............sss", "sss..............sss", "sss..............sss", "sss..............sss", "sss..............sss", "sss..............sss", "sss..............sss", "sss..............sss", "sss..............sss", "sss..............sss", "sss..............sss", "sss..............sss"]
+        palette: {s: "#8a847a"}
+  ruins_hall:
+    theme: ruins
+    add:
+      - {type: plants, color: "#4a6a3a", base: 20, height: [1, 3], density: 0.3}
+
+  # mine and depths
+  old_mine:
+    theme: cave
+    add:
+      - type: art
+        x: 0
+        y: 19
+        rows: ["rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr", "t...t...t...t...t...t...t...t...t...t...t...t...t...t...t...t..."]
+        palette: {r: "#8a8f9c", t: "#5a3a22"}
+  mine_watch:
+    theme: cave
+    add:
+      - {type: fire, x: 40, base: 20}
+  deep_tunnels:
+    theme: cave
+    add:
+      - {type: crystals, color: "#5ab8ff", light: "#c8e8ff", count: 4, base: 20, height: [2, 4]}
+  spider_grotto:
+    theme: cave
+    add:
+      - type: art
+        x: 0
+        y: 0
+        rows: ["w.....w.....w", ".w...w.w...w.", "..w.w...w.w..", "...w.....w...", "..w.w...w.w..", ".w...w.w...w.", "w.....w.....w"]
+        palette: {w: "#c8c8d0"}
+      - type: art
+        x: 50
+        y: 2
+        rows: ["w.....w.....w", ".w...w.w...w.", "..w.w...w.w..", "...w.....w...", "..w.w...w.w.."]
+        palette: {w: "#c8c8d0"}
+  spider_nest:
+    theme: cave
+    add:
+      - {type: crystals, color: "#7a3aa8", light: "#c792ff", count: 6, base: 20, height: [2, 5]}
+      - type: art
+        x: 22
+        y: 0
+        rows: ["w...w...w...w...w...", ".w..w...w...w..w....", "..w.w...w...w.w.....", "...www..w..www......", "wwwwwwwwwwwwwwwwwwww", "...www..w..www......", "..w.w...w...w.w.....", ".w..w...w...w..w...."]
+        palette: {w: "#d8d8e0"}
+
+  # mountains and ice
+  mountain_trail: {theme: mountains}
+  dwarf_outpost:
+    theme: mountains
+    add:
+      - {type: houses, wall: "#6a6070", roof: "#4a4050", window: "#ffb03a", count: 3, base: 21}
+      - {type: banners, colors: ["#7a2a1a"], count: 2, top: 4, length: 5}
+  frost_gorge:
+    theme: ice
+    add:
+      - {type: ridge, color: "#7aa0c4", base: 24, height: [3, 7], rough: 1}
+  glacier_slope: {theme: ice}
+  drake_lair:
+    theme: ice_cave
+    add:
+      - type: art
+        x: 40
+        y: 17
+        rows: ["w.w..ww...", ".www.w.ww.", "wwwwwwwwww"]
+        palette: {w: "#e8e0d0"}
+  eagle_rest:
+    theme: mountains
+    add:
+      - {type: fire, x: 20, base: 21}
+      - type: art
+        x: 44
+        y: 14
+        rows: ["..bbbbbbbb..", ".bBBBBBBBBb.", "bBBwBBBwBBBb", ".bbbbbbbbbb."]
+        palette: {b: "#6a4a2a", B: "#8a6a3a", w: "#f2ecdc"}
+  cliff_path:
+    theme: mountains
+    add:
+      - {type: clouds, color: "#f2f4f8", count: 4, rows: [12, 20]}
+
+  # cemetery and crypt
+  old_cemetery: {theme: cemetery}
+  valen_crypt: {theme: crypt}
+  valen_tomb:
+    theme: crypt
+    add:
+      - {type: banners, colors: ["#3a5a3a"], count: 2, top: 2, length: 8}
+
+  # volcano
+  basalt_stairs:
+    theme: volcano
+    add:
+      - type: art
+        x: 18
+        y: 15
+        rows: ["........ssss", "......ssssss", "....ssssssss", "..ssssssssss", "ssssssssssss"]
+        palette: {s: "#2e2a2a"}
+  crater_camp:
+    theme: volcano
+    add:
+      - {type: ground, color: "#2a2020", top: 21, speckle: "#3a2a26", density: 0.3}
+      - {type: fire, x: 32, base: 22}
+  ash_fields:
+    theme: volcano
+    add:
+      - {type: trees, kind: dead, trunk: "#1a1414", count: 5, base: 21, height: [5, 9]}
+      - {type: fog, color: "#6a5a5a", rows: [12, 20], density: 0.3}
+  lava_flow:
+    theme: volcano
+    add:
+      - {type: water, color: "#e0502e", light: "#ffd23f", top: 18, density: 0.3}
+  giant_forge:
+    theme: forge
+    add:
+      - type: art
+        x: 24
+        y: 12
+        rows: ["aaaaaaaaaaaaaaaa", ".aaaaaaaaaaaaaa.", "....aaaaaaaa....", "....aaaaaaaa....", "...aaaaaaaaaa...", "..aaaaaaaaaaaa.."]
+        palette: {a: "#3a3a44"}
+  caldera:
+    theme: forge
+    add:
+      - {type: orb, color: "#ffd23f", glow: "#ff8a2a", x: 32, y: 12, r: 4}
+
+  # coast
+  coast_path: {theme: coast}
+  fishing_village:
+    theme: coast
+    add:
+      - {type: houses, wall: "#a08a6a", roof: "#3a5a7a", window: "#ffd23f", count: 3, base: 16}
+      - type: art
+        x: 40
+        y: 16
+        rows: ["....m.....", "....mw....", "....mww...", "bbbbbbbbbb", ".bbbbbbbb."]
+        palette: {m: "#5a3a22", w: "#f2ecdc", b: "#8a5a32"}
+  tidal_caves: {theme: sea_cave}
+  smugglers_den:
+    theme: sea_cave
+    add:
+      - {type: ground, color: "#3a3028", top: 19, speckle: "#4a4034", density: 0.3}
+      - {type: fire, x: 44, base: 20}
+      - type: art
+        x: 10
+        y: 14
+        rows: ["cccccc.cccc", "cCCCCc.cCCc", "cCccCc.cccc", "cccccccccc.", "cCCCCCCCCc.", "cccccccccc."]
+        palette: {c: "#8a5a32", C: "#6a4a2a"}
+  lighthouse_stairs:
+    theme: coast
+    add:
+      - type: art
+        x: 44
+        y: 0
+        rows: ["...yyy...", "..yyyyy..", "..ooooo..", "...rwr...", "...wrw...", "...rwr...", "...wrw...", "..rrwrr..", "..wwrww..", "..rrwrr..", "..wwrww..", ".rrrwrrr.", ".wwwrwww.", ".rrrwrrr.", "sssssssss", "sssssssss"]
+        palette: {y: "#ffe07a", o: "#3a3a44", r: "#c03030", w: "#f2ecdc", s: "#6a6058"}
+  lighthouse_top:
+    theme: coast
+    add:
+      - {type: sky, colors: ["#0e1a2e", "#1a2a44", "#2a3e5a"], until: 15}
+      - {type: stars, count: 16, until: 10}
+      - {type: water, color: "#14304e", light: "#3a6a9a", top: 15, density: 0.08}
+      - {type: orb, color: "#fff4b0", glow: "#ffd23f", x: 32, y: 9, r: 3}
+      - {type: ground, color: "#3a3a44", top: 20, speckle: "#4a4a54", density: 0.2}
+
+  # silver grove
+  silver_grove: {theme: elven}
+  moonlit_glade:
+    theme: elven
+    add:
+      - {type: orb, color: "#f8f8ff", glow: "#a8c8e0", x: 32, y: 6, r: 4}
+  elf_hall:
+    theme: elven
+    add:
+      - {type: columns, color: "#d8dce4", count: 4, base: 20, height: [12, 16], broken: true}
+  thorn_heart: {theme: thorns}
+  ancient_tree:
+    theme: thorns
+    add:
+      - type: art
+        x: 20
+        y: 0
+        rows: ["....pppppppppppppp....", "..pppPppppppPppppppp..", ".ppppppPpppppppPppppp.", "pppPppppppPpppppppppPp", ".pppppppPpppppPppppp..", "...pppppppbbppppppp...", ".........bbbb.........", ".........bbbb.........", "........bbbbbb........", "........bbebbb........", "........bbbbbb........", ".......bbbbbbbb.......", ".......bbbbbbbb.......", "......bbbb..bbbb......", ".....bbbb....bbbb.....", "....bbb........bbb...."]
+        palette: {p: "#3a1e3a", P: "#c87ab0", b: "#3a2a22", e: "#c792ff"}
+
+  # Aelmar
+  sunken_steps:
+    theme: underwater
+    add:
+      - type: art
+        x: 0
+        y: 12
+        rows: ["ssss............", "ssssssss........", "ssssssssssss....", "ssssssssssssssss"]
+        palette: {s: "#3a5a6a"}
+  drowned_plaza: {theme: underwater}
+  air_pocket:
+    theme: underwater
+    add:
+      - {type: orb, color: "#c8e8ff", glow: "#4a8ab0", x: 32, y: 10, r: 5}
+      - {type: torches, count: 1, row: 14}
+  knights_hall:
+    theme: underwater
+    add:
+      - {type: columns, color: "#4a7a8a", count: 5, base: 21, height: [18, 18]}
+      - {type: banners, colors: ["#3a6a6a", "#e0b040"], count: 2, top: 3, length: 7}
+  coral_palace:
+    theme: underwater
+    add:
+      - {type: plants, color: "#e07a7a", tip: "#ffd0d8", base: 21, height: [3, 8], density: 0.35}
+  kraken_maw:
+    theme: underwater
+    add:
+      - {type: sky, colors: ["#060e1a", "#0a1626"], until: 21}
+      - type: art
+        x: 18
+        y: 4
+        rows: ["........oooooooooooo........", "......oooppppppppppooo......", "....ooppppppppppppppppoo....", "...oppppwwppppppppwwpppp....", "...opppwyywppppppwyywppo....", "...oppppwwppppppppwwpppo....", "....oppppppppppppppppoo.....", ".p...ooppppppppppppoo...p...", "pp.p...oooppppppooo...p.pp..", ".pp.pp...p.p..p.p...pp.pp...", "..p..pp.pp.pp.pp.pp.pp..p...", "...p..ppp...pp...ppp..p.....", "....p..p...p..p...p..p......"]
+        palette: {o: "#3a1e3a", p: "#6a3a6a", w: "#f2ecdc", y: "#ffd23f"}
+
+  # barrows
+  barrow_fields: {theme: barrows}
+  barrow_gate:
+    theme: barrows
+    add:
+      - type: art
+        x: 20
+        y: 8
+        rows: [".........gggggg.........", "......gggggggggggg......", "....gggggssssssggggg....", "..ggggggss....ssggggggg.", ".gggggggs......sggggggg.", "ggggggggs......sgggggggg", "ggggggggs......sgggggggg", "ggggggggs......sgggggggg", "ggggggggs......sgggggggg", "ggggggggs......sgggggggg", "ggggggggs......sgggggggg", "ggggggggs......sgggggggg"]
+        palette: {g: "#3a5a32", s: "#6a6a64"}
+  barrow_halls: {theme: crypt}
+  wolf_king_tomb:
+    theme: crypt
+    add:
+      - {type: banners, colors: ["#4a4058", "#b8c0cc"], count: 2, top: 2, length: 8}
+
+  # sky fortress
+  cloud_bridge:
+    theme: sky
+    add:
+      - type: art
+        x: 0
+        y: 14
+        rows: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB", "..B.......B.......B.......B.......B.......B.......B.......B....."]
+        palette: {b: "#c8d0e0", B: "#8a94b8"}
+  thunder_hall:
+    theme: storm_hall
+    add:
+      - type: art
+        x: 30
+        y: 0
+        rows: ["....y", "...y.", "..y..", ".yyy.", "...y.", "..y..", ".y..."]
+        palette: {y: "#ffe07a"}
+  storm_throne:
+    theme: storm_hall
+    add:
+      - type: art
+        x: 24
+        y: 6
+        rows: ["....gggggggg....", "....gbbbbbbg....", "....gbbbbbbg....", "....gbbbbbbg....", "....gbbbbbbg....", "....gbbbbbbg....", "..gggggggggggg..", "..gbbbbbbbbbbg..", "..gbbbbbbbbbbg..", "..gggggggggggg..", "..g..........g..", ".gggggggggggggg.", "gggggggggggggggg", "gggggggggggggggg", "gggggggggggggggg"]
+        palette: {g: "#f2c14e", b: "#3a4a8a"}
+
+  # shadow realm
+  shadow_rift: {theme: shadow}
+  void_bridge:
+    theme: shadow
+    add:
+      - {type: sky, colors: ["#0a0612", "#160e22", "#241632", "#0a0612"], until: 24}
+      - {type: stars, color: "#c792ff", count: 24, until: 24}
+      - type: art
+        x: 0
+        y: 15
+        rows: ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB", "B...B...B...B...B...B...B...B...B...B...B...B...B...B...B...B..."]
+        palette: {b: "#8a6ac8", B: "#4a3a7a"}
+  last_refuge:
+    theme: shadow
+    add:
+      - {type: fire, x: 32, base: 21}
+      - {type: torches, count: 2, row: 15}
+  withered_garden:
+    theme: shadow
+    add:
+      - {type: trees, kind: dead, trunk: "#3a2a4a", count: 6, base: 20, height: [6, 11]}
+  silent_hall: {theme: shadow_hall}
+  shadow_throne:
+    theme: shadow_hall
+    add:
+      - type: art
+        x: 24
+        y: 4
+        rows: ["..p....pp....p..", "..pp..pppp..pp..", "...pppppppppp...", "....pbbbbbbp....", "....pbbbbbbp....", "....pbbbbbbp....", "....pbbbbbbp....", "....pbbbbbbp....", "..pppppppppppp..", "..pbbbbbbbbbbp..", "..pppppppppppp..", "..p..........p..", ".pppppppppppppp.", "pppppppppppppppp", "pppppppppppppppp", "pppppppppppppppp"]
+        palette: {p: "#3a2e5a", b: "#6a1e3a"}

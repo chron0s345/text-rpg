@@ -117,8 +117,11 @@ meter:-moz-meter-sub-sub-optimum::-moz-meter-bar { background: var(--danger); }
 .right { grid-area: right; display: flex; flex-direction: column; gap: .75rem; min-height: 0; overflow: auto; }
 .panel { background: var(--panel); border: 2px solid var(--border); border-radius: var(--radius); padding: .8rem;
   box-shadow: 4px 4px 0 #000; }
-/* the room is the main card, framed like a quest poster */
+/* the room is the main card, framed like a quest poster, its panorama on top
+   (static/scenes, generated from data/scenes.yaml) */
 .panel.room { border-color: var(--frame); }
+.scene { display: block; width: calc(100% + 1.6rem); height: auto; aspect-ratio: 64 / 24;
+  margin: -.8rem -.8rem .7rem; image-rendering: pixelated; border-bottom: 2px solid var(--frame); }
 .description { color: var(--muted); margin-top: 0; }
 .tag { font-family: var(--pixel); font-size: .4rem; letter-spacing: .05em; text-transform: uppercase;
   border: 2px solid var(--border); border-radius: 0; padding: .15rem .35rem; color: var(--info); background: var(--panel-deep); vertical-align: middle; }
