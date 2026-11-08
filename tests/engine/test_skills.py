@@ -158,8 +158,8 @@ def test_a_killing_skill_ends_the_fight_without_a_counter(
 def test_healing_works_outside_a_fight(content: ContentRegistry, rules: Rules) -> None:
     cleric = hero("cleric", hp=10)
     result = use(content, rules, cleric, "heal")
-    assert actor_texts(result) == ["Du setzt Heilung ein und heilst dich um 8 HP."]  # 40 % of 20
-    assert player_update(result, cleric.id)["hp"] == 18
+    assert actor_texts(result) == ["Du setzt Heilung ein und heilst dich um 7 HP."]  # 35 % of 20
+    assert player_update(result, cleric.id)["hp"] == 17
     assert cleric.skill_cooldowns == {"heal": 4}
     whole = hero("cleric")
     assert actor_texts(use(content, rules, whole, "heal")) == ["Du bist unverletzt."]
@@ -171,10 +171,10 @@ def test_healing_in_a_fight_costs_the_round(content: ContentRegistry, rules: Rul
     fight(cleric, dummy)
     result = use(content, rules, cleric, "heal", dummy)
     assert actor_texts(result) == [
-        "Du setzt Heilung ein und heilst dich um 8 HP.",
+        "Du setzt Heilung ein und heilst dich um 7 HP.",
         "Übungspuppe trifft dich für 3 Schaden.",
     ]
-    assert player_update(result, cleric.id)["hp"] == 15
+    assert player_update(result, cleric.id)["hp"] == 14
 
 
 def test_holy_light_drains(content: ContentRegistry, rules: Rules) -> None:

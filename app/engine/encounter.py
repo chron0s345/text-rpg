@@ -57,6 +57,27 @@ def leave_combat(builder: ResultBuilder, player: PlayerSnapshot) -> None:
     builder.update_player(player.id, state="exploring", combat_target_id=None)
 
 
+def guard_for(
+    snapshot: ActionSnapshot, player: PlayerSnapshot, monster: MonsterSnapshot
+) -> PlayerSnapshot | None:
+    """A group member of ``player`` in the room who taunted ``monster`` and still guards."""
+    if player.group_id is None:
+        return None
+    return next(
+        (
+            p
+            for p in snapshot.players_in_room
+            if p.id != player.id
+            and p.group_id == player.group_id
+            and p.guarding > 0
+            and p.hp > 0
+            and p.state == "in_combat"
+            and p.combat_target_id == monster.id
+        ),
+        None,
+    )
+
+
 def monster_strikes(
     builder: ResultBuilder,
     snapshot: ActionSnapshot,
@@ -69,8 +90,22 @@ def monster_strikes(
 ) -> None:
     """The monster hits ``player``; HP <= 0 kills the player (with loss rolls).
 
-    Abilities: a crushing blow (rolled per strike) multiplies the damage; life drain heals the
-    monster by a share of the damage dealt."""
+    A group member who taunted this monster (``guarding``) takes the strike instead. Abilities:
+    a crushing blow (rolled per strike) multiplies the damage; life drain heals the monster by
+    a share of the damage dealt."""
+    guard = guard_for(snapshot, player, monster)
+    if guard is not None:
+        guard.guarding -= 1
+        builder.update_player(guard.id, guarding=guard.guarding)
+        builder.to_player(
+            player.id, "combat.guarded", f"{guard.name} fängt den Schlag von {template.name} ab."
+        )
+        builder.to_player(
+            guard.id,
+            "combat.guarded",
+            f"Du fängst den Schlag von {template.name} für {player.name} ab.",
+        )
+        player = guard
     damage = calculate_damage(
         template.attack, stats_of(player, content.items).defense, rules.combat, rng
     )

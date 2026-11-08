@@ -91,6 +91,7 @@ class PlayerView:
     avatar: str = ""  # portrait, static/avatars/<avatar>.svg ("" without avatars)
     class_name: str = ""  # "Krieger"; "" without classes
     skills: list[SkillView] = field(default_factory=list)  # the class's, in unlock order
+    guarding: int = 0  # taunt: strikes at the group still taken instead
     title: str = ""  # chosen achievement title, shown after the name
     buffs: list[str] = field(default_factory=list)  # "Trank der Stärke: +3 Angriff (noch 2 Siege)"
 
@@ -556,6 +557,7 @@ class ViewService:
                 )
                 for s in self.content.skills_of(row.class_id)
             ],
+            guarding=row.guarding if row.state == "in_combat" else 0,
             title=self._title(row.title),
             buffs=self._buffs(snapshot),
         )

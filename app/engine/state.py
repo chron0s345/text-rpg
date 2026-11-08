@@ -85,6 +85,7 @@ class PlayerSnapshot(BaseModel):
     buffs: list[ActiveBuff] = Field(default_factory=list)  # running consumable boosts
     class_id: str = "adventurer"  # data/classes.yaml; scales the base stats on level-ups
     skill_cooldowns: dict[str, int] = Field(default_factory=dict)  # skill id -> rounds left
+    guarding: int = 0  # taunt: strikes at group members in the same fight taken instead
 
     def item(self, inventory_item_id: UUID) -> InventoryItemState | None:
         return next((i for i in self.inventory if i.id == inventory_item_id), None)
