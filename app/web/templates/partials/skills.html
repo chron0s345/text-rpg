@@ -11,5 +11,6 @@
     </li>
     {% endfor %}
   </ul>
+  {% if p.guarding %}<p class="guarding">🛡 Du fängst noch {{ p.guarding }} {{ "Schlag" if p.guarding == 1 else "Schläge" }} gegen deine Gruppe ab.</p>{% endif %}
   <p class="muted small">Im Kampf stehen sie neben „Angreifen“. Abklingzeiten zählen Kampfrunden; jeder neue Kampf beginnt mit allen bereit.</p>
 </section>

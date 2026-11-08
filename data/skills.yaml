@@ -6,6 +6,8 @@
 #   stun      the monster does not strike back this round
 #   heal      heals this percentage of the max HP
 #   drain     heals this percentage of the damage dealt
+#   group     heal and drain also reach every group member in the room
+#   taunt     the next this many strikes at group members in the same fight hit the user
 #   cooldown  combat rounds until it is ready again; every fight starts with all skills ready
 
 # --- Abenteurer ----------------------------------------------------------------------------
@@ -33,6 +35,14 @@
   damage: 1
   stun: true
   description: "Ein Stoß, der den Gegner taumeln lässt: normaler Schaden, und er schlägt in dieser Runde nicht zurück."
+- id: taunt
+  name: Spott
+  class_id: warrior
+  level: 3
+  cooldown: 5
+  damage: 0.5
+  taunt: 3
+  description: "Ein höhnischer Hieb, und der Gegner sieht nur noch dich: halber Schaden, und die nächsten drei Schläge gegen deine Gruppe in diesem Kampf treffen dich."
 - id: grit
   name: Zähigkeit
   class_id: warrior
@@ -83,8 +93,9 @@
   class_id: cleric
   level: 1
   cooldown: 4
-  heal: 40
-  description: "Ein Gebet, das Wunden schließt: heilt zwei Fünftel deiner HP – auch außerhalb eines Kampfes."
+  heal: 35
+  group: true
+  description: "Ein Gebet, das Wunden schließt: heilt dich und deine Gruppe im Raum um gut ein Drittel der HP – auch außerhalb eines Kampfes."
 - id: holy_light
   name: Heiliges Licht
   class_id: cleric
@@ -92,4 +103,5 @@
   cooldown: 3
   damage: 1.3
   drain: 50
-  description: "Licht, das brennt und stärkt: 1,3-facher Schaden, die Hälfte davon heilt dich."
+  group: true
+  description: "Licht, das brennt und stärkt: 1,3-facher Schaden, die Hälfte davon heilt dich und deine Gruppe im Raum."
