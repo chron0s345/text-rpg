@@ -29,6 +29,7 @@ EFFECTS: Final[dict[str, tuple[str, str | None]]] = {
     "player.died": ("death", None),
     "inventory.used": ("heal", "healed"),
     "skill.heal": ("heal", "healed"),
+    "skill.revived": ("level", None),  # back from the dead: the golden glow and banner
     "loot.gold": ("gold", "amount"),
 }
 

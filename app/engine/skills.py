@@ -92,6 +92,44 @@ def _heal(
     return healed
 
 
+def _fallen(snapshot: ActionSnapshot) -> PlayerSnapshot | None:
+    """A dead member of the actor's group lying in the room (the first by name)."""
+    actor = snapshot.actor
+    if actor.group_id is None:
+        return None
+    dead = [p for p in snapshot.room_players if p.group_id == actor.group_id and p.state == "dead"]
+    return min(dead, key=lambda p: p.name) if dead else None
+
+
+def _revive(
+    builder: ResultBuilder,
+    healer: PlayerSnapshot,
+    fallen: PlayerSnapshot,
+    skill: SkillTemplate,
+    content: ContentRegistry,
+) -> None:
+    """Brings ``fallen`` back where it lies, with ``skill.revive`` percent of its max HP. Its
+    death losses stay lost; it just saves the walk from the checkpoint."""
+    max_hp = stats_of(fallen, content.items).max_hp
+    fallen.hp = max(1, (max_hp * skill.revive + 50) // 100)
+    fallen.state = "exploring"
+    builder.update_player(fallen.id, hp=fallen.hp, state="exploring", combat_target_id=None)
+    builder.to_player(
+        fallen.id,
+        "skill.revived",
+        f"{healer.name} holt dich mit {skill.name} zurück ins Leben ({fallen.hp} HP).",
+        healed=fallen.hp,
+    )
+    builder.to_actor("skill.revive", f"Du holst {fallen.name} mit {skill.name} zurück ins Leben.")
+    builder.event(
+        "skill.revive",
+        RoomAudience(room_id=healer.current_room_id),
+        f"{healer.name} holt {fallen.name} zurück ins Leben.",
+        exclude=[healer.id, fallen.id],
+    )
+    report_hp(builder, fallen)
+
+
 def _percent(percent: int) -> Callable[[int], int]:
     return lambda max_hp: (max_hp * percent + 50) // 100
 
@@ -126,12 +164,17 @@ def resolve_use_skill(
     stats = stats_of(actor, content.items)
 
     if not skill.offensive:
-        recipients = _recipients(snapshot, skill)
-        if all(p.hp >= stats_of(p, content.items).max_hp for p in recipients):
+        builder = ResultBuilder(actor_id=actor.id)
+        if skill.revive:
+            fallen = _fallen(snapshot)
+            if fallen is None:
+                return rejected("Hier liegt niemand aus deiner Gruppe.")
+            _revive(builder, actor, fallen, skill, content)
+        recipients = _recipients(snapshot, skill) if skill.heal else []
+        if skill.heal and all(p.hp >= stats_of(p, content.items).max_hp for p in recipients):
             return rejected(
                 "Niemand ist verletzt." if len(recipients) > 1 else "Du bist unverletzt."
             )
-        builder = ResultBuilder(actor_id=actor.id)
         for member in recipients:
             _heal(
                 builder,

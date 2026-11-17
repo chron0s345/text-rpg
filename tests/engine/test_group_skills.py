@@ -159,3 +159,35 @@ def test_group_skill_rules() -> None:
         )
     with pytest.raises(ValidationError, match="need damage"):
         SkillTemplate(id="x", name="X", description="", class_id="a", cooldown=1, heal=5, taunt=2)
+
+
+def test_resurrection_brings_a_fallen_group_member_back(
+    content: ContentRegistry, rules: Rules
+) -> None:
+    cleric = member("Anna", "cleric", level=10)
+    bert = member("Bert", hp=0, state="dead")
+    stranger = member("Carl", hp=0, state="dead", group_id=None)
+    snapshot = ActionSnapshot(actor=cleric, room_players=[bert, stranger])
+    result = resolve_use_skill(snapshot, content, rules, NOW, RNG, "resurrection")
+
+    assert actor_texts(result) == ["Du holst Bert mit Auferstehung zurück ins Leben."]
+    assert texts_for(result, bert) == ["Anna holt dich mit Auferstehung zurück ins Leben (6 HP)."]
+    assert (bert.state, bert.hp) == ("exploring", 6)  # 30 % of 20
+    assert (stranger.state, stranger.hp) == ("dead", 0)  # not in the group
+    assert cleric.skill_cooldowns == {"resurrection": 8}
+
+    nobody = ActionSnapshot(actor=member("Anna", "cleric", level=10), room_players=[stranger])
+    result = resolve_use_skill(nobody, content, rules, NOW, RNG, "resurrection")
+    assert actor_texts(result) == ["Hier liegt niemand aus deiner Gruppe."]
+
+
+def test_revive_rules() -> None:
+    from pydantic import ValidationError
+
+    from app.content.schemas import SkillTemplate
+
+    with pytest.raises(ValidationError, match="revive goes without damage"):
+        SkillTemplate(
+            id="x", name="X", description="", class_id="a", cooldown=1, damage=1, revive=5
+        )
+    SkillTemplate(id="x", name="X", description="", class_id="a", cooldown=1, revive=5)

@@ -103,7 +103,8 @@ class SkillView:
     description: str
     level: int  # unlocked from this level on
     unlocked: bool
-    offensive: bool  # strikes a monster (else it only heals)
+    offensive: bool  # strikes a monster (else it only heals or revives)
+    revive: bool  # brings a fallen group member back
     cooldown: int  # combat rounds
     ready_in: int  # rounds until ready, 0 = ready
 
@@ -550,6 +551,7 @@ class ViewService:
                     level=s.level,
                     unlocked=row.level >= s.level,
                     offensive=s.offensive,
+                    revive=bool(s.revive),
                     cooldown=s.cooldown,
                     ready_in=0
                     if s.offensive and row.state != "in_combat"
