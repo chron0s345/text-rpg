@@ -150,20 +150,28 @@ Wer keine Klasse wählt – und jeder Charakter von vor der Einführung der Klas
 
 ### Fähigkeiten
 
-Jede Klasse hat **Fähigkeiten** – eine von Anfang an, eine zweite ab Stufe 6. Im Kampf stehen sie neben „Angreifen“; eine Fähigkeit einzusetzen ist eine Kampfrunde wie ein Angriff, danach schlägt das Monster zurück (außer es ist betäubt oder besiegt). Heilende Fähigkeiten gehen auch unterwegs; dort läuft ihre Abklingzeit aber erst mit dem nächsten Kampf ab. Danach braucht die Fähigkeit eine **Abklingzeit** in Kampfrunden: Jeder Angriff, jede Fähigkeit, jeder Trank im Kampf und jeder Fluchtversuch zählt eine Runde. **Jeder neue Kampf beginnt mit allen Fähigkeiten bereit.**
+Jede Klasse hat **Fähigkeiten** – eine von Anfang an, eine zweite ab Stufe 6 (der Krieger dazu Spott ab Stufe 3), eine dritte ab Stufe 10. Im Kampf stehen sie neben „Angreifen“; eine Fähigkeit einzusetzen ist eine Kampfrunde wie ein Angriff, danach schlägt das Monster zurück (außer es ist betäubt oder besiegt). Heilende Fähigkeiten gehen auch unterwegs; dort läuft ihre Abklingzeit aber erst mit dem nächsten Kampf ab. Danach braucht die Fähigkeit eine **Abklingzeit** in Kampfrunden: Jeder Angriff, jede Fähigkeit, jeder Trank im Kampf und jeder Fluchtversuch zählt eine Runde. **Jeder neue Kampf beginnt mit allen Fähigkeiten bereit.**
 
 | Fähigkeit | Klasse | ab Stufe | Abklingzeit | Wirkung |
 |---|---|---|---|---|
 | Zweiter Atem | Abenteurer | 1 | 5 | heilt 20 % der HP |
 | Wuchthieb | Abenteurer | 6 | 3 | 1,5-facher Schaden |
+| Letzter Funke | Abenteurer | 10 | 6 | doppelter Schaden, heilt 15 % der HP |
 | Schildschlag | Krieger | 1 | 3 | normaler Schaden, der Gegner schlägt nicht zurück |
+| Spott | Krieger | 3 | 5 | halber Schaden, die nächsten 3 Schläge gegen deine Gruppe treffen dich |
 | Zähigkeit | Krieger | 6 | 5 | heilt 25 % der HP |
+| Wirbelwind | Krieger | 10 | 5 | drei Hiebe zu je 0,8-fachem Schaden |
 | Gezielter Schuss | Waldläufer | 1 | 3 | 1,5-facher Schaden, Rüstung zählt nicht |
 | Doppelschuss | Waldläufer | 6 | 4 | zwei Treffer |
+| Pfeilhagel | Waldläufer | 10 | 5 | vier Treffer zu je 0,7-fachem Schaden, Rüstung zählt nicht |
 | Feuerball | Magier | 1 | 3 | doppelter Schaden |
 | Frostnova | Magier | 6 | 4 | Schaden ohne Rüstung, der Gegner schlägt nicht zurück |
-| Heilung | Priester | 1 | 4 | heilt 40 % der HP |
-| Heiliges Licht | Priester | 6 | 3 | 1,3-facher Schaden, die Hälfte davon heilt dich |
+| Meteor | Magier | 10 | 6 | dreifacher Schaden, der Gegner schlägt nicht zurück |
+| Heilung | Priester | 1 | 4 | heilt dich und deine Gruppe im Raum um 35 % der HP |
+| Heiliges Licht | Priester | 6 | 3 | 1,3-facher Schaden, die Hälfte davon heilt dich und deine Gruppe im Raum |
+| Auferstehung | Priester | 10 | 8 | holt ein gefallenes Gruppenmitglied im Raum mit 30 % der HP zurück |
+
+**Gruppen-Fähigkeiten:** Die Heilungen des Priesters wirken auf jedes Gruppenmitglied im selben Raum, jeweils nach dessen eigenen HP. Mit **Spott** zieht der Krieger den Gegner auf sich: Greift das Monster ein Gruppenmitglied an, das gegen denselben Gegner kämpft, steckt stattdessen der Krieger den Schlag ein – mit seiner Rüstung, für die nächsten drei Schläge. Ein neuer Kampf beendet den Spott. Mit **Auferstehung** holt der Priester ein Gruppenmitglied zurück, das im selben Raum gefallen ist – mit 30 % seiner HP, ohne den Weg zum Checkpoint; was beim Tod verloren ging, bleibt verloren.
 
 Das Panel **„Fähigkeiten“** zeigt alle Fähigkeiten deiner Klasse, ab welcher Stufe sie kommen und wann sie wieder bereit sind.
 

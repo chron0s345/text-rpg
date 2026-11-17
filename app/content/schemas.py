@@ -451,13 +451,21 @@ class SkillTemplate(BaseModel):
     stun: bool = False  # the monster does not strike back this round
     heal: int = Field(default=0, ge=0, le=100)  # percent of the max HP
     drain: int = Field(default=0, ge=0, le=100)  # percent of the damage dealt, healed
+    group: bool = False  # heal and drain also reach the group members in the room
+    taunt: int = Field(default=0, ge=0, le=10)  # strikes at group members taken instead
+    revive: int = Field(default=0, ge=0, le=100)  # brings a fallen group member back, % of HP
 
     @model_validator(mode="after")
     def _does_something(self) -> SkillTemplate:
-        if not self.damage and not self.heal:
-            raise ValueError(f"skill '{self.id}' neither hits nor heals")
-        if not self.damage and (self.hits > 1 or self.pierce or self.stun or self.drain):
-            raise ValueError(f"skill '{self.id}': hits, pierce, stun and drain need damage")
+        if not self.damage and not self.heal and not self.revive:
+            raise ValueError(f"skill '{self.id}' neither hits, heals nor revives")
+        if self.revive and self.damage:
+            raise ValueError(f"skill '{self.id}': revive goes without damage")
+        needs_damage = self.hits > 1 or self.pierce or self.stun or self.drain or self.taunt
+        if not self.damage and needs_damage:
+            raise ValueError(f"skill '{self.id}': hits, pierce, stun, drain and taunt need damage")
+        if self.group and not (self.heal or self.drain):
+            raise ValueError(f"skill '{self.id}': group needs heal or drain")
         return self
 
     @property

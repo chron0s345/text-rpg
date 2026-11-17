@@ -158,8 +158,8 @@ def test_a_killing_skill_ends_the_fight_without_a_counter(
 def test_healing_works_outside_a_fight(content: ContentRegistry, rules: Rules) -> None:
     cleric = hero("cleric", hp=10)
     result = use(content, rules, cleric, "heal")
-    assert actor_texts(result) == ["Du setzt Heilung ein und heilst dich um 8 HP."]  # 40 % of 20
-    assert player_update(result, cleric.id)["hp"] == 18
+    assert actor_texts(result) == ["Du setzt Heilung ein und heilst dich um 7 HP."]  # 35 % of 20
+    assert player_update(result, cleric.id)["hp"] == 17
     assert cleric.skill_cooldowns == {"heal": 4}
     whole = hero("cleric")
     assert actor_texts(use(content, rules, whole, "heal")) == ["Du bist unverletzt."]
@@ -171,10 +171,10 @@ def test_healing_in_a_fight_costs_the_round(content: ContentRegistry, rules: Rul
     fight(cleric, dummy)
     result = use(content, rules, cleric, "heal", dummy)
     assert actor_texts(result) == [
-        "Du setzt Heilung ein und heilst dich um 8 HP.",
+        "Du setzt Heilung ein und heilst dich um 7 HP.",
         "Übungspuppe trifft dich für 3 Schaden.",
     ]
-    assert player_update(result, cleric.id)["hp"] == 15
+    assert player_update(result, cleric.id)["hp"] == 14
 
 
 def test_holy_light_drains(content: ContentRegistry, rules: Rules) -> None:
@@ -226,9 +226,42 @@ def test_skills_must_do_something() -> None:
 
     from app.content.schemas import SkillTemplate
 
-    with pytest.raises(ValidationError, match="neither hits nor heals"):
+    with pytest.raises(ValidationError, match="neither hits, heals nor revives"):
         SkillTemplate(id="x", name="X", description="", class_id="mage", cooldown=1)
     with pytest.raises(ValidationError, match="need damage"):
         SkillTemplate(
             id="x", name="X", description="", class_id="mage", cooldown=1, heal=5, stun=True
         )
+
+
+@pytest.mark.parametrize(
+    ("class_id", "skill_id", "hits", "damage_each"),
+    [
+        ("warrior", "whirlwind", 3, 4),  # 5 * 0.8
+        ("ranger", "arrow_rain", 4, 4),  # 5 * 0.7 = 3.5 -> 4
+        ("mage", "meteor", 1, 15),  # 5 * 3
+        ("adventurer", "last_spark", 1, 10),  # 5 * 2
+    ],
+)
+def test_level_ten_skills(
+    content: ContentRegistry,
+    rules: Rules,
+    class_id: str,
+    skill_id: str,
+    hits: int,
+    damage_each: int,
+) -> None:
+    dummy = make_monster(hp=100)
+    early = use(content, rules, hero(class_id, level=9), skill_id, dummy, target=dummy)
+    assert actor_texts(early)[0].endswith("erst auf Stufe 10.")
+    actor = hero(class_id, level=10, hp=10)
+    result = use(content, rules, actor, skill_id, dummy, target=dummy)
+    texts = actor_texts(result)
+    hit_texts = [t for t in texts if t.startswith("Du setzt")]
+    assert len(hit_texts) == hits
+    assert all(t.endswith(f"für {damage_each} Schaden.") for t in hit_texts)
+    assert monster_hp(result, dummy) == 100 - hits * damage_each
+    if skill_id == "meteor":
+        assert any("taumelt" in t for t in texts)
+    if skill_id == "last_spark":
+        assert "Letzter Funke heilt dich um 3 HP." in texts  # 15 % of 20

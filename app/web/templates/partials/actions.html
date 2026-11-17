@@ -1,4 +1,5 @@
 {% set p = view.player %}
+{% set someone_fallen = view.room.players | selectattr(2, "equalto", "dead") | list | length > 0 %}
 <section id="actions" class="panel actions" aria-label="Aktionen"{% if oob %} hx-swap-oob="true"{% endif %}>
   {% if p.state == 'dead' %}
     <button class="primary" hx-post="/ui/actions" hx-vals='{"type": "respawn"}'>Am Checkpoint erwachen</button>
@@ -14,7 +15,7 @@
       </div>
     </div>
     <button class="primary" hx-post="/ui/actions" hx-vals='{{ {"type": "attack", "target_id": m.id | string} | tojson }}'>{{ m.name }} angreifen</button>
-    {% for s in p.skills if s.unlocked %}
+    {% for s in p.skills if s.unlocked and (not s.revive or someone_fallen) %}
     <button class="skill{% if not s.offensive %} heal{% endif %}" hx-post="/ui/actions" hx-vals='{{ {"type": "use_skill", "skill_id": s.id, "target_id": m.id | string} | tojson }}'
             title="{{ s.description }}"{% if s.ready_in %} disabled{% endif %}>✦ {{ s.name }}{% if s.ready_in %} <span class="cooldown">({{ s.ready_in }})</span>{% endif %}</button>
     {% endfor %}
@@ -26,8 +27,8 @@
   <button class="heal" hx-post="/ui/actions" hx-vals='{{ {"type": "use_item", "inventory_item_id": i.id | string} | tojson }}' title="{{ i.summary }}{% if p.state == 'in_combat' %} – kostet eine Kampfrunde{% endif %}">{% if i.icon %}<img src="/static/icons/{{ i.icon }}.svg" alt="" class="icon">{% endif %}{{ i.name }} <span class="muted">×{{ i.quantity }}</span></button>
   {% endfor %}
   {% endif %}
-  {% if p.state == 'exploring' and p.hp < p.max_hp %}
-  {% for s in p.skills if s.unlocked and not s.offensive %}
+  {% if p.state == 'exploring' %}
+  {% for s in p.skills if s.unlocked and not s.offensive and ((s.revive and someone_fallen) or (not s.revive and p.hp < p.max_hp)) %}
   <button class="skill heal" hx-post="/ui/actions" hx-vals='{{ {"type": "use_skill", "skill_id": s.id} | tojson }}'
           title="{{ s.description }}"{% if s.ready_in %} disabled{% endif %}>✦ {{ s.name }}{% if s.ready_in %} <span class="cooldown">({{ s.ready_in }})</span>{% endif %}</button>
   {% endfor %}
